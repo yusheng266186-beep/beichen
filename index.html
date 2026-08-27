@@ -3,10 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<!-- Keep this policy in sync with the deployed relay origin when changing RELAY. Inline UI code is legacy; a strict header should move it to an external file. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://1459223409-li1fse2kqe.ap-chengdu.tencentscf.com;">
 <title>北辰 · 高一选科探索</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap');
 
@@ -961,7 +963,7 @@ function loadCfg(){
 const RELAY = 'https://1459223409-li1fse2kqe.ap-chengdu.tencentscf.com';
 function apiEndpoint(){ return RELAY + '/chat/completions'; }
 function apiHeaders(){
-  const token = localStorage.getItem('bc_gate_token') || '';
+  const token = typeof gateToken === 'function' ? gateToken() : '';
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 
@@ -1074,14 +1076,43 @@ const choicesWrap = document.getElementById('choicesWrap');
 const choicesHint = document.getElementById('choicesHint');
 const choicesEl = document.getElementById('choices');
 
-/* 轻量续谈：只保存在当前浏览器，刷新或误关页面后可以接回原来的方位。 */
+/* 轻量续谈：只保存结构化对话状态。永远不要把可执行 HTML 放进 localStorage 再 innerHTML 恢复。 */
+const MAX_SESSION_MESSAGES = 40;
+const MAX_SESSION_TEXT = 20000;
+function normalizeHistory(value){
+  if(!Array.isArray(value) || value.length < 1 || value.length > MAX_SESSION_MESSAGES) return null;
+  const out = [];
+  for(const item of value){
+    if(!item || (item.role !== 'user' && item.role !== 'assistant') || typeof item.content !== 'string' || item.content.length > MAX_SESSION_TEXT) return null;
+    out.push({role:item.role, content:item.content});
+  }
+  return out;
+}
+function sanitizeReport(value){
+  if(!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const out = {};
+  ['称号','方位','星值','一句话','组合','专业','寄语'].forEach(key=>{
+    if(typeof value[key] === 'string') out[key] = value[key].slice(0, MAX_SESSION_TEXT);
+  });
+  out.cards = Array.isArray(value.cards) ? value.cards.slice(0,6).map(card=>({
+    title: typeof card?.title === 'string' ? card.title.slice(0,200) : '',
+    body: typeof card?.body === 'string' ? card.body.slice(0,2000) : ''
+  })).filter(card=>card.title && card.body) : [];
+  out._dir = ['wen','li','bal'].includes(value._dir) ? value._dir : 'bal';
+  const lean = Number(value._lean);
+  out._lean = Number.isFinite(lean) ? Math.max(0, Math.min(100, lean)) : 50;
+  return out;
+}
 function saveSession(){
   if(turnCount < 1 && !reportDone) return;
   try{
+    const savedHistory = history.length > MAX_SESSION_MESSAGES
+      ? [history[0], ...history.slice(-(MAX_SESSION_MESSAGES - 1))]
+      : history;
     localStorage.setItem(SESSION_KEY, JSON.stringify({
-      history, turnCount, reportDone, lastReport,
-      msgsHTML: msgsEl.innerHTML,
-      choices: [...choicesEl.querySelectorAll('.choc')].map(b=>b.textContent),
+      history: normalizeHistory(savedHistory) || [], turnCount: Math.max(0, Math.min(100, Number(turnCount)||0)),
+      reportDone: !!reportDone, lastReport: sanitizeReport(lastReport),
+      choices: [...choicesEl.querySelectorAll('.choc')].map(b=>String(b.textContent||'').slice(0,120)).filter(Boolean).slice(0,4),
       savedAt: Date.now()
     }));
   }catch(e){}
@@ -1090,12 +1121,19 @@ function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 function restoreSession(){
   try{
     const s = JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
-    if(!s || !Array.isArray(s.history) || !s.turnCount || !s.msgsHTML) return false;
-    history = s.history;
-    turnCount = Number(s.turnCount)||0;
-    reportDone = !!s.reportDone;
-    lastReport = s.lastReport || null;
-    msgsEl.innerHTML = s.msgsHTML;
+    const restoredHistory = normalizeHistory(s?.history);
+    if(!s || !restoredHistory || !Number.isInteger(Number(s.turnCount)) || Number(s.turnCount) < 1) return false;
+    history = restoredHistory;
+    turnCount = Math.max(0, Math.min(100, Number(s.turnCount)||0));
+    lastReport = sanitizeReport(s.lastReport);
+    reportDone = !!s.reportDone && !!lastReport;
+    /* Rebuild every bubble from textContent-safe markdown instead of trusting saved HTML. */
+    msgsEl.innerHTML = '';
+    history.forEach(item=>{
+      const display = reportDone && item.role === 'assistant' && item.content.indexOf('[对话纪要]') === 0
+        ? '十问已毕——你的星图画好了。' : item.content;
+      addMsg(item.role === 'user' ? 'user' : 'ai', mdLite(display));
+    });
     booted = true;
     if(reportDone && lastReport){
       renderReport(lastReport);
@@ -1106,6 +1144,8 @@ function restoreSession(){
     }
     renderRail();
     setTimeout(()=>scrollBottom(true), 80);
+    /* Migrate old sessions away from the legacy msgsHTML field on next save. */
+    saveSession();
     toast('已接回上次未完的谈话');
     return true;
   }catch(e){
@@ -1279,9 +1319,9 @@ const RETRYABLE = new Set([408,429,500,502,503,504]);
 function friendlyError(err){
   const status = Number(err?.status||0);
   const msg = String(err?.message||'');
-  if(status === 401 && /BEICHEN_AUTH_REQUIRED|BEICHEN_AUTH_EXPIRED/.test(msg)) return '验证已失效，请重新输入动态验证码。';
+  if(status === 401 && /BEICHEN_AUTH_REQUIRED|BEICHEN_AUTH_EXPIRED|BEICHEN_AUTH_REPLAY/.test(msg)) return '验证已失效或请求已重放，请重新输入动态验证码。';
   if(status === 401) return '模型服务凭据未通过，请联系维护者。';
-  if(status === 402) return 'OpenCode Go 额度已用尽（每5小时/每周有限额），稍后再试。';
+  if(status === 402) return '模型服务额度已用尽，稍后再试。';
   if(status === 429) return '请求过于频繁，稍等几秒再试。';
   if(status >= 500) return '模型服务暂时繁忙，请稍后重试。';
   if(err?.name === 'AbortError') return '等待超时已自动取消，请重试。';
@@ -1520,7 +1560,7 @@ async function processResponse(raw, expectingReport){
     let runs = Number(cloudQuota.runs);
     if(!Number.isFinite(runs)) runs = gateRuns() + 1;
     runs = Math.max(0, Math.min(GATE_MAX_RUNS, runs));
-    localStorage.setItem('bc_runs', String(runs));
+    gateSet(GATE_RUNS_KEY, runs);
     /* 压缩历史：十轮问答 → 学生回答纪要 + 星图全文（追问轮 token 省 60%+，画像不丢） */
     const userLines = history.filter(m => m.role === 'user').map(m => m.content);
     history = [{
@@ -1983,25 +2023,48 @@ function boot(){
 
 /* ═══════════════════════════ 2FA 星门（云端校验） ═══════════════════════════ */
 const GATE_TOKEN_KEY = 'bc_gate_token';
-const GATE_REMEMBER_MS = 7 * 24 * 60 * 60 * 1000;   /* 验证通过后本设备 7 天内免重复输入动态验证码 */
+const GATE_AT_KEY = 'bc_gate';
+const GATE_EXP_KEY = 'bc_gate_exp';
+const GATE_RUNS_KEY = 'bc_runs';
+const GATE_COMPLETION_KEY = 'bc_gate_completion_request';
+const GATE_REMEMBER_MS = 24 * 60 * 60 * 1000;        /* 与服务端默认 Token TTL 对齐；只留在当前标签页 */
 const GATE_MAX_RUNS = 3;                            /* 每次验证允许 3 次完整对话（以星图生成为准） */
 
-function gateToken(){ return localStorage.getItem(GATE_TOKEN_KEY) || ''; }
+const GATE_STORE = (()=>{
+  try{ return window.sessionStorage; }catch(_){ return window.localStorage; }
+})();
+function gateGet(key){ try{ return GATE_STORE.getItem(key) || ''; }catch(_){ return ''; } }
+function gateSet(key, value){ try{ GATE_STORE.setItem(key, String(value)); }catch(_){} }
+function gateRemove(key){ try{ GATE_STORE.removeItem(key); }catch(_){} }
+function gateToken(){ return gateGet(GATE_TOKEN_KEY); }
+function setGateToken(value){ gateSet(GATE_TOKEN_KEY, value); }
 function gateAuthEndpoint(path){ return RELAY + path; }
-function gateRuns(){ return Number(localStorage.getItem('bc_runs') || 0); }
+function gateRuns(){ return Number(gateGet(GATE_RUNS_KEY) || 0); }
 function gateOk(){
-  const t = Number(localStorage.getItem('bc_gate') || 0);
-  return !!(gateToken() && t && (Date.now() - t < GATE_REMEMBER_MS) && gateRuns() < GATE_MAX_RUNS);
+  const t = Number(gateGet(GATE_AT_KEY) || 0);
+  const exp = Number(gateGet(GATE_EXP_KEY) || (t + GATE_REMEMBER_MS));
+  return !!(gateToken() && t && exp > Date.now() && gateRuns() < GATE_MAX_RUNS);
+}
+function completionRequestId(){
+  let id = gateGet(GATE_COMPLETION_KEY);
+  if(!/^[A-Za-z0-9._~-]{16,96}$/.test(id)){
+    id = (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36)+'-'+Math.random().toString(36).slice(2))).slice(0,96);
+    gateSet(GATE_COMPLETION_KEY, id);
+  }
+  return id;
 }
 async function completeGateRun(){
   const res = await fetch(gateAuthEndpoint('/run/complete'), {
-    method:'POST', headers: apiHeaders(), body: JSON.stringify({})
+    method:'POST', headers:{...apiHeaders(), 'X-Request-ID':completionRequestId()}, body: JSON.stringify({})
   });
   let data = {};
   try{ data = await res.json(); }catch(_){ }
   if(!res.ok || !data.token) throw new Error(data?.error?.message || 'BEICHEN_AUTH_EXPIRED');
-  localStorage.setItem(GATE_TOKEN_KEY, data.token);
-  localStorage.setItem('bc_runs', String(data.runs || 0));
+  setGateToken(data.token);
+  gateSet(GATE_RUNS_KEY, data.runs || 0);
+  gateSet(GATE_AT_KEY, Date.now());
+  gateSet(GATE_EXP_KEY, Date.now() + Math.max(0, Number(data.expiresIn)||GATE_REMEMBER_MS));
+  gateRemove(GATE_COMPLETION_KEY);
   return data;
 }
 function lockGate(msg){
@@ -2030,9 +2093,11 @@ async function gateTry(){
       input.value = ''; input.focus();
       return;
     }
-    localStorage.setItem(GATE_TOKEN_KEY, data.token);
-    localStorage.setItem('bc_gate', String(Date.now()));
-    localStorage.setItem('bc_runs', '0');          /* 新一轮验证，对话次数重新计数 */
+    setGateToken(data.token);
+    gateSet(GATE_AT_KEY, Date.now());
+    gateSet(GATE_EXP_KEY, Date.now() + Math.max(0, Number(data.expiresIn)||GATE_REMEMBER_MS));
+    gateSet(GATE_RUNS_KEY, '0');                    /* 新一轮验证，对话次数重新计数 */
+    gateRemove(GATE_COMPLETION_KEY);
     err.textContent = '';
     document.getElementById('gate').classList.add('pass');
     setTimeout(()=>{ input.blur(); }, 100);
@@ -2048,18 +2113,24 @@ function setupGate(){
   const gate = document.getElementById('gate');
   /* 地址栏带 ?relock 可清除本机记录、重新验证 */
   if(location.search.indexOf('relock') >= 0){
-    localStorage.removeItem('bc_gate');
-    localStorage.removeItem('bc_runs');
-    localStorage.removeItem(GATE_TOKEN_KEY);
+    gateRemove(GATE_AT_KEY);
+    gateRemove(GATE_EXP_KEY);
+    gateRemove(GATE_RUNS_KEY);
+    gateRemove(GATE_TOKEN_KEY);
+    gateRemove(GATE_COMPLETION_KEY);
   }
   if(gateOk()){ gate.classList.add('pass'); if(!restoreSession()) boot(); return; }   /* 免验证：续谈或直接开始 */
   /* 旧版本可能只留下时间标记，不能把首次进入误报成“验证已过期”。 */
+  /* Remove tokens left by the older localStorage implementation. */
+  try{ if(GATE_STORE !== window.localStorage) localStorage.removeItem(GATE_TOKEN_KEY); }catch(_){ }
   const savedToken = gateToken();
-  const savedAt = Number(localStorage.getItem('bc_gate') || 0);
+  const savedAt = Number(gateGet(GATE_AT_KEY) || 0);
   if(!savedToken || !savedAt){
-    localStorage.removeItem('bc_gate');
-    localStorage.removeItem('bc_runs');
-    localStorage.removeItem(GATE_TOKEN_KEY);
+    gateRemove(GATE_AT_KEY);
+    gateRemove(GATE_EXP_KEY);
+    gateRemove(GATE_RUNS_KEY);
+    gateRemove(GATE_TOKEN_KEY);
+    gateRemove(GATE_COMPLETION_KEY);
   }else{
     lockGate(gateRuns() >= GATE_MAX_RUNS ? '本次验证的 3 次对话已用完，请重新验证' : '验证已过期，请重新输入');
   }

@@ -143,7 +143,7 @@
 - SSE 流式接收模型内容；
 - requestAnimationFrame 节流更新页面；
 - 请求超时、自动重试和报告截断续写；
-- localStorage 保存短期会话 Token 的本地副本、额度展示、设置和谈心记录；
+- `sessionStorage` 保存短期会话 Token、额度展示和一次性完成请求 ID；`localStorage` 只保存设置与结构化谈心记录（恢复时重新用转义文本渲染，不信任 HTML）；
 - 腾讯云函数负责 TOTP 校验、签发会话 Token 和记录星图次数；前端不再保存 2FA 密钥；
 - html2canvas 生成完整星图图片；
 - visualViewport 适配手机软键盘；
@@ -193,33 +193,77 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
 
 1. 创建 Node.js Web 函数；
 2. 使用仓库中的 `scf-relay.js` 作为函数入口逻辑；
-3. 在环境变量中添加以下三个变量（均不要写回源码）：
+3. 在环境变量中添加以下变量（均不要写回源码）。默认 provider 是 OpenCode：
 
-       OPENCODE_API_KEY      = OpenCode Go API Key
+       AI_PROVIDER           = opencode
+       OPENCODE_API_KEY      = OpenCode API Key
+       OPENCODE_MODEL        = deepseek-v4-flash（按账户可用模型填写）
        GATE_TOTP_SECRET      = 动态验证码使用的 Base32 主密钥
-       GATE_SESSION_SECRET   = 随机生成的长字符串，用于签发会话 Token
+       GATE_SESSION_SECRET   = 随机生成的至少 32 字节长字符串
+       CORS_ALLOWED_ORIGINS  = https://yusheng266186-beep.github.io
+       GATE_TOKEN_TTL_MS     = 86400000（可选，默认 24 小时）
+       UPSTREAM_TIMEOUT_MS   = 300000（可选，最大 300 秒）
 
-   `GATE_TOTP_SECRET` 填动态验证码的种子密钥，不是当前 6 位动态验证码。`GATE_SESSION_SECRET` 可使用密码管理器生成至少 32 字节随机字符串。
-4. 开启公网访问，将执行超时设置为 300 秒，并部署函数；
-5. 函数地址需要支持 `/verify`、`/chat/completions` 和 `/run/complete` 三个 POST 路径；
-6. 将正式函数地址写入 `index.html` 的 `RELAY` 配置；
-7. 依次验证：输入动态验证码、完成一张星图、刷新页面续谈、完成第 3 张星图后重新验证。
+`GATE_TOTP_SECRET` 填动态验证码的种子密钥，不是当前 6 位动态验证码。`GATE_SESSION_SECRET` 可使用密码管理器生成至少 32 字节随机字符串。
+4. 若要接入百度千帆普通 API，将 provider 和变量改为：
 
-relay-worker.js 提供同等的备用中转实现。若使用 Cloudflare Worker，请在 Worker Secrets 中添加同名的三个 Secret，不要把密钥写进 Worker 源码。
+       AI_PROVIDER           = qianfan
+       QIANFAN_API_KEY       = 千帆普通 API 的服务端密钥
+       QIANFAN_BASE_URL      = https://qianfan.baidubce.com/v2
+       QIANFAN_MODEL         = 账户中已开通的模型 ID
+
+   中转会把请求发送到标准 `QIANFAN_BASE_URL + /chat/completions`（即 `/v2/chat/completions`），并在服务端注入模型名。当前实现只允许 HTTPS hostname `qianfan.baidubce.com` 和 443 端口，避免误配环境变量形成 SSRF；如使用官方企业别名，须先在代码的 allowlist 中显式加入并重新审查。不要把密钥写入 `index.html`，不要让浏览器直连千帆。千帆 Coding Plan / Coding Plan Lite 的专属 key、专属接口或编码套餐端点不能作为这里的自定义后端；如需使用，请先确认官方允许的普通 OpenAI 兼容 API 凭据和 endpoint。
+5. 开启公网访问，将函数执行超时设置为 300 秒，并部署函数；`scf-relay.js` 不设置响应 socket idle timeout。`server.requestTimeout=20000` 只限制接收客户端请求体，不会在上游 20 秒无 token 时截断 300 秒流式响应。
+6. 函数地址需要只暴露 `/verify`、`/chat/completions` 和 `/run/complete` 三个 POST 路径；
+7. 将正式函数地址写入 `index.html` 的 `RELAY` 配置，并同步更新页面 CSP 的 `connect-src`；
+8. 依次验证：输入动态验证码、完成一张星图、刷新页面续谈、重复提交同一完成请求不会重复扣额、完成第 3 张星图后重新验证。
+
+`relay-worker.js` 提供同等的备用中转实现。若使用 Cloudflare Worker，请在 Worker Secrets/Variables 中添加对应变量，不要把密钥写进 Worker 源码；Worker 的 `CORS_ALLOWED_ORIGINS`、`AI_PROVIDER`、`QIANFAN_*` 与上面含义相同。
+
+### 从旧版迁移
+
+1. 先在 provider 控制台撤销旧的、曾经出现在公开仓库或日志里的 key；旧版 token 也不再兼容。
+2. 生成新的 `GATE_SESSION_SECRET`（至少 32 字节）并重新部署中转；默认 token TTL 已从 7 天收紧为 24 小时。
+3. 选择一个 provider，按上面的 `opencode` 或普通 `qianfan` 变量配置；不要把 Coding Plan/Coding Plan Lite 的专属凭据填到 `QIANFAN_API_KEY`。
+4. 更新 `index.html` 的 `RELAY` 与 CSP `connect-src`。旧浏览器中的 localStorage token 会被清理，当前标签页需重新输入 TOTP。
+5. 先在测试环境验证三条精确路径、错误状态、重复 `/run/complete` 请求和超时，再切换 GitHub Pages 的正式地址。
+
+### 公开仓库安全清单
+
+- GitHub Pages 只托管 `index.html` 等无密钥静态文件；API key、TOTP seed、session secret 只能放在云函数/Worker 的加密 Secret 中。
+- `index.html` 已为 html2canvas CDN 脚本加入 SRI；升级依赖时重新计算 `sha384` 并人工核对版本。字体和 CDN 仍是外部供应链，必要时应自托管并移除 `unsafe-inline`。
+- 中转默认拒绝未知 Origin，仅允许 `CORS_ALLOWED_ORIGINS`；发布到新域名时要同时更新环境变量和页面 CSP。
+- 保护 `main`：要求 Pull Request、至少一名审查者、状态检查通过、禁止强推和删除分支；启用 Dependabot/Secret scanning，并让 CI 在合并前执行语法和安全扫描。
+- 无外部数据库时，session、TOTP 重放记录和额度更新只在单个运行实例内存中；这是明确的安全/可用性降级，不应被描述为跨实例全局配额。生产环境应以支持原子条件更新的 KV/数据库替代内存 Map。
+
+### 本地检查
+
+无需安装 npm 依赖即可执行最小检查：
+
+    node tests/relay-smoke.test.js
+    node --check scf-relay.js
+
+    # 可选：用浏览器打开 index.html，检查控制台 CSP/SRI 和网络请求
+
+`tests/relay-smoke.test.js` 同时执行 `scf-relay.js` 的本地无上游冒烟测试，并验证可静态加载的安全不变量（精确路径、CORS 白名单、Qianfan 标准端点、token/请求限制和不恢复 HTML）；它不会调用真实 provider，也不会证明云端部署成功。
 
 ### 密钥配置与排查
 
-- 中转函数同时使用 `OPENCODE_API_KEY`、`GATE_TOTP_SECRET` 和 `GATE_SESSION_SECRET`；网页和 GitHub Pages 不保存 API Key 或 TOTP 主密钥。
+- 中转函数只在服务端读取 provider API Key、`GATE_TOTP_SECRET` 和 `GATE_SESSION_SECRET`；网页和 GitHub Pages 不保存 API Key 或 TOTP 主密钥。
 - 腾讯云控制台中可在“函数配置 → 环境变量 → 导入数据”选择“json对象”，填写以下结构后保存（值替换为自己的真实值）：
 
       {
-        "OPENCODE_API_KEY": "你的 OpenCode Go API Key",
+        "AI_PROVIDER": "qianfan",
+        "QIANFAN_API_KEY": "你的普通千帆 API Key",
+        "QIANFAN_BASE_URL": "https://qianfan.baidubce.com/v2",
+        "QIANFAN_MODEL": "账户中已开通的模型 ID",
         "GATE_TOTP_SECRET": "你的 Base32 动态验证码主密钥",
-        "GATE_SESSION_SECRET": "至少 32 字节的随机字符串"
+        "GATE_SESSION_SECRET": "至少 32 字节的随机字符串",
+        "CORS_ALLOWED_ORIGINS": "https://yusheng266186-beep.github.io"
       }
 
-- Cloudflare Worker 必须使用加密 Secret，而不是普通变量，三个名称保持一致。
-- 更换密钥后，应立即在 OpenCode Go 控制台撤销旧密钥，并重新保存腾讯云环境变量。
+- Cloudflare Worker 必须把 API key、TOTP seed、session secret 存为加密 Secret，而不是普通变量；非敏感的 provider、模型、URL、CORS 可用普通变量。
+- 更换密钥后，应立即在对应 provider 控制台撤销旧密钥，并重新保存中转环境变量。
 - 推送前可在本地执行以下检查，确认当前文件没有明文密钥：
 
       rg -n --hidden --glob '!.git/**' 'sk-[A-Za-z0-9_-]{20,}' .
@@ -230,13 +274,13 @@ relay-worker.js 提供同等的备用中转实现。若使用 Cloudflare Worker�
 
 页面会在当前浏览器保存：
 
-- 短期会话 Token 的本地副本与有效期提示；
+- 当前标签页的短期会话 Token、有效期提示和完成请求 ID（默认 TTL 24 小时）；
 - 云端返回的本次验证星图次数；
 - 深度思考设置；
 - 当前谈心内容；
 - 已生成的星图和追问上下文。
 
-清除浏览器站点数据、使用无痕模式或更换设备后，这些记录可能消失。页面没有账号系统，也不提供跨设备同步。
+关闭标签页、清除浏览器站点数据、使用无痕模式或更换设备后，Token 可能消失，需要重新验证。页面没有账号系统，也不提供跨设备同步。服务端无外部数据库时，session/额度/防重放状态只在当前函数实例内存中：实例重启会要求重新验证，多实例并不能提供全局额度一致性。正式公开服务应接入具备原子条件更新的 KV/数据库，或使用粘性单实例并接受该降级。
 
 ## 数据来源与口径
 
