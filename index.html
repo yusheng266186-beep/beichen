@@ -371,6 +371,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 
 .rc-time{text-align:center;font-size:10px;color:var(--mut);letter-spacing:0.2em;padding:14px 0 6px;font-family:var(--serif)}
 .report-quota{text-align:center;font-size:10.5px;color:var(--mut);letter-spacing:.06em;padding:0 20px 16px;line-height:1.7}
+.report-quota.pending{color:var(--wen)}
 .report-actions{
   display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
   padding:0 30px 26px;
@@ -820,6 +821,7 @@ button{-webkit-tap-highlight-color:transparent}
       <button class="tbtn" onclick="copyReport()">复制星图</button>
       <button class="tbtn" onclick="continueAsk('为什么是这个方位？讲讲你判断的核心依据。')">追问依据</button>
       <button class="tbtn danger" onclick="confirmRestart()">重新测试</button>
+      <button class="tbtn" id="syncQuotaBtn" onclick="retryQuotaSync()" style="display:none">重试额度同步</button>
     </div>
   </div>
 </div>
@@ -1063,6 +1065,7 @@ let waiting = false;
 let reportDone = false;
 let turnCount = 0;
 let lastReport = null;
+let quotaSyncPending = false;
 let activeStreamAbort = null;
 const SESSION_KEY = 'beichen_session_v1';
 
@@ -1079,7 +1082,7 @@ function saveSession(){
   if(turnCount < 1 && !reportDone) return;
   try{
     localStorage.setItem(SESSION_KEY, JSON.stringify({
-      history, turnCount, reportDone, lastReport,
+      history, turnCount, reportDone, lastReport, quotaSyncPending,
       msgsHTML: msgsEl.innerHTML,
       choices: [...choicesEl.querySelectorAll('.choc')].map(b=>b.textContent),
       savedAt: Date.now()
@@ -1095,12 +1098,14 @@ function restoreSession(){
     turnCount = Number(s.turnCount)||0;
     reportDone = !!s.reportDone;
     lastReport = s.lastReport || null;
+    quotaSyncPending = !!s.quotaSyncPending;
     msgsEl.innerHTML = s.msgsHTML;
     booted = true;
     if(reportDone && lastReport){
       renderReport(lastReport);
       document.getElementById('reportBtn').style.display = '';
-      renderChips(['点亮星图','为什么是这个方位','组合帮我对比下','我还想补充','重新测试']);
+      setQuotaSyncPending(quotaSyncPending);
+      renderPostReportChoices();
     }else{
       renderChoices(Array.isArray(s.choices) ? s.choices : []);
     }
@@ -1505,22 +1510,10 @@ async function processResponse(raw, expectingReport){
 
   const rep = parseReport(text);
   if(rep){
-    let cloudQuota;
-    try{
-      cloudQuota = await completeGateRun();
-    }catch(e){
-      addMsg('ai', '⚠ 星图已经生成，但云端额度同步失败，请保持当前页面并稍后重试。');
-      toast('云端额度同步失败');
-      return;
-    }
     lastReport = rep;
     reportDone = true;
+    quotaSyncPending = true;
     renderReport(rep);
-    /* 完整对话计数：一张星图 = 一次；3 次后需重新验证 */
-    let runs = Number(cloudQuota.runs);
-    if(!Number.isFinite(runs)) runs = gateRuns() + 1;
-    runs = Math.max(0, Math.min(GATE_MAX_RUNS, runs));
-    localStorage.setItem('bc_runs', String(runs));
     /* 压缩历史：十轮问答 → 学生回答纪要 + 星图全文（追问轮 token 省 60%+，画像不丢） */
     const userLines = history.filter(m => m.role === 'user').map(m => m.content);
     history = [{
@@ -1534,13 +1527,31 @@ async function processResponse(raw, expectingReport){
     let bub = msgsEl.querySelector('.row:last-child .bub');
     if(bub) bub.innerHTML = mdLite(keep);
     else bub = addMsg('ai', mdLite(keep));
+    /* 先完成星图渲染，再同步云端额度；同步失败时保留报告并提供可重试入口。 */
+    let cloudQuota = null;
+    try{
+      cloudQuota = await completeGateRun();
+    }catch(e){
+      quotaSyncPending = true;
+    }
+    /* 完整对话计数：一张星图 = 一次；3 次后需重新验证 */
+    let runs = cloudQuota ? Number(cloudQuota.runs) : gateRuns();
+    if(!Number.isFinite(runs)) runs = gateRuns() + 1;
+    runs = Math.max(0, Math.min(GATE_MAX_RUNS, runs));
+    localStorage.setItem('bc_runs', String(runs));
+    setQuotaSyncPending(!cloudQuota);
     renderPostReportChoices();
     renderRail();
     document.getElementById('reportBtn').style.display = '';
     document.getElementById('rp-time').textContent = 'NORTHSTAR · ' + new Date().toLocaleString('zh-CN',{hour12:false});
     updateQuotaNote(runs);
-    toast(runs >= GATE_MAX_RUNS ? '星图已点亮（3/3）· 下次使用需重新验证' : '星图已点亮（' + runs + '/' + GATE_MAX_RUNS + '）');
-    if(runs >= GATE_MAX_RUNS){
+    if(cloudQuota){
+      toast(runs >= GATE_MAX_RUNS ? '星图已点亮（3/3）· 下次使用需重新验证' : '星图已点亮（' + runs + '/' + GATE_MAX_RUNS + '）');
+    }else{
+      addMsg('ai', '⚠ 星图已经保存，但云端额度同步暂未完成。请点击“重试额度同步”，无需重新回答。');
+      toast('星图已保存，额度同步待重试');
+    }
+    if(cloudQuota && runs >= GATE_MAX_RUNS){
       addMsg('ai', '三次谈心已经用完了。这张星图你可以继续追问；下次使用前，需要重新输入动态验证码验证。');
     }
     setTimeout(()=>openOverlay('reportModal'), 800);
@@ -1581,7 +1592,42 @@ function renderChoices(arr, hideHint){
 }
 
 function renderPostReportChoices(){
-  renderChips(['点亮星图','为什么是这个方位','组合帮我对比下','我还想补充','重新测试']);
+  const chips = ['点亮星图','为什么是这个方位','组合帮我对比下','我还想补充','重新测试'];
+  if(quotaSyncPending) chips.unshift('重试额度同步');
+  renderChips(chips);
+}
+
+function setQuotaSyncPending(pending){
+  quotaSyncPending = !!pending;
+  const btn = document.getElementById('syncQuotaBtn');
+  if(btn){
+    btn.style.display = quotaSyncPending ? '' : 'none';
+    btn.disabled = false;
+    btn.textContent = '重试额度同步';
+  }
+  updateQuotaNote(gateRuns());
+}
+
+async function retryQuotaSync(){
+  if(!quotaSyncPending || waiting) return;
+  const btn = document.getElementById('syncQuotaBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '同步中…'; }
+  try{
+    const data = await completeGateRun();
+    const runs = Math.max(0, Math.min(GATE_MAX_RUNS, Number(data.runs)||0));
+    localStorage.setItem('bc_runs', String(runs));
+    setQuotaSyncPending(false);
+    renderPostReportChoices();
+    renderRail();
+    saveSession();
+    toast(runs >= GATE_MAX_RUNS ? '额度已补记（3/3）· 下次使用需重新验证' : '额度已同步（' + runs + '/' + GATE_MAX_RUNS + '）');
+    if(runs >= GATE_MAX_RUNS) addMsg('ai', '三次谈心已经用完了。这张星图你可以继续追问；下次使用前，需要重新输入动态验证码验证。');
+  }catch(e){
+    setQuotaSyncPending(true);
+    renderPostReportChoices();
+    if(btn){ btn.disabled = false; btn.textContent = '重试额度同步'; }
+    toast('额度同步仍未完成，请稍后再试');
+  }
 }
 
 function renderChips(arr){
@@ -1594,6 +1640,7 @@ function renderChips(arr){
     b.style.animationDelay = (i*50)+'ms';
     b.textContent = opt;
     b.onclick = ()=>{
+      if(opt === '重试额度同步'){ retryQuotaSync(); return; }
       if(opt === '重新测试'){ confirmRestart(); return; }
       if(opt === '点亮星图'){ openOverlay('reportModal'); return; }
       if(opt === '为什么是这个方位') return continueAsk('为什么是这个方位？讲讲你判断的核心依据。');
@@ -1695,6 +1742,11 @@ function updateQuotaNote(runs){
   const el = document.getElementById('rp-quota');
   if(!el) return;
   const used = Math.max(0, Math.min(GATE_MAX_RUNS, Number(runs)||0));
+  el.classList.toggle('pending', quotaSyncPending);
+  if(quotaSyncPending){
+    el.textContent = '星图已保存 · 额度同步暂未完成，请点击“重试额度同步”';
+    return;
+  }
   el.textContent = used >= GATE_MAX_RUNS
     ? '本次验证已生成 3/3 张星图 · 下次使用需重新验证'
     : '本次验证已生成 ' + used + '/3 张星图 · 满 3 次后需重新验证';
@@ -1946,13 +1998,18 @@ function restartFromConfirm(){ closeOverlay('restartModal'); restart(); }
 
 function restart(){
   if(activeStreamAbort){ try{ activeStreamAbort.abort(); }catch(e){} }
+  if(quotaSyncPending){
+    toast('请先同步本次星图额度');
+    openOverlay('reportModal');
+    return;
+  }
   if(!gateOk()){
     /* 验证额度已用完：上锁并提示，验证通过后继续 */
     lockGate(gateRuns() >= GATE_MAX_RUNS ? '本次验证的 3 次对话已用完，重新验证后即可继续' : '验证已过期，请重新输入动态验证码');
     toast('请先完成验证');
     return;
   }
-  history = []; turnCount = 0; reportDone = false; lastReport = null; waiting = false;
+  history = []; turnCount = 0; reportDone = false; lastReport = null; quotaSyncPending = false; waiting = false;
   clearSession();
   msgsEl.innerHTML = '';
   choicesEl.innerHTML = ''; choicesWrap.classList.remove('hide','dis');
@@ -1994,15 +2051,21 @@ function gateOk(){
   return !!(gateToken() && t && (Date.now() - t < GATE_REMEMBER_MS) && gateRuns() < GATE_MAX_RUNS);
 }
 async function completeGateRun(){
-  const res = await fetch(gateAuthEndpoint('/run/complete'), {
-    method:'POST', headers: apiHeaders(), body: JSON.stringify({})
-  });
-  let data = {};
-  try{ data = await res.json(); }catch(_){ }
-  if(!res.ok || !data.token) throw new Error(data?.error?.message || 'BEICHEN_AUTH_EXPIRED');
-  localStorage.setItem(GATE_TOKEN_KEY, data.token);
-  localStorage.setItem('bc_runs', String(data.runs || 0));
-  return data;
+  const ctrl = new AbortController();
+  const timeout = setTimeout(()=>ctrl.abort(), 10000);
+  try{
+    const res = await fetch(gateAuthEndpoint('/run/complete'), {
+      method:'POST', headers: apiHeaders(), body: JSON.stringify({}), signal: ctrl.signal
+    });
+    let data = {};
+    try{ data = await res.json(); }catch(_){ }
+    if(!res.ok || !data.token) throw new Error(data?.error?.message || 'BEICHEN_AUTH_EXPIRED');
+    localStorage.setItem(GATE_TOKEN_KEY, data.token);
+    localStorage.setItem('bc_runs', String(data.runs || 0));
+    return data;
+  }finally{
+    clearTimeout(timeout);
+  }
 }
 function lockGate(msg){
   const gate = document.getElementById('gate');
