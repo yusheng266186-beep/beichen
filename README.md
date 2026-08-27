@@ -205,14 +205,14 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
        UPSTREAM_TIMEOUT_MS   = 300000（可选，最大 300 秒）
 
 `GATE_TOTP_SECRET` 填动态验证码的种子密钥，不是当前 6 位动态验证码。`GATE_SESSION_SECRET` 可使用密码管理器生成至少 32 字节随机字符串。
-4. 若要接入百度千帆普通 API，将 provider 和变量改为：
+4. 若要接入百度千帆 Token Plan 个人版 Mini，将 provider 和变量改为：
 
        AI_PROVIDER           = qianfan
-       QIANFAN_API_KEY       = 千帆普通 API 的服务端密钥
+       QIANFAN_API_KEY       = Token Plan 个人版 Mini 专属 API Key（仅服务端）
        QIANFAN_BASE_URL      = https://qianfan.baidubce.com/v2
        QIANFAN_MODEL         = 账户中已开通的模型 ID
 
-   中转会把请求发送到标准 `QIANFAN_BASE_URL + /chat/completions`（即 `/v2/chat/completions`），并在服务端注入模型名。当前实现只允许 HTTPS hostname `qianfan.baidubce.com` 和 443 端口，避免误配环境变量形成 SSRF；如使用官方企业别名，须先在代码的 allowlist 中显式加入并重新审查。不要把密钥写入 `index.html`，不要让浏览器直连千帆。千帆 Coding Plan / Coding Plan Lite 的专属 key、专属接口或编码套餐端点不能作为这里的自定义后端；如需使用，请先确认官方允许的普通 OpenAI 兼容 API 凭据和 endpoint。
+   中转会把请求发送到标准 `QIANFAN_BASE_URL + /chat/completions`（即 `/v2/chat/completions`），并在服务端注入模型名。Mini 是额度套餐/Token Plan 配置，不是模型名；`QIANFAN_MODEL` 仍须填写账户已开通的模型 ID。当前实现只允许 HTTPS hostname `qianfan.baidubce.com` 和 443 端口，避免误配环境变量形成 SSRF；如使用官方企业别名，须先在代码的 allowlist 中显式加入并重新审查。不要把密钥写入 `index.html`，不要让浏览器直连千帆。这里应使用 Token Plan 个人版 Mini 专属 key，不要替换为普通后付费 key。千帆 Coding Plan / Coding Plan Lite 的专属 key、专属接口或编码套餐端点不能作为这里的自定义后端。
 5. 开启公网访问，将函数执行超时设置为 300 秒，并部署函数；`scf-relay.js` 不设置响应 socket idle timeout。`server.requestTimeout=20000` 只限制接收客户端请求体，不会在上游 20 秒无 token 时截断 300 秒流式响应。
 6. 函数地址需要只暴露 `/verify`、`/chat/completions` 和 `/run/complete` 三个 POST 路径；
 7. 将正式函数地址写入 `index.html` 的 `RELAY` 配置，并同步更新页面 CSP 的 `connect-src`；
@@ -224,7 +224,7 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
 
 1. 先在 provider 控制台撤销旧的、曾经出现在公开仓库或日志里的 key；旧版 token 也不再兼容。
 2. 生成新的 `GATE_SESSION_SECRET`（至少 32 字节）并重新部署中转；默认 token TTL 已从 7 天收紧为 24 小时。
-3. 选择一个 provider，按上面的 `opencode` 或普通 `qianfan` 变量配置；不要把 Coding Plan/Coding Plan Lite 的专属凭据填到 `QIANFAN_API_KEY`。
+3. 选择一个 provider，按上面的 `opencode` 或 Token Plan 个人版 Mini `qianfan` 变量配置；Mini 是额度套餐而不是模型名。不要把普通后付费 key 或 Coding Plan/Coding Plan Lite 专属凭据填到 `QIANFAN_API_KEY`。
 4. 更新 `index.html` 的 `RELAY` 与 CSP `connect-src`。旧浏览器中的 localStorage token 会被清理，当前标签页需重新输入 TOTP。
 5. 先在测试环境验证三条精确路径、错误状态、重复 `/run/complete` 请求和超时，再切换 GitHub Pages 的正式地址。
 
@@ -254,7 +254,7 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
 
       {
         "AI_PROVIDER": "qianfan",
-        "QIANFAN_API_KEY": "你的普通千帆 API Key",
+        "QIANFAN_API_KEY": "你的 Token Plan 个人版 Mini 专属 API Key",
         "QIANFAN_BASE_URL": "https://qianfan.baidubce.com/v2",
         "QIANFAN_MODEL": "账户中已开通的模型 ID",
         "GATE_TOTP_SECRET": "你的 Base32 动态验证码主密钥",

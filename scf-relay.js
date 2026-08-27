@@ -4,7 +4,8 @@
  * 北辰 · AI relay（腾讯云函数 Web 函数版）
  *
  * Secrets are read only from the function environment.  In particular,
- * Qianfan uses QIANFAN_API_KEY and the ordinary /v2/chat/completions API;
+ * Qianfan uses the Token Plan personal Mini API key with the standard
+ * /v2/chat/completions API;
  * this file deliberately does not implement the Coding Plan endpoint.
  */
 
@@ -345,7 +346,7 @@ function upstreamUrl(config) {
   if (config.name === 'qianfan') {
     if (/coding/i.test(path)) throw httpError(503, 'BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED');
     if (/\/chat\/completions$/i.test(path)) {
-      /* Only the ordinary Qianfan v2 endpoint is accepted. */
+      /* Only the standard Qianfan v2 endpoint is accepted. */
       if (path !== '/v2/chat/completions') throw httpError(503, 'BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED');
     } else if (!path || /\/v2$/i.test(path)) {
       path += path ? '/chat/completions' : '/v2/chat/completions';

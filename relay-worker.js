@@ -2,7 +2,8 @@
  * 北辰 · AI relay Worker
  *
  * Put all secrets in Worker Secrets. Qianfan intentionally uses the ordinary
- * OpenAI-compatible /v2/chat/completions endpoint and QIANFAN_API_KEY; the
+ * OpenAI-compatible /v2/chat/completions endpoint and the Token Plan
+ * personal Mini QIANFAN_API_KEY; the
  * Coding Plan key and endpoint are not accepted by this adapter.
  */
 
@@ -315,7 +316,7 @@ function upstreamUrl(config) {
   if (config.name === 'qianfan') {
     if (/coding/i.test(path)) throw httpError(503, 'BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED');
     if (/\/chat\/completions$/i.test(path)) {
-      /* Only the ordinary Qianfan v2 endpoint is accepted. */
+      /* Only the standard Qianfan v2 endpoint is accepted. */
       if (path !== '/v2/chat/completions') throw httpError(503, 'BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED');
     } else if (!path || /\/v2$/i.test(path)) {
       path += path ? '/chat/completions' : '/v2/chat/completions';
