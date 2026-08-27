@@ -155,6 +155,7 @@
     ├── index.html        # 页面、样式、谈心逻辑、星图渲染与本地状态
     ├── scf-relay.js      # 腾讯云函数请求中转
     ├── relay-worker.js   # Cloudflare Worker 备用中转
+    ├── .env.example      # 仅含占位符的服务端配置模板
     ├── .nojekyll         # GitHub Pages 配置
     └── README.md         # 项目说明
 
@@ -193,7 +194,7 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
 
 1. 创建 Node.js Web 函数；
 2. 使用仓库中的 `scf-relay.js` 作为函数入口逻辑；
-3. 在环境变量中添加以下变量（均不要写回源码）。默认 provider 是 OpenCode：
+3. 可参考根目录 `.env.example`，在环境变量中添加以下变量（均不要写回源码）。默认 provider 是 OpenCode：
 
        AI_PROVIDER           = opencode
        OPENCODE_API_KEY      = OpenCode API Key
@@ -215,7 +216,7 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
    中转会把请求发送到标准 `QIANFAN_BASE_URL + /chat/completions`（即 `/v2/chat/completions`），并在服务端注入模型名。Mini 是额度套餐/Token Plan 配置，不是模型名；`QIANFAN_MODEL` 仍须填写账户已开通的模型 ID。当前实现只允许 HTTPS hostname `qianfan.baidubce.com` 和 443 端口，避免误配环境变量形成 SSRF；如使用官方企业别名，须先在代码的 allowlist 中显式加入并重新审查。不要把密钥写入 `index.html`，不要让浏览器直连千帆。这里应使用 Token Plan 个人版 Mini 专属 key，不要替换为普通后付费 key。千帆 Coding Plan / Coding Plan Lite 的专属 key、专属接口或编码套餐端点不能作为这里的自定义后端。
 5. 开启公网访问，将函数执行超时设置为 300 秒，并部署函数；`scf-relay.js` 不设置响应 socket idle timeout。`server.requestTimeout=20000` 只限制接收客户端请求体，不会在上游 20 秒无 token 时截断 300 秒流式响应。
 6. 函数地址需要只暴露 `/verify`、`/chat/completions` 和 `/run/complete` 三个 POST 路径；
-7. 将正式函数地址写入 `index.html` 的 `RELAY` 配置，并同步更新页面 CSP 的 `connect-src`；
+7. 将正式函数地址替换 `index.html` 的 `RELAY` 占位符，并同步替换 CSP `connect-src` 中的 `https://REPLACE_WITH_YOUR_RELAY_ORIGIN`；提交前必须确认页面不再保留占位符，也没有指向其他项目/旧环境的地址；
 8. 依次验证：输入动态验证码、完成一张星图、刷新页面续谈、重复提交同一完成请求不会重复扣额、完成第 3 张星图后重新验证。
 
 `relay-worker.js` 提供同等的备用中转实现。若使用 Cloudflare Worker，请在 Worker Secrets/Variables 中添加对应变量，不要把密钥写进 Worker 源码；Worker 的 `CORS_ALLOWED_ORIGINS`、`AI_PROVIDER`、`QIANFAN_*` 与上面含义相同。
@@ -225,7 +226,7 @@ AI 对话仍然依赖已经部署的中转服务和网络连接。
 1. 先在 provider 控制台撤销旧的、曾经出现在公开仓库或日志里的 key；旧版 token 也不再兼容。
 2. 生成新的 `GATE_SESSION_SECRET`（至少 32 字节）并重新部署中转；默认 token TTL 已从 7 天收紧为 24 小时。
 3. 选择一个 provider，按上面的 `opencode` 或 Token Plan 个人版 Mini `qianfan` 变量配置；Mini 是额度套餐而不是模型名。不要把普通后付费 key 或 Coding Plan/Coding Plan Lite 专属凭据填到 `QIANFAN_API_KEY`。
-4. 更新 `index.html` 的 `RELAY` 与 CSP `connect-src`。旧浏览器中的 localStorage token 会被清理，当前标签页需重新输入 TOTP。
+4. 更新 `index.html` 的 `RELAY` 与 CSP `connect-src`（新仓库默认是安全占位符，不会调用旧 `beichen` 后端）。旧浏览器中的 localStorage token 会被清理，当前标签页需重新输入 TOTP。
 5. 先在测试环境验证三条精确路径、错误状态、重复 `/run/complete` 请求和超时，再切换 GitHub Pages 的正式地址。
 
 ### 公开仓库安全清单

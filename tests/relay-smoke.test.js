@@ -25,6 +25,8 @@ assert.match(worker, /QIANFAN_ALLOWED_HOSTS/);
 assert.doesNotMatch(worker, /Access-Control-Allow-Origin['"]\s*:\s*['"]\*['"]/);
 assert.doesNotMatch(index, /msgsEl\.innerHTML\s*=\s*s\.msgsHTML/);
 assert.doesNotMatch(index, /msgsHTML\s*:/);
+assert.doesNotMatch(index, /1459223409-li1fse2kqe\.ap-chengdu\.tencentscf\.com/);
+assert.match(index, /REPLACE_WITH_YOUR_RELAY_ORIGIN/);
 assert.match(index, /sessionStorage/);
 assert.match(index, /integrity="sha384-/);
 execFileSync(process.execPath, ['--check', path.join(root, 'scf-relay.js')], {stdio: 'inherit'});

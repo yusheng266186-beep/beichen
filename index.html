@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- Keep this policy in sync with the deployed relay origin when changing RELAY. Inline UI code is legacy; a strict header should move it to an external file. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://1459223409-li1fse2kqe.ap-chengdu.tencentscf.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://REPLACE_WITH_YOUR_RELAY_ORIGIN;">
 <title>北辰 · 高一选科探索</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -960,7 +960,8 @@ function loadCfg(){
 }
 /* 统一经腾讯云函数中转调用 OpenCode Go（国内直连）；凭据在中转服务侧，页面零密钥 */
 /* 正式版统一使用腾讯云 beichen 函数；凭据仅保存在函数环境变量中。 */
-const RELAY = 'https://1459223409-li1fse2kqe.ap-chengdu.tencentscf.com';
+/* Deployment placeholder: replace the entire origin and the CSP connect-src entry together. */
+const RELAY = 'https://REPLACE_WITH_YOUR_RELAY_ORIGIN';
 function apiEndpoint(){ return RELAY + '/chat/completions'; }
 function apiHeaders(){
   const token = typeof gateToken === 'function' ? gateToken() : '';
