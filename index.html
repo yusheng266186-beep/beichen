@@ -1995,7 +1995,7 @@ async function processResponse(rawInput, expectingReport){
 
   if(expectingReport){
     const bub = msgsEl.querySelector('.row:last-child .bub');
-    const failTip = '<br><br><span style="color:var(--mut);font-size:12px">▲ 未识别到星图格式，点下方按钮再点亮一次</span>';
+    const failTip = '<br><br><span style="color:var(--mut);font-size:12px">▲ 未识别到星图格式，点下方按钮重新点亮星图</span>';
     if(bub) bub.innerHTML = mdLite(text.trim() || '…') + failTip;
     else addMsg('ai', mdLite(text.trim() || '…') + failTip);
     renderChoices(['重新点亮星图'], true);
