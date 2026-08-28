@@ -118,6 +118,33 @@ assert.match(index, /聊到够了辰会主动告诉你/);
 assert.match(index, /rel="icon"/);
 assert.match(index, /name="theme-color"/);
 
+/* ─── v2.6.1 全站动效丰富 ─── */
+/* 动效 tokens 就位 */
+assert.match(index, /--ease-spring:cubic-bezier\(\.22,1\.1,\.36,1\)/);
+assert.match(index, /--ease-glide:cubic-bezier\(\.22,\.9,\.3,1\.05\)/);
+/* 覆盖率条:transform 弹簧生长(合成器动画),构建时写内联最终宽度,打开时错拍触发 */
+assert.match(index, /transform:scaleX\(0\);transform-origin:0 50%;transition:transform 1\.1s var\(--ease-spring\)/);
+assert.match(index, /class="cov-fill" style="width:'\+cov\+'%"/);
+assert.match(index, /style="width:'\+c\.cov\+'%"/);
+assert.match(index, /f\.style\.transition = 'transform 1\.1s var\(--ease-spring\)'; f\.style\.transitionDelay = \(i\*130\)\+'ms'; f\.style\.transform = 'scaleX\(1\)';/);
+assert.match(index, /f\.style\.transitionDelay = \(i\*70\)\+'ms'/);
+assert.match(index, /#comboTable \.cov-fill'\)\.forEach\(f=>\{ f\.style\.transition = 'none'; f\.style\.transform = 'scaleX\(0\)'; \}\)/);
+assert.doesNotMatch(index, /transition:width 1\.2s/);   /* 旧 width 过渡必须彻底移除 */
+/* 轴星滑动统一走滑行 token */
+assert.match(index, /transition:left 1\.4s var\(--ease-glide\)/);
+/* 星卡逐张 / 专业逐个 / 报告按钮片尾式落位 */
+assert.match(index, /#reportModal\.show \.starcard\{animation:msg-in \.55s var\(--ease-stagger\) both\}/);
+assert.match(index, /#reportModal\.show \.mj\{animation:msg-in \.45s var\(--ease-stagger\) both\}/);
+assert.match(index, /#reportModal\.show \.report-actions \.tbtn:nth-child\(4\)\{animation-delay:1\.16s\}/);
+/* 设置/数据弹窗正文递进;十二组合行逐行浮现(JS 写行延迟) */
+assert.match(index, /#settingsModal\.show \.modal-body > \*\{animation:msg-in/);
+assert.match(index, /#dataModal\.show \.crow\{animation:msg-in/);
+assert.match(index, /row\.style\.animationDelay = \(0\.22 \+ i\*0\.045\) \+ 's'/);
+/* 确认小卡微递进;星门文字逐行浮现(跳过 <br> 与呼吸星) */
+assert.match(index, /\.overlay\.show \.restart-card > \*\{animation:msg-in/);
+assert.match(index, /\.gate-in > \*:nth-child\(2\)\{animation:msg-in/);
+assert.match(index, /\.gate-in > \*:nth-child\(10\)\{animation:msg-in/);
+
 /* 全站主题化命名：开发代号"自由聊/有扶手"不得再出现在页面任何位置 */
 assert.doesNotMatch(index, /自由聊|有扶手/);
 
