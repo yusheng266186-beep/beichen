@@ -311,7 +311,11 @@ function buildUpstreamBody(body, config) {
     upstreamBody.thinking = { type: 'enabled' };
     upstreamBody.reasoning_effort = 'max';
     const reportScale = Number(body.max_tokens || 0) >= 10000;
-    const budget = Number(process.env.QIANFAN_THINKING_BUDGET || (reportScale ? 6144 : 2048));
+    /* 星图轮预算独立可调：4096 仍是深思考档（日常轮 2048 的两倍），比 6144 缩短约
+       三分之一等待；结构与格式质量由提示词契约保证，不受影响。两档都可覆盖。 */
+    const budget = reportScale
+      ? boundedInt(process.env.QIANFAN_REPORT_THINKING_BUDGET, 4096, 100, MAX_COMPLETION_TOKENS)
+      : boundedInt(process.env.QIANFAN_THINKING_BUDGET, 2048, 100, MAX_COMPLETION_TOKENS);
     if (Number.isInteger(budget) && budget >= 100) upstreamBody.thinking_budget = budget;
   }
   delete upstreamBody.mode; /* mode 只用于统计,不透传上游 */

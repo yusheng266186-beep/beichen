@@ -5,15 +5,14 @@ const path = require('path');
 process.env.BEICHEN_NO_LISTEN = '1';
 const relay = require(path.join(__dirname, '..', 'scf-relay.js'));
 
-/* 思考预算:星图轮 6144 / 日常轮 2048 / 环境变量可覆盖 */
+/* 思考预算:星图轮 4096 / 日常轮 2048 / 各自环境变量可覆盖 */
 const reportBody = relay.validateChatBody({
   messages: [{role: 'user', content: 'contract'}], max_tokens: 12000, temperature: 0.25, stream: true
 });
 const reportUpstream = relay.buildUpstreamBody(reportBody, {name: 'qianfan', model: 'glm-5.2'});
 assert.deepEqual(reportUpstream.thinking, {type: 'enabled'});
 assert.equal(reportUpstream.reasoning_effort, 'max');
-assert.equal(reportUpstream.thinking_budget, 6144, 'report-scale turn keeps deep thinking');
-assert.equal(reportUpstream.model, 'glm-5.2');
+assert.equal(reportUpstream.thinking_budget, 4096, 'report turn keeps deep thinking at a brisker budget');
 
 const casualBody = relay.validateChatBody({
   messages: [{role: 'user', content: 'x'}], max_tokens: 3500, stream: true
@@ -23,7 +22,13 @@ assert.equal(relay.buildUpstreamBody(casualBody, {name: 'qianfan', model: 'glm-5
 
 process.env.QIANFAN_THINKING_BUDGET = '512';
 assert.equal(relay.buildUpstreamBody(casualBody, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 512);
+assert.equal(relay.buildUpstreamBody(reportBody, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 4096,
+  'casual override must not leak into the report tier');
 delete process.env.QIANFAN_THINKING_BUDGET;
+
+process.env.QIANFAN_REPORT_THINKING_BUDGET = '8192';
+assert.equal(relay.buildUpstreamBody(reportBody, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 8192);
+delete process.env.QIANFAN_REPORT_THINKING_BUDGET;
 
 /* mode 仅用于统计:客户端可带,绝不透传上游 */
 const modeBody = relay.validateChatBody({

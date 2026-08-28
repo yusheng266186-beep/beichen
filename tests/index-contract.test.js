@@ -16,11 +16,11 @@ assert.doesNotMatch(index, /MODE === 'open'[\s\S]{0,120}addSubjectPicker/);
 assert.doesNotMatch(index, /OPEN_GUIDANCE\[1\][\s\S]{0,400}【选项】/);
 assert.match(index, /else if\(MODE === 'open'\)\{\s*choicesWrap\.classList\.add\('hide'\)/);
 
-/* 两段式:格式契约标准,正文自由 */
+/* 两段式:格式契约标准,正文自由;提问以普通段落呈现(无框无符号) */
 assert.match(index, /「想问你：」/);
 assert.match(index, /function renderTurnHTML\(/);
-assert.match(index, /next-q-mark/);
-assert.doesNotMatch(index, /next-q-lb/);
+assert.match(index, /mdLite\(parts\.answer\) \+ '<br><br>' \+ mdLite\(q\)/);
+assert.doesNotMatch(index, /next-q/);
 assert.match(index, /【选项】/);
 
 /* 星图:宽容解析 + 组合缩写,绝不死循环 */
@@ -48,7 +48,15 @@ assert.match(index, /async function requestReport\(\)/);
 assert.match(index, /id="reportAskModal"/);
 assert.match(index, /点亮会消耗 <b>1 次谈心额度<\/b>（剩 ' \+ \(GATE_MAX_RUNS - runs\) \+ '\/' \+ GATE_MAX_RUNS/);
 assert.match(index, /if\(turnCount >= OPEN_REPORT_MIN_TURNS\) renderChips\(\['点亮星图'\]\);/);
-assert.match(index, /已聊 ' \+ turnCount \+ ' 轮'/);
+assert.match(index, /星图 · 可点亮/);
+assert.match(index, /const readyToLight = MODE === 'open' && !reportDone && turnCount >= OPEN_REPORT_MIN_TURNS;/);
+
+/* 开始任何新谈心前必须自选聊法：重新测试与无会话刷新都进模式选择 */
+assert.match(index, /if\(!restoreSession\(\)\) showModeSelect\(\); return; \}/);
+assert.match(index, /showModeSelect\(\);\s*\n\s*toast\('我们重新开始'\);/);
+
+/* 全站主题化命名：开发代号"自由聊/有扶手"不得再出现在页面任何位置 */
+assert.doesNotMatch(index, /自由聊|有扶手/);
 
 /* 提示词拆分：SYSTEM 基座模式中性，选项格式指令随有扶手引导词下发 */
 const systemBlock = /const SYSTEM = `[\s\S]*?`;/.exec(index)[0];

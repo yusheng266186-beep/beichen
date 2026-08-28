@@ -634,12 +634,15 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 .stat-sub{font-size:9.5px;color:var(--mut);margin-top:2px}
 .dev-note{font-family:var(--kai);font-size:11px;line-height:2;color:var(--mut);letter-spacing:0.05em;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:12px 2px;margin:2px 0 10px}
 .dev-note p{margin:0}
-.dev-note .dev-quote{font-size:12.5px;color:var(--ink-2);letter-spacing:0.08em;margin-bottom:2px}
+/* 写给你与正文同字号：整块只靠颜色与字重分层，不再一行大一行小 */
+.dev-note .dev-quote{color:var(--ink-2);margin-bottom:2px}
 .dev-note .dev-hr{border:none;border-top:1px dashed var(--line);margin:8px 0}
 .dev-note b{color:var(--ink-2);letter-spacing:0.12em;margin-right:2px}
 .dev-note .dev-qq{font-family:var(--serif);letter-spacing:.02em}
-.next-q{margin-top:9px;padding:9px 12px;border:1px dashed var(--line-2);background:var(--card);border-radius:8px}
-.next-q .next-q-mark{color:var(--mut);font-size:11px;margin-right:7px}
+/* 两段式回归纯文本：回应与提问之间空一行，不再加框和符号 */
+.rail-step.ready .rail-dot{border-color:var(--ink-2);animation:actPulse 2.2s ease infinite}
+.rail-step.ready{cursor:pointer}
+.rail-step.ready .rail-lb{color:var(--ink-2)}
 .mode-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
 .mode-card{text-align:left;border:1px solid var(--line-2);background:var(--card);border-radius:12px;padding:13px 15px;cursor:pointer;transition:border-color .16s, transform .16s;font-family:inherit}
 .mode-card:hover{border-color:var(--ink-2)}
@@ -735,7 +738,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 
     <div class="intro-sec">
       <div class="intro-sec-t"><span class="no">II</span>这是一次谈心，不是一场测验</div>
-      <p>这里没有标准答案，也不给你贴标签。北辰会陪你一程——初见、底色、热爱、远方——从学科手感，聊到你自己都未曾留意的心里的声音。选<em>自由聊</em>，就像朋友聊天，轮数不限、随时点亮星图；选<em>有扶手</em>，每一轮都有具体选项，十轮左右自动点亮。用自己的话回答，它听得更认真。</p>
+      <p>这里没有标准答案，也不给你贴标签。北辰会陪你一程——初见、底色、热爱、远方——从学科手感，聊到你自己都未曾留意的心里的声音。两种聊法，由你挑：<em>夜航</em>像朋友聊天，没有选项，轮数不限，随时点亮星图；<em>领航</em>每一步都有现成的选项可点，十轮左右自动点亮。用自己的话回答，它听得更认真。</p>
     </div>
 
     <div class="intro-sec">
@@ -941,19 +944,19 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
     <div class="modal-body">
       <div class="mode-grid">
         <button class="mode-card" onclick="chooseMode('open')">
-          <div class="mode-kicker">自由聊 · OPEN</div>
+          <div class="mode-kicker">夜航 · WANDER</div>
           <h4>随便聊聊</h4>
-          <p>没有选项，也不用怕答错。辰会像朋友一样和你天南海北地聊，在聊天里慢慢认识你。聊到第 5 轮起，随时可以点亮星图。</p>
+          <p>没有选项，也不用怕答错。辰像朋友一样陪你天南海北地聊，想到哪聊到哪，轮数不限；聊到第 5 轮起，随时可以点亮星图。</p>
           <div class="mode-tip">适合：愿意多说、想被认真听的你</div>
         </button>
         <button class="mode-card" onclick="chooseMode('guided')">
-          <div class="mode-kicker">有扶手 · GUIDED</div>
+          <div class="mode-kicker">领航 · GUIDED</div>
           <h4>扶我一把</h4>
           <p>每一轮都给你思考的扶手和几个具体选项，点一下就能继续，也随时可以用自己的话补充。固定十轮，聊完自动点亮星图。</p>
           <div class="mode-tip">适合：不知道说什么、想要引导的你</div>
         </button>
       </div>
-      <p class="settings-note">两种聊法最终都会点亮同一张星图 · 随时可以在设置里查看剩余次数</p>
+      <p class="settings-note">区别一句话：夜航自己掌舵，领航有人掌灯——最终都会点亮同一张星图。重新测试时可以换一种聊法</p>
     </div>
   </div>
 </div>
@@ -978,14 +981,15 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
         </div>
         <div>
           <div class="stat-row"><span class="t-lb">对话模型</span><b>GLM-5.2 · 深度思考 max</b></div>
-          <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">有扶手</span></div>
+          <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
         </div>
       </div>
       <div class="dev-note">
+        <p><b>写给你</b></p>
         <p class="dev-quote">愿每一个站在分科路口、抬头寻找方向的你，<br>都能在自己的星光里，听见内心的回答。</p>
         <p>北辰只陪你把心里的声音理清，不替你决定要走向的远方。</p>
         <hr class="dev-hr">
-        <p><b>写给谁</b>　专为荣县一中高一正处于分科阶段、仍在摇摆与寻找方向的同学而做，也欢迎每一位经历类似困惑的学生。</p>
+        <p><b>开发缘由</b>　本网页专为荣县一中高一正处于分科阶段、仍在摇摆与寻找方向的同学而设计开发制作，也欢迎每一位正在经历类似困惑的学生使用。</p>
         <p><b>开发者</b>　予笙　<span class="dev-qq">QQ 2661864056</span></p>
         <p>获取动态验证码、分享使用感受或提出建议，都欢迎联系我。</p>
       </div>
@@ -1035,7 +1039,7 @@ const SYSTEM = `你是「北辰」，一位温柔、敏锐、真正走过这段�
 - 输出固定两段式：第一段回应 TA；第二段提出问题与选项，第二段第一行必须是「想问你：」开头（冒号后直接接问题）。「想问你：」只是版式记号，正文里不要再出现"我想问你""那么接下来"之类的话头。星图生成之后的自由问答不需要提问时，可省略第二段。
 - 两段式的框架不变，但内容要活：第一段回应可以舒展到两三句，带画面、联想或一个真诚的反问都行，不要每轮一个腔调；第二段的提问措辞自然多变（叙述式、假设式、回忆式都可以），避免"你有没有想过"这类重复开场。
 - 然后只问一个问题。提问措辞自然，可以给出一两个思考角度或具体例子，让 TA 知道从哪里说起，再邀请 TA 说出自己的版本——既不让 TA 无从下口，也不把 TA 关死在框架里。要不要给"扶手"或选项，由每轮的引导词按当前模式决定。
-- 模式纪律：自由聊模式下绝不输出【选项】标签，也不给出任何可点选的枚举式选项；有扶手模式下，按引导词要求的格式在每轮末尾输出【选项】标签。
+- 模式纪律：夜航模式（没有选项、想到哪聊到哪的闲聊）下绝不输出【选项】标签，也不给出任何可点选的枚举式选项；领航模式（每轮有引导和具体选项的问答）下，按引导词要求的格式在每轮末尾输出【选项】标签。
 - 单轮正文控制在110字内，语言自然、有温度，像人说话。
 
 【知识库（在恰当时刻自然带出，不照背）】
@@ -1060,29 +1064,29 @@ const OPENINGS = {
   ask: '在回答"选文还是选理"之前，我想先认识你——\n\n每个人心里都有一颗定星，它常常藏在那些你不知不觉就做得很顺、很投入的事情里。\n\n**第一个问题很简单**：凭真实的手感（不看努力后的成绩），高中以来，哪些科目学得轻松，哪些让你发怵？'
 };
 
-/* ─── 对话模式:'guided'=有扶手(默认,选项+提示) / 'open'=自由聊(无选项,开放提问) ─── */
+/* ─── 对话模式:'guided'=领航(默认,选项+提示) / 'open'=夜航(无选项,开放提问) ─── */
 let MODE = 'guided';
-/* 自由聊：第 OPEN_REPORT_MIN_TURNS 轮起出现「点亮星图」入口(阈值可配)，轮数不设上限 */
+/* 夜航：第 OPEN_REPORT_MIN_TURNS 轮起出现「点亮星图」入口(阈值可配)，轮数不设上限 */
 const OPEN_REPORT_MIN_TURNS = 5;
 const OPENINGS2 = {
   askOpen: '在回答"选文还是选理"之前，我想先认识你——不着急给答案，我们先随便聊聊。\n\n最近在学校过得怎么样？有没有哪件事、哪门课、或者哪个瞬间，让你印象挺深的？'
 };
-/* 自由聊模式:每轮一个开放话题,不给选项、不下框架,像朋友聊天一样了解学生 */
+/* 夜航模式:每轮一个开放话题,不给选项、不下框架,像朋友聊天一样了解学生 */
 const OPEN_GUIDANCE = {
-  1: '\n【自由聊 · 第2轮】本轮为自由聊模式:绝不输出【选项】标签或任何可点选项。先自然地回应学生关于"印象深的事"的讲述(接住细节与情绪,可温和追问一个具体画面)。然后用开放式问题了解学习状态:最近哪门课的课堂让你觉得时间过得快,哪门课让你忍不住看表?为什么?像朋友聊天,不给任何回答框架。】',
-  2: '\n【自由聊 · 第3轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:有没有一件事让你做到忘记时间?学习内外都算——那是一种什么样的状态?怎么开始的?只开放提问,不下结论,不给选项。】',
-  3: '\n【自由聊 · 第4轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:同样是费脑子,"一步步推理出结果"和"读懂一大段材料再讲出来",平时你更常遇到哪种?在哪些时刻能感觉到差别?听学生自己展开。】',
-  4: '\n【自由聊 · 第5轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:想象一年后高二的自己——作业变多、节奏变快。你希望那时的日子是什么样?有什么期待,又有什么担心?让学生自由描绘。】',
-  5: '\n【自由聊 · 第6轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:将来你想以什么方式参与世界?动手做东西、钻研原理、表达创作、组织和帮助别人……凭第一直觉聊聊,没有对错。】',
-  6: '\n【自由聊 · 第7轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:有没有哪个职业或哪类工作让你心动过?或者特别排斥的?哪怕只是一个模糊的画面也说说不为什么的喜欢。】',
-  7: '\n【自由聊 · 第8轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮(这轮先接住情绪)。然后聊:家里人对你将来说过什么?哪些你认同,哪些让你有点委屈?听学生自己梳理这些声音。】',
-  8: '\n【自由聊 · 第9轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:用几个词形容你自己?安静还是热闹、严谨还是随性?朋友眼里的你是什么样?和你自己觉得的一样吗?】',
-  9: '\n【自由聊 · 第10轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。最后一聊:关于未来,你更想要"选择面宽"还是"走得稳"?这两种画面在你脑子里各长什么样?不需要选边,说说此刻的真实感受。】',
-  10: '\n【自由聊 · 第11轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:高中这一年多,有没有哪个瞬间让你觉得"我好像长大了一点"?当时在做什么、和谁在一起?听学生把那个瞬间讲出来。】',
-  11: '\n【自由聊 · 第12轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:如果把学习比作一段路,你现在的状态更像爬坡、赶路,还是看风景?这个感觉是从什么时候开始的?让学生自由展开。】',
-  12: '\n【自由聊 · 第13轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:有没有一首歌、一本书、一部剧或一个角色,让你觉得"这说的就是我"?它哪里像你?听学生讲那份认同感。】',
-  13: '\n【自由聊 · 第14轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:你希望好朋友用什么词形容你?反过来,你最怕被人用什么词形容?为什么?听学生自己分辨。】',
-  14: '\n【自由聊 · 第15轮】本轮为自由聊模式:绝不输出【选项】标签。回应上轮。然后聊:抛开"应该",凭直觉说——五年后一个普通的日子,你想在哪里、做什么、和谁在一起?从早上睁眼聊到晚上,让学生描绘那个画面。】'
+  1: '\n【夜航 · 第2轮】本轮为夜航模式:绝不输出【选项】标签或任何可点选项。先自然地回应学生关于"印象深的事"的讲述(接住细节与情绪,可温和追问一个具体画面)。然后用开放式问题了解学习状态:最近哪门课的课堂让你觉得时间过得快,哪门课让你忍不住看表?为什么?像朋友聊天,不给任何回答框架。】',
+  2: '\n【夜航 · 第3轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:有没有一件事让你做到忘记时间?学习内外都算——那是一种什么样的状态?怎么开始的?只开放提问,不下结论,不给选项。】',
+  3: '\n【夜航 · 第4轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:同样是费脑子,"一步步推理出结果"和"读懂一大段材料再讲出来",平时你更常遇到哪种?在哪些时刻能感觉到差别?听学生自己展开。】',
+  4: '\n【夜航 · 第5轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:想象一年后高二的自己——作业变多、节奏变快。你希望那时的日子是什么样?有什么期待,又有什么担心?让学生自由描绘。】',
+  5: '\n【夜航 · 第6轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:将来你想以什么方式参与世界?动手做东西、钻研原理、表达创作、组织和帮助别人……凭第一直觉聊聊,没有对错。】',
+  6: '\n【夜航 · 第7轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:有没有哪个职业或哪类工作让你心动过?或者特别排斥的?哪怕只是一个模糊的画面也说说不为什么的喜欢。】',
+  7: '\n【夜航 · 第8轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮(这轮先接住情绪)。然后聊:家里人对你将来说过什么?哪些你认同,哪些让你有点委屈?听学生自己梳理这些声音。】',
+  8: '\n【夜航 · 第9轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:用几个词形容你自己?安静还是热闹、严谨还是随性?朋友眼里的你是什么样?和你自己觉得的一样吗?】',
+  9: '\n【夜航 · 第10轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。最后一聊:关于未来,你更想要"选择面宽"还是"走得稳"?这两种画面在你脑子里各长什么样?不需要选边,说说此刻的真实感受。】',
+  10: '\n【夜航 · 第11轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:高中这一年多,有没有哪个瞬间让你觉得"我好像长大了一点"?当时在做什么、和谁在一起?听学生把那个瞬间讲出来。】',
+  11: '\n【夜航 · 第12轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:如果把学习比作一段路,你现在的状态更像爬坡、赶路,还是看风景?这个感觉是从什么时候开始的?让学生自由展开。】',
+  12: '\n【夜航 · 第13轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:有没有一首歌、一本书、一部剧或一个角色,让你觉得"这说的就是我"?它哪里像你?听学生讲那份认同感。】',
+  13: '\n【夜航 · 第14轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:你希望好朋友用什么词形容你?反过来,你最怕被人用什么词形容?为什么?听学生自己分辨。】',
+  14: '\n【夜航 · 第15轮】本轮为夜航模式:绝不输出【选项】标签。回应上轮。然后聊:抛开"应该",凭直觉说——五年后一个普通的日子,你想在哪里、做什么、和谁在一起?从早上睁眼聊到晚上,让学生描绘那个画面。】'
 };
 /* 超出固定话题池后的通用深化模板：循环取用不同切入角度，长对话不断粮 */
 function openDeepening(n){
@@ -1093,7 +1097,7 @@ function openDeepening(n){
     '请 TA 讲一件最近的小事——开心的、烦的、或莫名其妙印象深的都行，重点听 TA 怎么讲'
   ];
   const pick = angles[(Number(n) || 0) % angles.length];
-  return '\n【自由聊 · 深入】本轮为自由聊模式:绝不输出【选项】标签或任何枚举选项。先自然地回应学生上轮的讲述(接住细节与情绪)。然后' + pick + '。问题保持开放式，像朋友聊天，不给任何回答框架，不下结论。】';
+  return '\n【夜航 · 深入】本轮为夜航模式:绝不输出【选项】标签或任何枚举选项。先自然地回应学生上轮的讲述(接住细节与情绪)。然后' + pick + '。问题保持开放式，像朋友聊天，不给任何回答框架，不下结论。】';
 }
 function openGuidance(n){
   const k = Number(n) || 0;
@@ -1101,7 +1105,7 @@ function openGuidance(n){
   if(k >= 1) return openDeepening(k);   /* 池外循环深化兜底，永不空串(修 P-1) */
   return '';
 }
-/* 报告轮只保留学生回答原文并补上主题标注。相比重复发送每轮 AI 回应，信息更聚焦、输入更短，且不删减学生证据。自由聊轮数可变，按实际轮数枚举。 */
+/* 报告轮只保留学生回答原文并补上主题标注。相比重复发送每轮 AI 回应，信息更聚焦、输入更短，且不删减学生证据。夜航轮数可变，按实际轮数枚举。 */
 const REPORT_TOPICS = [
   '学科手感','开窍与挫败','忘记时间的事','思维舒适区','高二强度',
   '与世界的接口','心动的职业','身边的声音','自我画像','赛道取舍'
@@ -1113,8 +1117,8 @@ function buildReportEvidence(){
     answers.map((m,i)=>'【'+(guided ? (REPORT_TOPICS[i] || ('补充回答' + (i + 1))) : ('学生的话 · ' + (i + 1)))+'】'+m.content).join('\n');
 }
 
-/* 有扶手模式的【选项】格式指令：放在引导词里随轮下发，SYSTEM 基座保持模式中性(修 P-3) */
-const GUIDED_OPTION_FORMAT = '\n【有扶手 · 格式】每轮末尾附【选项】标签，给**4个明确的、可直接选择的具体答案**（每个不超过10个字）。选项必须是具体的态度、情况或答案（如"刷卷我能扛"），严禁"我说说看""让我想想""还没想过"这类空洞的元回答——如果"没想好"本身是问题的一个真实答案，可以作为一个选项，但不能超过一个。个别问题天然只有两三个答案时，可给2-3个明确选项。格式严格：【选项】选项A||选项B||选项C||选项D。】';
+/* 领航模式的【选项】格式指令：放在引导词里随轮下发，SYSTEM 基座保持模式中性(修 P-3) */
+const GUIDED_OPTION_FORMAT = '\n【领航 · 格式】每轮末尾附【选项】标签，给**4个明确的、可直接选择的具体答案**（每个不超过10个字）。选项必须是具体的态度、情况或答案（如"刷卷我能扛"），严禁"我说说看""让我想想""还没想过"这类空洞的元回答——如果"没想好"本身是问题的一个真实答案，可以作为一个选项，但不能超过一个。个别问题天然只有两三个答案时，可给2-3个明确选项。格式严格：【选项】选项A||选项B||选项C||选项D。】';
 
 /* 星图生成指令：首次点亮与再次点亮共用，文案不绑轮数 */
 function buildReportInstructions(){
@@ -1149,7 +1153,7 @@ const POST_REPORT_GUIDANCE = '\n【谈心继续】星图已生成。像朋友一
 function buildGuidance(n){
   if(reportRequested) return buildReportInstructions();                /* 学生点了「点亮星图」(含再次点亮) */
   if(reportDone) return POST_REPORT_GUIDANCE;
-  if(MODE === 'guided' && n >= 10) return buildReportInstructions();   /* 有扶手：满十轮自动生成 */
+  if(MODE === 'guided' && n >= 10) return buildReportInstructions();   /* 领航：满十轮自动生成 */
   if(MODE === 'open') return openGuidance(n);
   const G = {
     1: '\n【第2问 · 学科的开窍与挫败】先真诚回应 TA 的学科手感（点出其中文/理信号的强弱，但用有画面的话说）。然后问：高中以来，有没有哪门课你经历过"突然开窍"或者"越学越吃力"？是哪门、大概发生了什么（一次考试、一个章节、一位老师都可以）？附4个明确选项，如【数学开窍了】【物理越学越难】【政史开窍了】【一直比较平】（根据TA的学科手感调整选项内容）。】',
@@ -1162,7 +1166,7 @@ function buildGuidance(n){
     8: '\n【第9问 · 你眼中的自己】回应上轮（这轮尤其要先接住 TA 的情绪）。然后问：四种画像里，最接近你的是哪种？也欢迎用自己的词补充——安静钻研型：能一个人待很久；热闹行动型：人多就来劲；细致秩序型：东西都要理得清清楚楚；天马行空型：脑子里总冒新想法。附4个明确选项：【安静钻研型】【热闹行动型】【细致秩序型】【天马行空型】。】',
     9: '\n【第10问 · 最后一问：赛道】回应上轮。最后一问：选科也是选赛道——你更在意"专业选择面宽"，还是"更容易上本科、走得更稳"？（给一句数据视角：物理类本科计划约为历史类3倍，但物化生组内高手密度也最高。）附4个明确选项，如【专业面要宽】【稳妥上本科】【两者要平衡】【帮我分析利弊】。】'
   };
-  /* 有扶手：1-9 轮附加选项格式指令；满十轮在函数开头走星图指令 */
+  /* 领航：1-9 轮附加选项格式指令；满十轮在函数开头走星图指令 */
   return (G[n] || G[9]) + GUIDED_OPTION_FORMAT;
 }
 
@@ -1237,9 +1241,9 @@ function restoreSession(){
     if(!s || !restoredHistory || !Number.isInteger(Number(s.turnCount)) || Number(s.turnCount) < 1) return false;
     if(s.mode === 'open' || s.mode === 'guided'){
       MODE = s.mode;
-      inp.placeholder = MODE === 'open' ? '自由聊 · 用自己的话说说看…' : '用自己的话，说你想说的…';
+      inp.placeholder = MODE === 'open' ? '夜航 · 用自己的话说说看…' : '用自己的话，说你想说的…';
       const m = document.getElementById('chatModeTag');
-      if(m) m.textContent = MODE === 'open' ? '自由聊' : '有扶手';
+      if(m) m.textContent = MODE === 'open' ? '夜航' : '领航';
     }
     history = restoredHistory;
     turnCount = Math.max(0, Math.min(100, Number(s.turnCount)||0));
@@ -1260,7 +1264,7 @@ function restoreSession(){
       renderPostReportChoices();
     }else{
       const savedChoices = Array.isArray(s.choices) ? s.choices : [];
-      /* 自由聊阈值后保存的是「点亮星图」入口，恢复成入口按钮而不是当文本发送 */
+      /* 夜航阈值后保存的是「点亮星图」入口，恢复成入口按钮而不是当文本发送 */
       if(!reportDone && MODE === 'open' && turnCount >= OPEN_REPORT_MIN_TURNS
         && savedChoices.length === 1 && savedChoices[0] === '点亮星图'){
         renderChips(['点亮星图']);
@@ -1330,6 +1334,13 @@ function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 /* ═══════════════════════════ 幕进度 ═══════════════════════════ */
 function activeAct(t){
   if(reportDone) return 5;
+  if(MODE === 'open'){
+    /* 夜航轮数不设上限，五幕按谈话内容阶段推进：初见→底色→热爱→远方，星图交给学生点亮 */
+    if(t <= 2) return 1;
+    if(t <= 5) return 2;
+    if(t <= 9) return 3;
+    return 4;
+  }
   if(t <= 1) return 1;
   if(t <= 3) return 2;
   if(t <= 6) return 3;
@@ -1339,18 +1350,9 @@ function activeAct(t){
 function renderRail(){
   const rail = document.getElementById('rail');
   rail.innerHTML = '';
-  /* 自由聊不按十轮点亮五幕：显示真实轮数与星图入口状态，界面不撒谎(修 P-5) */
-  if(MODE === 'open' && !reportDone){
-    const st = document.createElement('div');
-    st.className = 'rail-step' + (turnCount >= 1 ? ' active' : '');
-    const canLight = turnCount >= OPEN_REPORT_MIN_TURNS;
-    st.innerHTML = '<div class="rail-dot"></div><div class="rail-lb">'
-      + (turnCount >= 1 ? '已聊 ' + turnCount + ' 轮' + (canLight ? ' · 随时可点亮星图' : '') : '自由聊 · 聊起来')
-      + '</div>';
-    rail.appendChild(st);
-    return;
-  }
   const act = activeAct(turnCount);
+  /* 夜航阈值后：最后一幕变成「可点亮」的呼吸态，点一下直达确认弹窗 */
+  const readyToLight = MODE === 'open' && !reportDone && turnCount >= OPEN_REPORT_MIN_TURNS;
   ACTS.forEach((lb, i)=>{
     if(i > 0){
       const ln = document.createElement('div');
@@ -1359,9 +1361,16 @@ function renderRail(){
     }
     const st = document.createElement('div');
     st.className = 'rail-step';
-    if(i + 1 < act) st.classList.add('done');
-    if(i + 1 === act) st.classList.add('active');
-    st.innerHTML = '<div class="rail-dot"></div><div class="rail-lb">' + lb + '</div>';
+    if(readyToLight && i === ACTS.length - 1){
+      st.classList.add('ready');
+      st.title = '已聊 ' + turnCount + ' 轮 · 点这里点亮星图';
+      st.onclick = openReportAsk;
+      st.innerHTML = '<div class="rail-dot"></div><div class="rail-lb">星图 · 可点亮</div>';
+    }else{
+      if(i + 1 < act) st.classList.add('done');
+      if(i + 1 === act) st.classList.add('active');
+      st.innerHTML = '<div class="rail-dot"></div><div class="rail-lb">' + lb + '</div>';
+    }
     rail.appendChild(st);
   });
 }
@@ -1380,9 +1389,9 @@ function renderTurnHTML(text){
   /* 【选项】行是给快捷选项解析用的，气泡里不显示；流式期间的残行也一并隐藏 */
   let q = parts.question.replace(/【选项】[\s\S]*$/, '');
   q = q.replace(/^想问你[:：]?\s*/, '').replace(/\|\|\s*$/, '').trim();
+  /* 两段式：第二段提问以普通段落接在回应后，无框无符号 */
   if(!q) return mdLite(parts.answer);
-  return mdLite(parts.answer) +
-    '<div class="next-q"><span class="next-q-mark">✦</span>' + mdLite(q) + '</div>';
+  return mdLite(parts.answer) + '<br><br>' + mdLite(q);
 }
 function addMsg(role, html){
   const row = document.createElement('div');
@@ -1649,7 +1658,7 @@ async function respond(guidance){
   setBusy(true);
   showTyping();
 
-  /* 自适应星图：学生点「点亮星图」即生成；有扶手保持满十轮自动生成(修 P-2) */
+  /* 自适应星图：学生点「点亮星图」即生成；领航保持满十轮自动生成(修 P-2) */
   const expectingReport = reportRequested || (!reportDone && MODE === 'guided' && turnCount >= 10);
   let bubble = null, streamed = '';
 
@@ -1914,7 +1923,7 @@ async function processResponse(rawInput, expectingReport){
   if(reportDone) renderPostReportChoices();
   else if(MODE === 'open'){
     choicesWrap.classList.add('hide'); choicesEl.innerHTML='';
-    /* 自由聊阈值后，每轮回复后出现「点亮星图」入口，把生成时机交给学生(修 P-8) */
+    /* 夜航阈值后，每轮回复后出现「点亮星图」入口，把生成时机交给学生(修 P-8) */
     if(turnCount >= OPEN_REPORT_MIN_TURNS) renderChips(['点亮星图']);
   }
   else renderChoices(options);
@@ -2240,9 +2249,12 @@ function openSettings(){
 function fmtRemaining(ms){
   if(!Number.isFinite(ms) || ms <= 0) return '已过期';
   const m = Math.ceil(ms/60000);
-  if(m < 60) return m + ' 分钟';
-  const h = Math.floor(m/60), mm = m%60;
-  return h + ' 小时' + (mm ? ' ' + mm + ' 分' : '');
+  const d = Math.floor(m/1440), h = Math.floor((m % 1440)/60), mm = m % 60;
+  const parts = [];
+  if(d) parts.push(d + ' 天');
+  if(h) parts.push(h + ' 小时');
+  if(mm || parts.length === 0) parts.push(mm + ' 分');
+  return parts.join(' ');
 }
 function refreshSettingsStats(){
   const runsEl = document.getElementById('statRuns');
@@ -2250,7 +2262,7 @@ function refreshSettingsStats(){
   const runs = Math.max(0, Math.min(GATE_MAX_RUNS, gateRuns()));
   runsEl.textContent = runs + ' / ' + GATE_MAX_RUNS;
   const modeEl = document.getElementById('statMode');
-  if(modeEl) modeEl.textContent = MODE === 'open' ? '自由聊' : '有扶手';
+  if(modeEl) modeEl.textContent = MODE === 'open' ? '夜航' : '领航';
   document.getElementById('statRunsSub').textContent = runs >= GATE_MAX_RUNS
     ? '本次验证的 3 次谈心已用完，下次使用需重新输入动态码'
     : '以星图生成为一次 · 追问不额外计次';
@@ -2428,7 +2440,8 @@ function restart(){
   document.getElementById('reportBtn').style.display = 'none';
   closeOverlay('reportModal'); closeOverlay('dataModal');
   renderRail();
-  boot();
+  /* 每一段新的谈心都由学生自己选择聊法，不沿用上一段的模式 */
+  showModeSelect();
   toast('我们重新开始');
 }
 
@@ -2442,10 +2455,10 @@ function boot(){
     setTimeout(()=>{
       removeTyping();
       if(MODE === 'open'){
-        history.push({role:'assistant', content:'开场：自由聊模式。以开放式问题了解学生，全程不提供选项、不输出【选项】标签，每轮两段式（回应 + 「想问你：」提问）。'});
+        history.push({role:'assistant', content:'开场：夜航模式。以开放式问题了解学生，全程不提供选项、不输出【选项】标签，每轮两段式（回应 + 「想问你：」提问）。'});
         addMsg('ai', mdLite(OPENINGS2.askOpen));
       }else{
-        history.push({role:'assistant', content:'开场：先凭真实手感做学科自评（轻松/发怵的科目），学生将通过学科手感组件或文字回答。'});
+        history.push({role:'assistant', content:'开场：领航模式。先凭真实手感做学科自评（轻松/发怵的科目），学生将通过学科手感组件或文字回答。'});
         addMsg('ai', mdLite(OPENINGS.ask));
         addSubjectPicker();
       }
@@ -2595,7 +2608,7 @@ function setupGate(){
     gateRemove(GATE_TOKEN_KEY);
     gateRemove(GATE_COMPLETION_KEY);
   }
-  if(gateOk()){ gate.classList.add('pass'); if(!restoreSession()) boot(); return; }   /* 免验证：续谈或直接开始 */
+  if(gateOk()){ gate.classList.add('pass'); if(!restoreSession()) showModeSelect(); return; }   /* 免验证：续谈或先选聊法 */
   /* 旧版本可能只留下时间标记，不能把首次进入误报成“验证已过期”。 */
   /* Remove tokens left by the older localStorage implementation. */
   try{ if(GATE_STORE !== window.localStorage) localStorage.removeItem(GATE_TOKEN_KEY); }catch(_){ }
@@ -2624,9 +2637,8 @@ function setupGate(){
 }
 document.getElementById('introBtn').addEventListener('click', ()=>{
   document.getElementById('intro').classList.remove('show');
-  showModeSelect();   /* 先选对话模式:自由聊 / 有扶手 */
+  showModeSelect();   /* 先选对话模式:夜航 / 领航 */
 });
-
 /* ─── 模式选择 ─── */
 function showModeSelect(){
   document.getElementById('modeModal').classList.add('show');
@@ -2635,9 +2647,9 @@ function chooseMode(mode){
   MODE = (mode === 'open') ? 'open' : 'guided';
   try{ sessionStorage.setItem('bc_mode', MODE); }catch(_){ }
   document.getElementById('modeModal').classList.remove('show');
-  inp.placeholder = MODE === 'open' ? '自由聊 · 用自己的话说说看…' : '用自己的话，说你想说的…';
+  inp.placeholder = MODE === 'open' ? '夜航 · 用自己的话说说看…' : '用自己的话，说你想说的…';
   const m = document.getElementById('chatModeTag');
-  if(m) m.textContent = MODE === 'open' ? '自由聊' : '有扶手';
+  if(m) m.textContent = MODE === 'open' ? '夜航' : '领航';
   boot();
 }
 
