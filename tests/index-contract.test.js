@@ -31,7 +31,15 @@ assert.doesNotMatch(index, /comboParts\.length < 4/);
 /* 接线与安全 */
 assert.match(index, /^const RELAY = 'https:\/\/[a-z0-9-]+\.ap-chengdu\.tencentscf\.com';$/m);
 assert.match(index, /connect-src 'self' https:\/\/[a-z0-9-]+\.ap-chengdu\.tencentscf\.com/);
-assert.match(index, /integrity="sha384-/);
+/* 截图组件自托管：零第三方脚本依赖,CSP 不再放行 jsdelivr */
+assert.match(index, /<script src="vendor\/html2canvas\.min\.js" defer><\/script>/);
+assert.match(index, /script-src 'self' 'unsafe-inline'/);
+assert.doesNotMatch(index, /cdn\.jsdelivr/);
+{
+  const vendorPath = require('path').join(__dirname, '..', 'vendor', 'html2canvas.min.js');
+  assert.ok(fs.existsSync(vendorPath), 'vendor/html2canvas.min.js missing');
+  assert.ok(fs.readFileSync(vendorPath, 'utf8').startsWith('/*!'), 'vendor bundle lost its license banner');
+}
 assert.match(index, /function wipeLocalData\(btn\)/);
 assert.match(index, /id="statRuns"/);
 
@@ -67,6 +75,48 @@ assert.match(index, /你的角色转为解答者/);
    (免验证回访延迟 480ms 弹出,让星门先淡出,模式弹窗进场动画不被遮住) */
 assert.match(index, /if\(!restoreSession\(\)\)\{ setTimeout\(showModeSelect, 480\); \} return; \}/);
 assert.match(index, /showModeSelect\(\);\s*\n\s*toast\('我们重新开始'\);/);
+
+/* ─── v2.6 正确性与体验修复 ─── */
+/* 输入法组词中的回车是确认候选,不得误发送 */
+assert.match(index, /if\(e\.isComposing \|\| e\.keyCode === 229\) return;/);
+/* 刘海屏:顶栏与遮罩都要避让状态栏 */
+assert.match(index, /\.top\{[^}]*padding-top:env\(safe-area-inset-top,0px\)/);
+assert.match(index, /padding:18px;padding-top:calc\(18px \+ env\(safe-area-inset-top,0px\)\)/);
+/* 重测代际:旧一轮的错误/星图渲染不得写进重开后的新对话 */
+assert.match(index, /let talkEpoch = 0;/);
+assert.match(index, /talkEpoch\+\+;/);
+assert.match(index, /const epoch = talkEpoch;/);
+assert.match(index, /await processResponse\(raw, expectingReport, bubble, epoch\);/);
+assert.match(index, /if\(epoch !== undefined && epoch !== talkEpoch\) return;/);
+assert.doesNotMatch(index, /querySelector\('\.row:last-child \.bub'\)/);   /* 兜底只写流式气泡,不再按"最后一行"猜 */
+assert.match(index, /restart\(\)\{\s*\/\* 先校验后中止/);   /* 校验不过不打断正在进行的生成 */
+assert.match(index, /restartAfterVerify = true;/);
+assert.match(index, /if\(restartAfterVerify\)\{ restartAfterVerify = false; restart\(\); return; \}/);
+assert.match(index, /if\(restoreSession\(\)\) return;/);   /* 重验成功先接回本机未完的会话 */
+/* 对话中途验证失效:把星门拉起来,用户有地方重新输入 */
+assert.match(index, /验证在对话中途失效：除了提示，还要把星门拉起来让用户有地方重新输入/);
+/* 星门验证 12s 超时,按钮不得永久卡住 */
+assert.match(index, /const verifyTm = setTimeout\(\(\)=>ac\.abort\(\), 12000\);/);
+assert.match(index, /signal: ac\.signal/);
+/* 弹窗语义与键盘/返回键交互 */
+assert.match(index, /id="modeModal" role="dialog" aria-modal="true" aria-label="选择聊法"/);
+assert.match(index, /id="settingsModal" role="dialog" aria-modal="true" aria-label="设置"/);
+assert.match(index, /const DISMISSIBLE = \[/);
+assert.match(index, /e\.key === 'Escape' && top/);
+assert.match(index, /window\.addEventListener\('popstate'/);
+assert.match(index, /history\.pushState\(\{bcOv:1\},''\)/);
+assert.match(index, /id="toast" role="status" aria-live="polite"/);
+/* 瞬时动作按钮不回存;刷新后「点亮星图」入口仍恢复为按钮 */
+assert.match(index, /filter\(c => c !== '重新点亮星图' && c !== '再试一次'\)/);
+assert.match(index, /savedChoices\.length === 0 \|\| \(savedChoices\.length === 1 && savedChoices\[0\] === '点亮星图'\)/);
+/* 对比度与文案体系 */
+assert.match(index, /--mut:#5f615c;/);
+assert.doesNotMatch(index, /#737570/);
+assert.doesNotMatch(index, /NORTHSTAR/);
+assert.doesNotMatch(index, /思考的扶手/);
+assert.match(index, /聊到够了辰会主动告诉你/);
+assert.match(index, /rel="icon"/);
+assert.match(index, /name="theme-color"/);
 
 /* 全站主题化命名：开发代号"自由聊/有扶手"不得再出现在页面任何位置 */
 assert.doesNotMatch(index, /自由聊|有扶手/);

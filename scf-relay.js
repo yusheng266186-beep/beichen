@@ -20,7 +20,8 @@ const crypto = require('crypto');
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
-const MAX_PROMPT_CHARS = 72000;
+/* 默认 4 万字符:中文按 3 字节/字约 120KB,先于 128KiB 正文上限触发,两道口径一致 */
+const MAX_PROMPT_CHARS = boundedInt(process.env.MAX_PROMPT_CHARS, 40000, 2000, 200000);
 /* GLM-5.2 的思考与正文共用 completion_tokens 预算,给足余量防截断 */
 const MAX_COMPLETION_TOKENS = 16384;
 const MAX_UPSTREAM_BYTES = 2 * 1024 * 1024;
@@ -66,7 +67,8 @@ function readJson(req, limit) {
     let size = 0; const chunks = [];
     req.on('data', c => {
       size += c.length;
-      if (size > limit) { reject(httpError(413, 'BEICHEN_PAYLOAD_TOO_LARGE')); req.destroy(); return; }
+      /* 超限:只暂停读取,把错误交给外层 catch 写出 413;立即 destroy 会抢在响应送达前断连 */
+      if (size > limit) { reject(httpError(413, 'BEICHEN_PAYLOAD_TOO_LARGE')); req.pause(); return; }
       chunks.push(c);
     });
     req.on('end', () => {
@@ -111,14 +113,39 @@ function text(req, res, status, body) {
   res.writeHead(status, securityHeaders(req, { 'Content-Type': 'text/plain; charset=utf-8', 'Content-Disposition': 'attachment' }));
   res.end(body);
 }
+/* 宽松 IP 形态校验:IPv4 点分十进制 / IPv6 冒号十六进制(含 ::ffff: 映射、方括号包裹)/ 纯十六进制串。
+   只用于限流键取粒度,不做严格语义校验。 */
+function looksLikeIp(value) {
+  const s = String(value || '').trim().replace(/^\[(.+)\]$/, '$1');
+  if (!s || s.length > 45) return false;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s)) return s.split('.').every(n => Number(n) <= 255);
+  const mapped = s.match(/^::ffff:(\d{1,3}(\.\d{1,3}){3})$/i);
+  if (mapped) return mapped[1].split('.').every(n => Number(n) <= 255);
+  if (/^([0-9a-fA-F]{8}|[0-9a-fA-F]{32})$/.test(s)) return true;
+  return /^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$/.test(s);
+}
+/* CLB 把真实客户端 IP 追加在 X-Forwarded-For 末尾,前面的条目客户端可伪造:
+   从末尾往前取第一个合法条目;XFF 为空或全不合法时回退 TCP 对端。 */
+function pickClientIp(xffHeader, fallbackIp) {
+  const raw = Array.isArray(xffHeader) ? xffHeader.join(',') : String(xffHeader || '');
+  const entries = raw.split(',');
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const candidate = entries[i].trim();
+    if (looksLikeIp(candidate)) return candidate;
+  }
+  return (fallbackIp && String(fallbackIp).trim()) || 'unknown';
+}
 function clientKey(req) {
-  /* 限流维度:优先 TCP 对端,不信任可伪造的 X-Forwarded-For */
+  /* 业务限流维度(键已含 sid):TCP 对端即可;verify 限流改用 pickClientIp 应对 CLB 共享出口 */
   return (req.socket && req.socket.remoteAddress) || 'unknown';
 }
 const attempts = new Map();      /* verify 失败限流 */
 const requestLimits = new Map(); /* 业务限流 */
 const usedTotp = new Map();      /* TOTP 防重放:counter:code → 过期时间 */
 const sessions = new Map();      /* sid → {runs, seq, jti, exp, lastCompletion} */
+/* 并发双提交的幂等重放表:旧 jti → 完成时的完整响应,有界防膨胀 */
+const recentCompletions = new Map();
+const COMPLETION_REPLAY_LIMIT = 8;
 function allowRate(map, key, limit, windowMs) {
   const now = Date.now();
   const cur = map.get(key);
@@ -217,7 +244,7 @@ function authenticate(req) {
 /* ── 路由:星门验证 ─────────────────────────────────────────────── */
 function handleVerify(req, res) {
   if (!process.env.GATE_TOTP_SECRET || !sessionSecretReady()) return json(req, res, 503, { error: { message: 'BEICHEN_AUTH_NOT_CONFIGURED' } });
-  if (!allowRate(attempts, 'verify:' + clientKey(req), 8, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_AUTH_RATE_LIMIT' } });
+  if (!allowRate(attempts, 'verify:' + pickClientIp(req.headers['x-forwarded-for'], req.socket && req.socket.remoteAddress), 8, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_AUTH_RATE_LIMIT' } });
   readJson(req, 8 * 1024).then(body => {
     if (!onlyKeys(body, ['code']) || typeof body.code !== 'string' || !consumeTotp(body.code)) {
       return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
@@ -228,17 +255,29 @@ function handleVerify(req, res) {
 }
 
 /* ── 路由:额度记账(幂等) ───────────────────────────────────────── */
+/* 重放表写入:超限按插入序淘汰最旧(与 pruneMap 同品格) */
+function recordCompletion(map, jti, response) {
+  map.set(jti, response);
+  pruneMap(map, COMPLETION_REPLAY_LIMIT);
+}
 function completeRun(req, res, auth) {
   const requestId = String(req.headers['x-request-id'] || '').trim();
   if (!/^[A-Za-z0-9._~-]{8,96}$/.test(requestId)) return json(req, res, 400, { error: { message: 'BEICHEN_BAD_REQUEST' } });
   if (auth.payload.runs >= MAX_RUNS) return json(req, res, 409, { error: { message: 'BEICHEN_QUOTA_EXHAUSTED' } });
-  const next = newToken(auth.payload.runs + 1, auth.payload.sid, auth.payload.seq + 1);
   const state = auth.state;
+  if (state.jti !== auth.payload.jti) {
+    /* 并发双提交:处理到此刻本请求的 jti 已被更晚的完成覆盖 → 查重放表返回当初存的同形响应 */
+    const replayed = recentCompletions.get(auth.payload.jti);
+    if (replayed) return json(req, res, 200, replayed);
+    return json(req, res, 409, { error: { message: 'BEICHEN_AUTH_REPLAY' } });
+  }
+  const next = newToken(auth.payload.runs + 1, auth.payload.sid, auth.payload.seq + 1);
   state.runs = auth.payload.runs + 1;
   state.seq = auth.payload.seq + 1;
   state.jti = next.jti;
   const response = { ok: true, token: next.token, runs: state.runs, remaining: MAX_RUNS - state.runs, expiresIn: Math.max(0, state.exp - Date.now()) };
   state.lastCompletion = { requestId, priorJti: auth.payload.jti, response };
+  recordCompletion(recentCompletions, auth.payload.jti, response);
   return json(req, res, 200, response);
 }
 function handleRunComplete(req, res) {
@@ -356,10 +395,12 @@ function proxyChat(req, res, auth, body, config) {
       'X-Accel-Buffering': 'no'
     }));
     let bytes = 0;
+    /* 背压:res 写不进时暂停读上游(响应流用 pause),等 drain 再续传;2MB 上限不因背压改变 */
+    res.on('drain', () => upstreamResponse.resume());
     upstreamResponse.on('data', chunk => {
       bytes += chunk.length;
       if (bytes > MAX_UPSTREAM_BYTES) { upstream.destroy(); res.destroy(); return; }
-      res.write(chunk);
+      if (!res.write(chunk)) upstreamResponse.pause();
     });
     upstreamResponse.on('end', () => res.end());
     upstreamResponse.on('error', () => res.destroy());
@@ -433,5 +474,5 @@ if (!process.env.BEICHEN_NO_LISTEN) {
 }
 /* 测试导出;生产环境永不设置 BEICHEN_NO_LISTEN */
 if (typeof module !== 'undefined') {
-  module.exports = { validateChatBody, buildUpstreamBody, upstreamUrl, enforceSessionQuota, normMaxTokens: MAX_COMPLETION_TOKENS };
+  module.exports = { validateChatBody, buildUpstreamBody, upstreamUrl, enforceSessionQuota, pickClientIp, recordCompletion, maxPromptChars: MAX_PROMPT_CHARS, normMaxTokens: MAX_COMPLETION_TOKENS };
 }

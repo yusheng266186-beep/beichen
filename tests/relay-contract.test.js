@@ -86,4 +86,45 @@ const fs = require('fs');
 const src = fs.readFileSync(path.join(__dirname, '..', 'scf-relay.js'), 'utf8');
 assert.doesNotMatch(src, /OPENCODE/i, 'unused opencode provider must stay deleted');
 
+/* 客户端真实 IP:CLB 把真实 IP 追加在 XFF 末尾,取最后一个合法条目;解析不出回退 TCP 对端 */
+assert.equal(relay.pickClientIp('203.0.113.7', '10.0.0.1'), '203.0.113.7', 'single entry wins');
+assert.equal(relay.pickClientIp('203.0.113.7, 198.51.100.9', '10.0.0.1'), '198.51.100.9',
+  'multiple entries take the last');
+assert.equal(relay.pickClientIp('6.6.6.6, 6.6.6.6, 198.51.100.9', '10.0.0.1'), '198.51.100.9',
+  'forged leading entries must not win over the CLB-appended tail');
+assert.equal(relay.pickClientIp('', '10.0.0.1'), '10.0.0.1', 'empty XFF falls back to socket peer');
+assert.equal(relay.pickClientIp(undefined, '10.0.0.1'), '10.0.0.1', 'missing XFF falls back to socket peer');
+assert.equal(relay.pickClientIp(undefined, undefined), 'unknown', 'nothing to key on degrades to unknown');
+assert.equal(relay.pickClientIp('garbage, 198.51.100.9, junk', '10.0.0.1'), '198.51.100.9',
+  'invalid entries are skipped, last valid one wins');
+assert.equal(relay.pickClientIp('garbage, <script>', '10.0.0.1'), '10.0.0.1', 'all-invalid XFF falls back');
+assert.equal(relay.pickClientIp('2001:db8::1, ::ffff:203.0.113.7', '10.0.0.1'), '::ffff:203.0.113.7',
+  'IPv6 forms accepted');
+
+/* 提示词上限口径:默认 4 万字符,中文 3 字节/字约 120KB,先于 128KiB 正文上限触发 */
+assert.equal(relay.maxPromptChars, 40000, 'prompt char cap default must align with the 128KiB body cap');
+assert.throws(
+  () => relay.validateChatBody({messages: [
+    {role: 'user', content: '中'.repeat(14000)},
+    {role: 'user', content: '中'.repeat(14000)},
+    {role: 'user', content: '中'.repeat(14001)}
+  ]}),
+  /BEICHEN_PROMPT_TOO_LARGE/,
+  'prompt beyond 40000 chars must be refused'
+);
+const atPromptCap = relay.validateChatBody({messages: [
+  {role: 'user', content: '中'.repeat(13333)},
+  {role: 'user', content: '中'.repeat(13333)},
+  {role: 'user', content: '中'.repeat(13334)}
+], stream: true});
+assert.equal(atPromptCap.messages.length, 3, 'exactly 40000 chars stays within the cap');
+
+/* 最近完成表有界:超过 8 条按插入序淘汰最旧,最新一条保留供并发双提交幂等重放 */
+const replayMap = new Map();
+for (let i = 0; i < 12; i++) relay.recordCompletion(replayMap, 'jti' + i, {ok: true, runs: i});
+assert.ok(replayMap.size <= 8, 'completion replay map must stay bounded');
+assert.equal(replayMap.has('jti0'), false, 'oldest completions evicted first');
+assert.equal(replayMap.has('jti11'), true, 'most recent completion kept for idempotent replay');
+assert.deepEqual(replayMap.get('jti11'), {ok: true, runs: 11});
+
 console.log('relay contract tests passed');

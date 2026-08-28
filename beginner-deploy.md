@@ -12,8 +12,27 @@
 
 ## A. 创建腾讯云中转函数
 
-1. 打开腾讯云函数（SCF）控制台，选择“创建函数” → “Web 函数”。运行时选择 **Nodejs16.13**（线上同款；更高版本镜像里的 node20 二进制可能不兼容，启动脚本的自检会自动挑能跑的 node）。
+1. 打开腾讯云函数（SCF）控制台，选择“创建函数” → “Web 函数”。运行时优先选择 **Nodejs20** 或 **Nodejs18**（Nodejs16.13 已 EOL，仅作兜底——`scf_bootstrap` 自带 node 二进制运行时自检，会自动挑镜像里能跑的 node）。
 2. 上传仓库根目录的 **`scf-relay.js` + `scf_bootstrap`**（打成 zip，两个文件都放在压缩包根目录）。`scf_bootstrap` 是启动文件（处理程序/Handler 填它），自带 node 二进制运行时自检；不要上传含有真实密钥的文件。
+
+   **zip 两个铁律**（此前的事故：打包丢可执行位 + 换行符被转成 CRLF，函数直接起不来）：
+
+   - **换行必须是 LF**：仓库 `.gitattributes`（`scf_bootstrap text eol=lf`）已保证库内与检出均为 LF；若你自行拷贝 `scf_bootstrap` 再打包，先用编辑器确认文件里没有 `^M`。
+   - **必须带可执行位 755**：Windows 的压缩工具（含右键“压缩为 zip”）不保留 Unix 权限位。用 Python `zipfile` 打包请照抄下面配方：
+
+     ```python
+     import zipfile
+
+     with zipfile.ZipFile("deploy.zip", "w") as z:
+         for name in ("scf-relay.js", "scf_bootstrap"):
+             info = zipfile.ZipInfo(name)       # 两个文件都放在压缩包根目录
+             info.external_attr = 0o755 << 16   # 铁律二：可执行位 755
+             info.create_system = 3             # 标记为 Unix，权限位才会生效
+             with open(name, "rb") as f:
+                 z.writestr(info, f.read())
+     ```
+
+   踩坑症状：函数启动失败，日志出现 `/bin/bash^M: bad interpreter`（CRLF 所致）或 `no such file or directory`（丢可执行位）。遇到其一，按上面两条重新打包即可。
 3. 端口填写 **9000**（代码默认监听 9000；也可保留 `PORT=9000`）。
 4. 在“环境变量/密钥”中填写下面 4 项。只需要填你自己的值：
 
@@ -35,16 +54,16 @@
 
 ## B. 让网页连接你的函数
 
-1. 在 `index.html` 中找到：
+1. 仓库中 `index.html` 的 `RELAY` 常量当前是维护者已部署的线上函数地址（约 1084 行，紧邻一行 "Deployment placeholder: replace the entire origin and the CSP connect-src entry together." 英文注释）。复刻者需要把它换成**你自己的** HTTPS 函数 URL（不要重复末尾 `/`）：
 
    ```js
-   const RELAY = 'https://REPLACE_WITH_YOUR_RELAY_ORIGIN';
+   const RELAY = 'https://<你的函数ID>-<随机串>.ap-chengdu.tencentscf.com';
    ```
 
-   将占位符替换为你的 HTTPS 函数 URL（不要重复末尾 `/`）。
-2. 同一文件顶部 CSP 的 `connect-src` 也要替换为同一个函数域名。两个位置必须一致；新仓库默认不会连接旧 `beichen` 后端。
-3. 提交前搜索 `REPLACE_WITH_YOUR_RELAY_ORIGIN`，应当没有结果。确认 `index.html` 中没有任何 API Key、TOTP seed 或 session secret 后，再发布 GitHub Pages。
-4. GitHub 仓库的 Settings → Pages 选择 `main` 分支发布。网页来源必须与 `CORS_ALLOWED_ORIGINS` 完全一致（协议、域名、端口都要一致）。
+2. 同一文件第 7 行 CSP 的 `connect-src` 里是**同一个域名**，必须与 `RELAY` **成对**替换——上面那行英文注释说的就是这件事：origin 和 connect-src 要一起换，两处不一致会被浏览器 CSP 拦截。新仓库默认不会连接旧 `beichen` 后端。
+3. `tests/index-contract.test.js` 会用正则把 `RELAY` 与 `connect-src` 钉死为 `https://<子域>.ap-chengdu.tencentscf.com` 形态。换成你自己的**同区域（ap-chengdu）**函数地址后，测试照常通过，不需要改测试。
+4. 提交前自查：确认 `index.html` 中没有残留任何不属于你的 `tencentscf.com` 域名，且没有任何 API Key、TOTP seed 或 session secret。
+5. GitHub 仓库的 Settings → Pages 选择 `main` 分支发布。网页来源必须与 `CORS_ALLOWED_ORIGINS` 完全一致（协议、域名、端口都要一致）。
 
 ## C. 第一次验证
 
