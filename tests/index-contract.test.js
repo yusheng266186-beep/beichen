@@ -1,0 +1,88 @@
+'use strict';
+/* 页面契约:双模式、两段式、宽容星图解析、设置面板、安全接线 */
+const assert = require('assert');
+const fs = require('fs');
+const index = fs.readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+
+/* 双模式 */
+assert.match(index, /id="modeModal"/);
+assert.match(index, /function chooseMode\(/);
+assert.match(index, /let MODE = 'guided'/);
+assert.match(index, /const OPEN_GUIDANCE = \{/);
+assert.match(index, /openGuidance\(n\)/);
+assert.match(index, /OPENINGS2\.askOpen/);
+assert.match(index, /addSubjectPicker\(\);/);
+assert.doesNotMatch(index, /MODE === 'open'[\s\S]{0,120}addSubjectPicker/);
+assert.doesNotMatch(index, /OPEN_GUIDANCE\[1\][\s\S]{0,400}【选项】/);
+assert.match(index, /else if\(MODE === 'open'\)\{\s*choicesWrap\.classList\.add\('hide'\)/);
+
+/* 两段式:格式契约标准,正文自由 */
+assert.match(index, /「想问你：」/);
+assert.match(index, /function renderTurnHTML\(/);
+assert.match(index, /next-q-mark/);
+assert.doesNotMatch(index, /next-q-lb/);
+assert.match(index, /【选项】/);
+
+/* 星图:宽容解析 + 组合缩写,绝不死循环 */
+assert.match(index, /map\._complete = Boolean\(complete\)/);
+assert.match(index, /物:'物理',化:'化学',生:'生物'/);
+assert.doesNotMatch(index, /comboParts\.length < 4/);
+
+/* 接线与安全 */
+assert.match(index, /^const RELAY = 'https:\/\/[a-z0-9-]+\.ap-chengdu\.tencentscf\.com';$/m);
+assert.match(index, /connect-src 'self' https:\/\/[a-z0-9-]+\.ap-chengdu\.tencentscf\.com/);
+assert.match(index, /integrity="sha384-/);
+assert.match(index, /function wipeLocalData\(\)/);
+assert.match(index, /id="statRuns"/);
+
+/* 模式随会话持久化 */
+assert.match(index, /mode: MODE,/);
+assert.match(index, /if\(s\.mode === 'open' \|\| s\.mode === 'guided'\)/);
+
+/* 自适应星图：reportRequested 驱动、阈值入口、额度先告知、确认弹窗、再点亮 */
+assert.match(index, /let reportRequested = false;/);
+assert.match(index, /const OPEN_REPORT_MIN_TURNS = 5;/);
+assert.match(index, /const expectingReport = reportRequested \|\| \(!reportDone && MODE === 'guided' && turnCount >= 10\);/);
+assert.match(index, /function openReportAsk\(\)/);
+assert.match(index, /async function requestReport\(\)/);
+assert.match(index, /id="reportAskModal"/);
+assert.match(index, /点亮会消耗 <b>1 次谈心额度<\/b>（剩 ' \+ \(GATE_MAX_RUNS - runs\) \+ '\/' \+ GATE_MAX_RUNS/);
+assert.match(index, /if\(turnCount >= OPEN_REPORT_MIN_TURNS\) renderChips\(\['点亮星图'\]\);/);
+assert.match(index, /已聊 ' \+ turnCount \+ ' 轮'/);
+
+/* 提示词拆分：SYSTEM 基座模式中性，选项格式指令随有扶手引导词下发 */
+const systemBlock = /const SYSTEM = `[\s\S]*?`;/.exec(index)[0];
+assert.match(systemBlock, /绝不输出【选项】/);
+assert.doesNotMatch(systemBlock, /每轮末尾附【选项】/);
+assert.match(index, /GUIDED_OPTION_FORMAT/);
+
+/* 去十轮化：自由聊轮数可变后，历史压缩与星图指令不再绑定"十问" */
+assert.doesNotMatch(index, /完成了十问谈心/);
+assert.doesNotMatch(index, /十问已毕——你的星图画好了/);
+assert.match(index, /与一位高一学生的谈心记录，学生说过的话（按时间顺序）/);
+
+/* 超长对话裁剪：中转上限 24 条消息，上下文最多 22 条 */
+assert.match(index, /const MAX_CONTEXT_MESSAGES = 22;/);
+assert.match(index, /history\.slice\(-\(MAX_CONTEXT_MESSAGES - 1\)\)/);
+
+/* 引导词扩池行为级验证：从页面源码提取 openGuidance，1-30 轮永不空串且不泄漏【选项】 */
+const poolBlock = /const OPEN_GUIDANCE = \{[\s\S]*?\n\};/.exec(index)[0];
+function grabFn(startMarker){
+  const i = index.indexOf(startMarker);
+  assert.ok(i >= 0, 'missing ' + startMarker);
+  const j = index.indexOf('\n}', i);
+  return index.slice(i, j + 2);
+}
+const openLib = [poolBlock, grabFn('function openDeepening'), grabFn('function openGuidance')].join('\n\n');
+const guidanceAt = new Function('n', openLib + '\nreturn openGuidance(n);');
+for(let n = 1; n <= 30; n++){
+  const g = guidanceAt(n);
+  assert.ok(typeof g === 'string' && g.length > 20, 'openGuidance(' + n + ') 非空串');
+  /* 允许出现"绝不输出【选项】标签"的禁令文字，但绝不携带选项格式模板 */
+  assert.ok(!g.includes('选项A||') && !g.includes('||'), 'openGuidance(' + n + ') 不得携带【选项】格式模板');
+}
+
+/* 不引用已删除的备用中转 */
+assert.doesNotMatch(index, /relay-worker/);
+
+console.log('index contract tests passed');
