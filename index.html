@@ -4,13 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- Keep this policy in sync with the deployed relay origin when changing RELAY. Inline UI code is legacy; a strict header should move it to an external file. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com;">
 <title>北辰 · 高一选科探索</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css">
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap');
 
 /* ══════════ Design tokens ══════════ */
 :root{
@@ -29,6 +27,10 @@
   --kai:'Noto Serif SC','Source Han Serif SC','STSong','SimSun',serif;               /* 宋体（书卷）· 谈心与标题层 */
   --serif:'Cormorant Garamond','Noto Serif SC','Source Han Serif SC','STSong',serif; /* 衬线 · 点缀层：英文与数字 */
   --sans:'Noto Serif SC','Source Han Serif SC','STSong','SimSun',serif;              /* 宋体 · 界面层（全页无黑体） */
+  /* 设计 tokens：圆角/投影分级统一，动效时长与缓动全站一致 */
+  --radius-s:9px;--radius-m:12px;--radius-l:16px;
+  --shadow-pop:0 30px 80px rgba(32,36,44,0.28);
+  --shadow-soft:0 10px 26px rgba(32,36,44,0.3);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;overflow:hidden}
@@ -73,7 +75,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .tbtn{
   border:1px solid var(--line-2);background:transparent;color:var(--ink-2);
   font-size:12px;letter-spacing:0.08em;
-  padding:7px 14px;border-radius:8px;cursor:pointer;transition:all .18s;
+  padding:7px 14px;border-radius:var(--radius-s);cursor:pointer;transition:all .18s;
 }
 .tbtn:hover{background:var(--paper-2);color:var(--ink);border-color:var(--line-2)}
 .tbtn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -114,7 +116,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .msgs::-webkit-scrollbar{width:3px}
 .msgs::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
 
-.row{display:flex;gap:11px;max-width:100%;animation:msg-in .38s cubic-bezier(.22,.9,.36,1) both}
+.row{display:flex;gap:11px;max-width:100%;animation:msg-in .28s cubic-bezier(.23,1,.32,1) both}
 @keyframes msg-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .row.user{justify-content:flex-end}
 .row.ai{margin-left:0;position:relative;left:-2px;top:-2px}
@@ -132,7 +134,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .bub.ai{color:var(--ink);font-family:var(--kai);padding-top:5px;padding-left:11px;margin-left:-5px}
 .bub.user{
   background:var(--ink);color:#f3f2ee;
-  border-radius:14px 3px 14px 14px;
+  border-radius:var(--radius-l) 3px var(--radius-l) var(--radius-l);
   font-family:var(--kai);letter-spacing:0.02em;
 }
 .bub strong{font-weight:700}
@@ -147,13 +149,15 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .typing .dot:nth-child(3){animation-delay:.32s}
 @keyframes bop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
 .typing-lb{font-size:11px;color:var(--mut);margin-left:8px;letter-spacing:0.14em;white-space:nowrap;flex-shrink:0;font-family:var(--kai)}
+.typing-cancel{margin-left:12px;border:1px solid var(--line-2);background:transparent;color:var(--mut);border-radius:99px;padding:2px 11px;font-size:10px;cursor:pointer;letter-spacing:0.12em;transition:all .18s;font-family:var(--sans);flex-shrink:0}
+.typing-cancel:hover{color:var(--wen);border-color:rgba(169,78,50,.4)}
 
 /* ══════════ 学科手感 ══════════ */
 .picker{
   border:1px solid var(--line);background:var(--card);
-  border-radius:14px;
+  border-radius:var(--radius-l);
   padding:16px 18px;max-width:min(560px,86%);
-  animation:msg-in .38s cubic-bezier(.22,.9,.36,1) both;
+  animation:msg-in .28s cubic-bezier(.23,1,.32,1) both;
 }
 .picker h5{font-family:var(--kai);font-size:14px;font-weight:700;letter-spacing:0.14em;margin-bottom:3px}
 .picker .pk-sub{font-size:11.5px;color:var(--mut);margin-bottom:12px;line-height:1.6}
@@ -171,7 +175,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .pk-chip.on-hard{border-color:var(--wen);color:var(--wen);font-weight:700}
 .pk-foot{display:flex;align-items:center;gap:14px;margin-top:6px}
 .pk-ok{
-  border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:8px;
+  border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:var(--radius-s);
   padding:8px 22px;font-size:12.5px;font-weight:500;cursor:pointer;letter-spacing:0.2em;
   transition:opacity .16s;
 }
@@ -189,7 +193,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 /* 默认两行两列；个别轮次选项数不同时自动补位排布 */
 .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .choc{
-  border:1px solid var(--line-2);background:var(--card);border-radius:12px;
+  border:1px solid var(--line-2);background:var(--card);border-radius:var(--radius-m);
   padding:9px 10px;font-size:13px;color:var(--ink-2);cursor:pointer;
   font-family:var(--kai);letter-spacing:0.04em;transition:all .18s;animation:msg-in .3s both;
   text-align:center;line-height:1.5;
@@ -198,7 +202,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .inp-row{display:flex;gap:10px;align-items:flex-end}
 .inp-row textarea{
   flex:1;resize:none;border:1px solid var(--line-2);background:var(--card);
-  border-radius:12px;padding:11px 14px;font-size:14.5px;font-family:var(--kai);
+  border-radius:var(--radius-m);padding:11px 14px;font-size:14.5px;font-family:var(--kai);
   color:var(--ink);outline:none;height:46px;max-height:110px;line-height:1.6;
   transition:border-color .2s, box-shadow .2s;
   /* 隐藏内部滚动条（多行时保留滚动能力，只是不显示） */
@@ -231,6 +235,12 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .overlay.show{display:flex;animation:ovIn .3s ease both}
 @keyframes ovIn{from{opacity:0}to{opacity:1}}
 .overlay.show{opacity:1;pointer-events:all}
+/* 关闭走同一来路的短退场，不再瞬间消失 */
+.overlay.closing{display:flex;animation:ovOut .19s ease both;pointer-events:none}
+@keyframes ovOut{from{opacity:1}to{opacity:0}}
+.overlay.closing .report-card,.overlay.closing .data-card,
+.overlay.closing .modal-card,.overlay.closing .restart-card{animation:cardOut .19s ease both}
+@keyframes cardOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(12px) scale(.985)}}
 
 @keyframes land-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes star-glow{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
@@ -240,8 +250,8 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .report-card{
   width:min(680px,100%);max-height:90vh;max-height:90dvh;overflow-y:auto;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  background:var(--card);border:1px solid var(--line-2);border-radius:18px;
-  box-shadow:0 30px 80px rgba(32,36,44,0.28);
+  background:var(--card);border:1px solid var(--line-2);border-radius:var(--radius-l);
+  box-shadow:var(--shadow-pop);
   position:relative;
 }
 #reportModal.show .report-card{animation:cardIn .45s cubic-bezier(.22,1,.36,1) both}
@@ -274,8 +284,8 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 #restartModal{z-index:95}
 .restart-card{
   width:min(390px,100%);background:var(--card);border:1px solid var(--line-2);
-  border-radius:18px;padding:30px 28px 24px;text-align:center;
-  box-shadow:0 28px 70px rgba(32,36,44,.3);
+  border-radius:var(--radius-l);padding:30px 28px 24px;text-align:center;
+  box-shadow:var(--shadow-pop);
 }
 #restartModal.show .restart-card{animation:cardIn .38s cubic-bezier(.22,1.1,.36,1) both}
 .restart-mark{width:38px;height:38px;margin:0 auto 14px;border:1px solid var(--line-2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--li);font-family:var(--serif);font-size:19px}
@@ -340,7 +350,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 
 /* 组合 */
 .combo-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.combo{border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.combo{border:1px solid var(--line);border-radius:var(--radius-m);padding:15px 16px}
 .combo.alt{border-style:dashed}
 .combo-tag{font-size:9.5px;letter-spacing:0.3em;color:var(--mut);margin-bottom:6px}
 .combo h4{font-family:var(--kai);font-size:16px;font-weight:700;letter-spacing:0.04em;margin-bottom:9px}
@@ -388,8 +398,8 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .data-card{
   width:min(680px,100%);max-height:90vh;max-height:90dvh;overflow-y:auto;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  background:var(--card);border:1px solid var(--line-2);border-radius:18px;
-  box-shadow:0 30px 80px rgba(32,36,44,0.28);
+  background:var(--card);border:1px solid var(--line-2);border-radius:var(--radius-l);
+  box-shadow:var(--shadow-pop);
   padding:0 30px 34px;
 }
 .data-card::-webkit-scrollbar{width:3px}
@@ -405,14 +415,14 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .dsec-t::after{content:'';flex:1;height:1px;background:var(--line)}
 .dsec-t small{font-size:9.5px;color:var(--mut);font-family:var(--sans);font-weight:400;letter-spacing:0.14em}
 
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden}
 .stat{background:var(--card);padding:16px 12px;text-align:center}
 .stat b{font-family:var(--serif);font-size:21px;font-weight:600;display:block;letter-spacing:0.04em}
 .stat.wen b{color:var(--wen)}
 .stat.li b{color:var(--li)}
 .stat span{font-size:10px;color:var(--mut);display:block;margin-top:6px;line-height:1.7}
 
-.combo-table{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.combo-table{border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden}
 .crow{
   display:grid;grid-template-columns:168px 1fr 120px;gap:10px;align-items:center;
   padding:11px 15px;border-bottom:1px solid var(--line);
@@ -423,13 +433,13 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .cbadge.b-li{color:var(--li);border-color:var(--li)}
 .cbadge.b-wen{color:var(--wen);border-color:var(--wen)}
 .crow-note{font-size:11px;color:var(--ink-2);line-height:1.65}
-.crow-cov{display:flex;flex-direction:column;gap:4px}
+.crow-cov{display:flex;flex-direction:column;gap:4px;min-width:120px}
 .cov-fill.f-li{background:var(--li)}
 .cov-fill.f-wen{background:var(--wen)}
 .crow-cov span{font-size:9px;color:var(--mut)}
 
 .models-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.model-card{border:1px solid var(--line);border-radius:12px;padding:15px}
+.model-card{border:1px solid var(--line);border-radius:var(--radius-m);padding:15px}
 .model-card h5{font-family:var(--kai);font-size:14px;font-weight:700;margin-bottom:8px;letter-spacing:0.08em}
 .model-card p{font-size:11px;color:var(--ink-2);line-height:1.8}
 .holland{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -466,9 +476,9 @@ details.faq .faq-a{padding:0 0 14px;font-size:11.5px;color:var(--ink-2);line-hei
   width:min(420px,100%);max-height:90vh;max-height:90dvh;overflow-y:auto;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   background:var(--card);border:1px solid var(--line-2);
-  border-radius:16px;
+  border-radius:var(--radius-l);
   margin:auto;
-  box-shadow:0 24px 60px rgba(32,36,44,0.3);
+  box-shadow:var(--shadow-pop);
 }
 #settingsModal.show .modal-card{animation:cardIn .38s cubic-bezier(.22,1.1,.36,1) both}
 #dataModal.show .data-card{animation:cardIn .42s cubic-bezier(.22,1,.36,1) both}
@@ -477,8 +487,10 @@ details.faq .faq-a{padding:0 0 14px;font-size:11.5px;color:var(--ink-2);line-hei
 .modal-top p{font-family:var(--serif);color:var(--mut);font-size:10px;margin-top:4px;letter-spacing:0.24em}
 .modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:16px}
 .modal-acts{display:flex;gap:10px}
+.mbtn.danger{color:var(--wen);border-color:rgba(169,78,50,.4)}
+.mbtn.danger:hover{background:var(--wen-bg);color:var(--wen)}
 .mbtn{
-  flex:1;border:1px solid var(--ink);border-radius:9px;padding:11px;
+  flex:1;border:1px solid var(--ink);border-radius:var(--radius-s);padding:11px;
   font-size:12.5px;font-weight:500;cursor:pointer;letter-spacing:0.16em;
   transition:all .18s;background:transparent;color:var(--ink);
 }
@@ -549,10 +561,10 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 /* ══════════ Toast ══════════ */
 .toast{
   position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);
-  background:var(--ink);color:var(--paper);padding:11px 24px;border-radius:9px;
+  background:var(--ink);color:var(--paper);padding:11px 24px;border-radius:var(--radius-s);
   font-size:12px;letter-spacing:0.1em;z-index:99;
   opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.22,1.1,.36,1);
-  box-shadow:0 10px 26px rgba(32,36,44,0.3);
+  box-shadow:var(--shadow-soft);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -573,7 +585,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 .gate-title{font-family:var(--kai);font-size:34px;font-weight:700;letter-spacing:0.3em;text-indent:0.3em}
 .gate-sub{font-family:var(--kai);font-size:12.5px;color:var(--ink-2);margin-top:16px;line-height:2.1;letter-spacing:0.06em}
 .gate-input{
-  width:100%;margin-top:26px;
+  width:100%;max-width:212px;margin:26px auto 0;display:block;
   border:none;border-bottom:1px solid var(--line-2);background:transparent;
   text-align:center;font-family:var(--serif);font-size:30px;letter-spacing:0.5em;text-indent:0.5em;
   color:var(--ink);outline:none;padding:8px 0 12px;border-radius:0;
@@ -589,8 +601,8 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 .gate-btn:hover{background:var(--paper-2);color:var(--ink)}
 .gate-btn:disabled{opacity:.4;cursor:not-allowed}
 .gate-err{font-size:11.5px;color:var(--wen);margin-top:16px;min-height:1.4em;letter-spacing:0.08em;font-family:var(--kai)}
-.gate-timer{font-size:10px;color:var(--mut);margin-top:22px;letter-spacing:0.2em;font-family:var(--serif)}
-.gate-timer i{font-style:normal;color:var(--ink)}
+.gate-timer{width:190px;height:2px;background:var(--line);margin:26px auto 0;border-radius:99px;overflow:hidden}
+.gate-timer i{display:block;height:100%;width:100%;background:var(--ink-2);transition:width 1s linear}
 .gate-contact{font-family:var(--kai);font-size:11px;color:var(--mut);margin-top:12px;letter-spacing:0.08em}
 .gate-contact button{border:0;border-bottom:1px solid var(--line-2);padding:0 0 2px;background:transparent;color:var(--ink-2);font:inherit;cursor:pointer}
 .gate-contact button:hover{color:var(--ink);border-bottom-color:var(--ink)}
@@ -644,7 +656,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 .rail-step.ready{cursor:pointer}
 .rail-step.ready .rail-lb{color:var(--ink-2)}
 .mode-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
-.mode-card{text-align:left;border:1px solid var(--line-2);background:var(--card);border-radius:12px;padding:13px 15px;cursor:pointer;transition:border-color .16s, transform .16s;font-family:inherit}
+.mode-card{text-align:left;border:1px solid var(--line-2);background:var(--card);border-radius:var(--radius-m);padding:13px 15px;cursor:pointer;transition:border-color .16s, transform .16s;font-family:inherit}
 .mode-card:hover{border-color:var(--ink-2)}
 .mode-card:active{transform:scale(.985)}
 .mode-kicker{font-family:var(--serif);font-size:9.5px;letter-spacing:.28em;color:var(--mut);margin-bottom:4px}
@@ -658,8 +670,9 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 
 /* ══════════ 响应式 ══════════ */
 @media (max-width:860px){
-  .rail-lb{display:none}
-  .rail-line{width:12px}
+  .rail-step{display:none}
+  .rail-step.active,.rail-step.ready{display:flex}
+  .rail-line{display:none}
   .brand small{display:none}
 }
 @media (max-width:640px){
@@ -695,11 +708,25 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
   .rc-body{padding:20px 20px 6px}
   .data-card{padding:0 18px 28px}
   .report-card{max-height:92vh;max-height:92dvh}
-  .report-card,.data-card{border-radius:14px}
+  .report-card,.data-card{border-radius:var(--radius-l)}
   .report-actions{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 20px 22px}
 }
+/* 触屏没有真 hover:点按后不复位会显得"粘住" */
+@media (hover:none){
+  .choc:hover{background:var(--card);color:var(--ink-2);border-color:var(--line-2)}
+  .mode-card:hover{border-color:var(--line-2)}
+}
+/* 减少动效:保留透明度反馈,去掉位移、脉冲与闪烁 */
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  *,*::before,*::after{animation-duration:.15s!important;animation-delay:0s!important;transition-duration:.15s!important;transition-delay:0s!important}
+  @keyframes msg-in{from{opacity:0;transform:none}to{opacity:1;transform:none}}
+  @keyframes cardIn{from{opacity:0;transform:none}to{opacity:1;transform:none}}
+  @keyframes cardOut{from{opacity:1;transform:none}to{opacity:0}}
+  @keyframes ovIn{from{opacity:0}to{opacity:1}}
+  @keyframes ovOut{from{opacity:1}to{opacity:0}}
+  @keyframes gateAway{to{opacity:0}}
+  @keyframes land-up{from{opacity:0;transform:none}to{opacity:1;transform:none}}
+  .rail-step.active .rail-dot,.rail-step.ready .rail-dot,.typing .dot,.cursor{animation:none!important}
 }
 </style>
 </head>
@@ -715,12 +742,12 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
     <div class="gate-eyebrow">Polaris · Gate</div>
     <h2 class="gate-title">北辰</h2>
     <p class="gate-sub">此星图仅向持有钥匙的人开放<br>请输入提供的 6 位动态验证码</p>
-    <input class="gate-input" id="gateInput" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="······" />
+    <input class="gate-input" id="gateInput" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="······" aria-label="6 位动态验证码" />
     <br>
     <button class="gate-btn" id="gateBtn">进 入</button>
     <div class="gate-err" id="gateErr"></div>
-    <div class="gate-timer" id="gateTimer">动态验证码周期 <i>30</i> 秒</div>
-    <div class="gate-contact">需要获取动态验证码请联系作者QQ：<button type="button" onclick="copyAuthorQQ(event)">2661864056</button><small>点击 QQ 号即可复制</small></div>
+    <div class="gate-timer" id="gateTimer" aria-hidden="true"><i></i></div>
+    <div class="gate-contact">获取动态验证码 · QQ <button type="button" onclick="copyAuthorQQ(event)" title="点击复制 QQ 号">2661864056</button></div>
   </div>
 </div>
 
@@ -775,7 +802,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 
 <!-- ══════════ 对话区 ══════════ -->
 <main class="stage">
-  <div class="msgs" id="msgs"></div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
   <div class="dock">
     <div class="choices-wrap hide" id="choicesWrap">
       <div class="choices-hint" id="choicesHint">点选最接近的一个 · 也欢迎用自己的话补充</div>
@@ -799,7 +826,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
       <div class="rc-eyebrow">Polaris · Star Chart</div>
       <div class="rc-badge" id="rp-badge">—</div>
       <div><span class="rc-dir" id="rp-dir">待生成</span></div>
-      <p class="rc-line" id="rp-line">完成这段对话后，属于你的星图会在这里点亮。</p>
+      <p class="rc-line" id="rp-line">夜航聊到第 5 轮、领航满十轮，随时可以点亮属于你的星图。</p>
       <div class="axis">
         <div class="axis-ends"><span class="aw">文 · 历史类</span><span class="al">理 · 物理类</span></div>
         <div class="axis-track"><span class="axis-dot axis-dot-left" aria-hidden="true"></span><span class="axis-dot axis-dot-right" aria-hidden="true"></span><span class="axis-star" id="axis-star" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M20 2 L23 17 L38 20 L23 23 L20 38 L17 23 L2 20 L17 17 Z" stroke="currentColor" stroke-width="1.8"/><circle cx="20" cy="20" r="2.2" fill="currentColor"/></svg></span></div>
@@ -995,7 +1022,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
       </div>
       <div class="modal-acts">
         <button class="mbtn" onclick="checkRelay()">检查连接</button>
-        <button class="mbtn" onclick="wipeLocalData()">清除本机记录</button>
+        <button class="mbtn" onclick="wipeLocalData(this)">清除本机记录</button>
       </div>
     </div>
   </div>
@@ -1414,7 +1441,7 @@ function showTyping(){
   row.className = 'row ai'; row.id = 'typingRow';
   const av = document.createElement('div'); av.className='av'; av.textContent='辰';
   const t = document.createElement('div'); t.className='typing';
-  t.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="typing-lb" id="typingLb">辰在听</span>';
+  t.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="typing-lb" id="typingLb">辰在听</span><button class="typing-cancel" id="typingCancel" onclick="cancelStream()">取消</button>';
   row.appendChild(av); row.appendChild(t);
   msgsEl.appendChild(row);
   scrollBottom();
@@ -1499,7 +1526,7 @@ function friendlyError(err){
   if(status === 409) return '这段会话的聊天轮数已达上限，点"重新测试"开始一段新的谈心。';
   if(status === 429) return '请求过于频繁，稍等几秒再试。';
   if(status >= 500) return '模型服务暂时繁忙，请稍后重试。';
-  if(err?.name === 'AbortError') return '等待超时已自动取消，请重试。';
+  if(err?.name === 'AbortError') return userAborted ? '已取消，可重新发送。' : '等待超时已自动取消，请重试。';
   if(err?.code === 'EMPTY') return '模型本轮没有返回内容，请重试。';
   if(/model/i.test(msg)) return '模型名不可用：' + msg.slice(0,60) + '（可在设置中更换）';
   return '网络连接失败，请检查网络后重试。';
@@ -1655,7 +1682,14 @@ async function send(preset){
   await respond(buildGuidance(turnCount));
 }
 
+let userAborted = false;
+function cancelStream(){
+  if(!activeStreamAbort) return;
+  userAborted = true;
+  try{ activeStreamAbort.abort(); }catch(e){}
+}
 async function respond(guidance){
+  userAborted = false;
   setBusy(true);
   showTyping();
 
@@ -1920,7 +1954,9 @@ async function processResponse(rawInput, expectingReport){
 
   const clean = text.trim() || '…';
   const bub = msgsEl.querySelector('.row:last-child .bub');
+  /* rAF 在隐藏标签页不派发：流式气泡可能从未创建。兜底补渲染，回复绝不静默丢失。 */
   if(bub) bub.innerHTML = renderTurnHTML(clean);
+  else addMsg('ai', renderTurnHTML(clean));
   if(reportDone) renderPostReportChoices();
   else if(MODE === 'open'){
     choicesWrap.classList.add('hide'); choicesEl.innerHTML='';
@@ -2240,7 +2276,13 @@ function openOverlay(id){
     }
   }, 420);
 }
-function closeOverlay(id){ document.getElementById(id).classList.remove('show'); }
+function closeOverlay(id){
+  const el = document.getElementById(id);
+  if(!el || !el.classList.contains('show') || el.dataset.closing) return;
+  el.dataset.closing = '1';
+  el.classList.add('closing');
+  setTimeout(()=>{ el.classList.remove('show','closing'); delete el.dataset.closing; }, 200);
+}
 
 /* ═══════════════════════════ 设置 ═══════════════════════════ */
 function openSettings(){
@@ -2287,7 +2329,16 @@ function checkRelay(){
     .then(()=>toast('连接正常 · 云端中转可达'))
     .catch(()=>toast('无法连接中转服务，请检查网络后重试'));
 }
-function wipeLocalData(){
+let wipeArmed = false, wipeTimer = null;
+function wipeLocalData(btn){
+  /* 破坏性操作两段确认:第一次只进入待确认态,3 秒后自动回退 */
+  if(!wipeArmed){
+    wipeArmed = true;
+    if(btn){ btn.textContent = '再点一次，确认清除'; btn.classList.add('danger'); }
+    wipeTimer = setTimeout(()=>{ wipeArmed = false; if(btn){ btn.textContent = '清除本机记录'; btn.classList.remove('danger'); } }, 3200);
+    return;
+  }
+  clearTimeout(wipeTimer); wipeArmed = false;
   try{
     [GATE_TOKEN_KEY, GATE_AT_KEY, GATE_EXP_KEY, GATE_RUNS_KEY, GATE_COMPLETION_KEY].forEach(gateRemove);
     /* Older builds kept the token in localStorage; clear that too. */
@@ -2632,7 +2683,8 @@ function setupGate(){
   const timerEl = document.getElementById('gateTimer');
   const tick = ()=>{
     const left = 30 - Math.floor(Date.now() / 1000) % 30;
-    timerEl.innerHTML = '动态验证码周期 <i>' + left + '</i> 秒';
+    const bar = timerEl.firstElementChild;
+    if(bar) bar.style.width = Math.max(0, Math.round(left / 30 * 100)) + '%';
   };
   tick(); setInterval(tick, 1000);
 }

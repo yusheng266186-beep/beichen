@@ -32,7 +32,7 @@ assert.doesNotMatch(index, /comboParts\.length < 4/);
 assert.match(index, /^const RELAY = 'https:\/\/[a-z0-9-]+\.ap-chengdu\.tencentscf\.com';$/m);
 assert.match(index, /connect-src 'self' https:\/\/[a-z0-9-]+\.ap-chengdu\.tencentscf\.com/);
 assert.match(index, /integrity="sha384-/);
-assert.match(index, /function wipeLocalData\(\)/);
+assert.match(index, /function wipeLocalData\(btn\)/);
 assert.match(index, /id="statRuns"/);
 
 /* 模式随会话持久化 */
