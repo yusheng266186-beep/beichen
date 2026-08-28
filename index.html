@@ -675,9 +675,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 
 /* ══════════ 响应式 ══════════ */
 @media (max-width:860px){
-  .rail-step{display:none}
-  .rail-step.active,.rail-step.ready{display:flex}
-  .rail-line{display:none}
+  .rail-line{width:12px}
   .brand small{display:none}
 }
 @media (max-width:640px){
@@ -1002,7 +1000,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
           <div class="mode-tip">适合：不知道说什么、想要引导的你</div>
         </button>
       </div>
-      <p class="settings-note">区别一句话：夜航自己掌舵，领航有人掌灯——最终都会点亮同一张星图。重新测试时可以换一种聊法</p>
+      <p class="settings-note">区别一句话：夜航自己掌舵，领航有人掌灯——最终都会点亮一张星图。重新测试时可以换一种聊法</p>
     </div>
   </div>
 </div>
@@ -2036,9 +2034,9 @@ function renderChoices(arr, hideHint){
 }
 
 function renderPostReportChoices(){
-  const choices = quotaSyncPending
-    ? ['同步本次额度','点亮星图','我还想补充','重新测试']
-    : ['点亮星图','为什么是这个方位','组合帮我对比下','我还想补充','重新测试'];
+    const choices = quotaSyncPending
+    ? ['同步本次额度','查看星图','我还想补充','重新测试']
+    : ['再点亮一次','为什么是这个方位','组合帮我对比下','我还想补充','重新测试'];
   renderChips(choices);
 }
 
@@ -2054,7 +2052,9 @@ function renderChips(arr){
     b.onclick = ()=>{
       if(opt === '重新测试'){ confirmRestart(); return; }
       if(opt === '同步本次额度'){ return retryQuotaSync(); }
-      if(opt === '点亮星图'){ openReportAsk(); return; }
+      if(opt === '点亮星图'){ if(reportDone) openOverlay('reportModal'); else openReportAsk(); return; }
+      if(opt === '查看星图'){ openOverlay('reportModal'); return; }
+      if(opt === '再点亮一次'){ openReportAsk(); return; }
       if(opt === '为什么是这个方位') return continueAsk('为什么是这个方位？讲讲你判断的核心依据。');
       if(opt === '组合帮我对比下') return continueAsk('帮我把首选组合和备选组合对比分析一下。');
       if(opt === '我还想补充'){ inp.value='我想补充：'; inp.focus(); return; }
@@ -2071,7 +2071,9 @@ function openReportAsk(){
   const runs = Math.max(0, Math.min(GATE_MAX_RUNS, gateRuns()));
   if(runs >= GATE_MAX_RUNS){ toast('本次验证的 3 次谈心已用完，重新验证后可再点亮'); return; }
   const body = document.getElementById('reportAskBody');
-  if(body) body.innerHTML = '点亮会消耗 <b>1 次谈心额度</b>（剩 ' + (GATE_MAX_RUNS - runs) + '/' + GATE_MAX_RUNS + '）。<br>生成大约需要一分钟；之后仍可继续聊，也随时可以再次点亮。不点也没关系，先聊着。';
+  if(body) body.innerHTML = reportDone
+    ? '结合之后的聊天<b>重新生成星图</b>，会消耗 <b>1 次谈心额度</b>（剩 ' + (GATE_MAX_RUNS - runs) + '/' + GATE_MAX_RUNS + '），新图将替换当前星图。<br>生成大约需要一分钟；只想查看当前星图的话，点顶栏「星图报告」即可。'
+    : '点亮会消耗 <b>1 次谈心额度</b>（剩 ' + (GATE_MAX_RUNS - runs) + '/' + GATE_MAX_RUNS + '）。<br>生成大约需要一分钟；之后仍可继续聊，也随时可以再次点亮。不点也没关系，先聊着。';
   openOverlay('reportAskModal');
 }
 async function requestReport(){
