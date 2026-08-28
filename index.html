@@ -1495,6 +1495,8 @@ function friendlyError(err){
   if(status === 401 && /BEICHEN_AUTH_REQUIRED|BEICHEN_AUTH_EXPIRED|BEICHEN_AUTH_REPLAY/.test(msg)) return '验证已失效或请求已重放，请重新输入动态验证码。';
   if(status === 401) return '模型服务凭据未通过，请联系维护者。';
   if(status === 402) return '模型服务额度已用尽，稍后再试。';
+  if(status === 409 && /BEICHEN_QUOTA_EXHAUSTED/.test(msg)) return '本次验证的 3 次谈心已用完，重新输入动态验证码后可以再点亮星图。';
+  if(status === 409) return '这段会话的聊天轮数已达上限，点"重新测试"开始一段新的谈心。';
   if(status === 429) return '请求过于频繁，稍等几秒再试。';
   if(status >= 500) return '模型服务暂时繁忙，请稍后重试。';
   if(err?.name === 'AbortError') return '等待超时已自动取消，请重试。';

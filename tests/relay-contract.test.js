@@ -52,6 +52,23 @@ assert.throws(
   /BEICHEN_BAD_REQUEST/
 );
 
+/* 服务端额度纪律:星图档受 runs 门槛,单会话总轮数有终身上限 */
+const fakeAuth = (runs, turns) => ({ state: { runs, turns } });
+assert.throws(
+  () => relay.enforceSessionQuota(fakeAuth(3, 0), reportBody),
+  /BEICHEN_QUOTA_EXHAUSTED/,
+  'report-scale request must be refused once runs are exhausted'
+);
+relay.enforceSessionQuota(fakeAuth(2, 0), reportBody);   /* 额度未满:放行 */
+const smallBody = relay.validateChatBody({messages: [{role: 'user', content: 'x'}], max_tokens: 3500, stream: true});
+relay.enforceSessionQuota(fakeAuth(3, 0), smallBody);    /* 日常档不受 runs 门槛(追问设计) */
+for (let i = 0; i < 300; i++) relay.enforceSessionQuota(fakeAuth(0, i), smallBody);
+assert.throws(
+  () => relay.enforceSessionQuota(fakeAuth(0, 300), smallBody),
+  /BEICHEN_SESSION_TURNS_EXHAUSTED/,
+  'session lifetime turn cap must kick in'
+);
+
 /* 端点白名单:个人版专属端点放行,coding 系与野地址拒绝 */
 const personal = relay.upstreamUrl({name: 'qianfan', key: 'k', model: 'glm-5.2', url: 'https://qianfan.baidubce.com/v2/tokenplan/personal'});
 assert.equal(personal.pathname, '/v2/tokenplan/personal/chat/completions');

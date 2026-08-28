@@ -28,6 +28,10 @@ const CLOCK_SKEW_MS = 60 * 1000;
 const DEFAULT_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_RUNS = 3;
+/* 单会话(一次验证)终身对话轮数上限:聊天接口不做次数记账,用总轮数兜底防脚本烧上游额度 */
+const MAX_SESSION_TURNS = boundedInt(process.env.MAX_SESSION_TURNS, 300, 20, 5000);
+/* 星图档判定阈值,与思考预算分档共用:≥ 此值的请求受额度门槛约束 */
+const REPORT_SCALE_TOKENS = 10000;
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 540 * 1000;
 
 const QIANFAN_BASE_URL = 'https://qianfan.baidubce.com/v2/tokenplan/personal';
@@ -310,7 +314,7 @@ function buildUpstreamBody(body, config) {
   if (config.name === 'qianfan') {
     upstreamBody.thinking = { type: 'enabled' };
     upstreamBody.reasoning_effort = 'max';
-    const reportScale = Number(body.max_tokens || 0) >= 10000;
+    const reportScale = Number(body.max_tokens || 0) >= REPORT_SCALE_TOKENS;
     /* 星图轮预算独立可调：4096 仍是深思考档（日常轮 2048 的两倍），比 6144 缩短约
        三分之一等待；结构与格式质量由提示词契约保证，不受影响。两档都可覆盖。 */
     const budget = reportScale
@@ -366,22 +370,34 @@ function proxyChat(req, res, auth, body, config) {
   upstream.write(payload);
   upstream.end();
 }
+/* 额度纪律的服务端强制(纯函数,便于契约测试):
+   1. 星图档请求(max_tokens≥REPORT_SCALE_TOKENS)在额度用尽后拒绝——否则记账可被
+      "直接对 /chat 发星图提示词"整体绕过;
+   2. 单会话终身轮数上限——聊天本身不限次,用总量兜底,防挂机脚本烧上游额度。 */
+function enforceSessionQuota(auth, body) {
+  if (Number(body.max_tokens) >= REPORT_SCALE_TOKENS && auth.state.runs >= MAX_RUNS) {
+    throw httpError(409, 'BEICHEN_QUOTA_EXHAUSTED');
+  }
+  auth.state.turns = (Number(auth.state.turns) || 0) + 1;
+  if (auth.state.turns > MAX_SESSION_TURNS) throw httpError(409, 'BEICHEN_SESSION_TURNS_EXHAUSTED');
+}
 function handleChat(req, res) {
   const auth = requireSession(req, res);
   if (!auth) return;
-  if (!allowRate(requestLimits, 'chat:' + clientKey(req) + ':' + auth.payload.sid, 20, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_RATE_LIMIT' } });
+  if (!allowRate(requestLimits, 'chat:' + clientKey(req) + ':' + auth.payload.sid, 10, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_RATE_LIMIT' } });
   const config = providerConfig();
   if (!config) return json(req, res, 503, { error: { message: 'BEICHEN_PROVIDER_NOT_CONFIGURED' } });
-  validateChatBodyAsync(req, res, config);
+  validateChatBodyAsync(req, res, config, auth);
 }
 function requireSession(req, res) {
   const auth = authenticate(req);
   if (auth.error) { json(req, res, auth.error === 'BEICHEN_AUTH_NOT_CONFIGURED' ? 503 : 401, { error: { message: auth.error } }); return null; }
   return auth;
 }
-function validateChatBodyAsync(req, res, config) {
+function validateChatBodyAsync(req, res, config, auth) {
   readJson(req, MAX_BODY_BYTES).then(input => {
     const body = validateChatBody(input);
+    if (auth) enforceSessionQuota(auth, body);
     return proxyChat(req, res, null, body, config);
   }).catch(error => json(req, res, error.status || 400, { error: { message: error.code || 'BEICHEN_BAD_REQUEST' } }));
 }
@@ -417,5 +433,5 @@ if (!process.env.BEICHEN_NO_LISTEN) {
 }
 /* 测试导出;生产环境永不设置 BEICHEN_NO_LISTEN */
 if (typeof module !== 'undefined') {
-  module.exports = { validateChatBody, buildUpstreamBody, upstreamUrl, normMaxTokens: MAX_COMPLETION_TOKENS };
+  module.exports = { validateChatBody, buildUpstreamBody, upstreamUrl, enforceSessionQuota, normMaxTokens: MAX_COMPLETION_TOKENS };
 }
