@@ -1005,8 +1005,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 
 <script>
 /* ═══════════════════════════ 配置 ═══════════════════════════ */
-/* GLM-5.2 的推理档位由云端固定为 max；本页不再保存任何思考开关设置。 */
-const MODEL = 'glm-5.2';
+/* 模型名与思考档位全部由云端固定（GLM-5.2 · max），页面请求不携带 model 字段 */
 /* 统一经腾讯云函数中转调用千帆 GLM-5.2；凭据在中转服务侧，页面零密钥。 */
 /* Deployment placeholder: replace the entire origin and the CSP connect-src entry together. */
 const RELAY = 'https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com';
@@ -1516,7 +1515,7 @@ async function askStream(messages, opt){
         method:'POST', signal:ctrl.signal,
         headers: apiHeaders(),
         body: JSON.stringify({
-          model: MODEL, messages, max_tokens:maxTokens,
+          messages, max_tokens:maxTokens,
           temperature, stream:true,
           /* All turns, including report and continuation turns, use the
              server-pinned GLM-5.2 max reasoning contract. */

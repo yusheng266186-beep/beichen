@@ -46,6 +46,11 @@ assert.throws(
   () => relay.validateChatBody({messages: [{role: 'user', content: 'no stream'}], max_tokens: 100, stream: false}),
   /BEICHEN_STREAM_REQUIRED/
 );
+/* 契约严格性:模型名服务端说了算,携带 model 字段一律拒绝 */
+assert.throws(
+  () => relay.validateChatBody({model: 'glm-5.2', messages: [{role: 'user', content: 'x'}], max_tokens: 100, stream: true}),
+  /BEICHEN_BAD_REQUEST/
+);
 
 /* 端点白名单:个人版专属端点放行,coding 系与野地址拒绝 */
 const personal = relay.upstreamUrl({name: 'qianfan', key: 'k', model: 'glm-5.2', url: 'https://qianfan.baidubce.com/v2/tokenplan/personal'});

@@ -93,4 +93,8 @@ for(let n = 1; n <= 30; n++){
 /* 不引用已删除的备用中转 */
 assert.doesNotMatch(index, /relay-worker/);
 
+/* 请求契约:页面不携带 model 字段,模型名由服务端固定 */
+assert.doesNotMatch(index, /model: MODEL/);
+assert.doesNotMatch(index, /const MODEL =/);
+
 console.log('index contract tests passed');
