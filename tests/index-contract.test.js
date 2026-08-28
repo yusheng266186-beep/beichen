@@ -63,8 +63,9 @@ assert.match(index, /reportOffered: !reportDone && !!reportOffered,/);
 assert.match(index, /绝不再主动向 TA 提问/);
 assert.match(index, /你的角色转为解答者/);
 
-/* 开始任何新谈心前必须自选聊法：重新测试与无会话刷新都进模式选择 */
-assert.match(index, /if\(!restoreSession\(\)\) showModeSelect\(\); return; \}/);
+/* 开始任何新谈心前必须自选聊法：重新测试与无会话刷新都进模式选择
+   (免验证回访延迟 480ms 弹出,让星门先淡出,模式弹窗进场动画不被遮住) */
+assert.match(index, /if\(!restoreSession\(\)\)\{ setTimeout\(showModeSelect, 480\); \} return; \}/);
 assert.match(index, /showModeSelect\(\);\s*\n\s*toast\('我们重新开始'\);/);
 
 /* 全站主题化命名：开发代号"自由聊/有扶手"不得再出现在页面任何位置 */

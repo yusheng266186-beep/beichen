@@ -289,7 +289,8 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
   border-radius:var(--radius-l);padding:30px 28px 24px;text-align:center;
   box-shadow:var(--shadow-pop);
 }
-#restartModal.show .restart-card{animation:cardIn .38s cubic-bezier(.22,1.1,.36,1) both}
+/* 确认卡进场统一到所有 .restart-card 弹窗(重新测试 / 现在点亮星图) */
+.overlay.show .restart-card{animation:cardIn .38s cubic-bezier(.22,1.1,.36,1) both}
 .restart-mark{width:38px;height:38px;margin:0 auto 14px;border:1px solid var(--line-2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--li);font-family:var(--serif);font-size:19px}
 .restart-card h3{font-family:var(--kai);font-size:17px;letter-spacing:.16em;font-weight:700;color:var(--ink)}
 .restart-card p{margin:12px 0 22px;color:var(--mut);font-family:var(--kai);font-size:12px;line-height:1.9;letter-spacing:.04em}
@@ -482,7 +483,8 @@ details.faq .faq-a{padding:0 0 14px;font-size:11.5px;color:var(--ink-2);line-hei
   margin:auto;
   box-shadow:var(--shadow-pop);
 }
-#settingsModal.show .modal-card{animation:cardIn .38s cubic-bezier(.22,1.1,.36,1) both}
+/* 卡片进场统一到所有 .modal-card 弹窗(设置 / 选聊法),不再漏掉后来新增的界面 */
+.overlay.show .modal-card{animation:cardIn .38s cubic-bezier(.22,1.1,.36,1) both}
 #dataModal.show .data-card{animation:cardIn .42s cubic-bezier(.22,1,.36,1) both}
 .modal-top{border-bottom:1px solid var(--line);padding:18px 24px 15px}
 .modal-top h3{font-family:var(--kai);font-size:15px;font-weight:700;letter-spacing:0.2em}
@@ -505,6 +507,11 @@ details.faq .faq-a{padding:0 0 14px;font-size:11.5px;color:var(--ink-2);line-hei
 .send:active,.pk-ok:active,.pk-chip:active,.rc-close:active{transform:scale(.98)}
 .choc:hover{transform:translateY(-2px)}
 .tbtn:hover{transform:translateY(-1px)}
+/* 可点亮的进度步：桌面悬停时文字与圆点加深，提示这一步可以点 */
+@media (hover:hover){
+  .rail-step.ready:hover .rail-lb{color:var(--ink)}
+  .rail-step.ready:hover .rail-dot{border-color:var(--ink)}
+}
 button,.pk-chip{-webkit-tap-highlight-color:transparent}
 /* 触摸设备不保留 hover 残影，点击只执行交互本身 */
 @media (hover:none), (pointer:coarse){
@@ -547,6 +554,20 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 #reportModal.show .rc-body > *:nth-child(6){animation-delay:.8s}
 #reportModal.show .rc-body > *:nth-child(7){animation-delay:.88s}
 #reportModal.show .rc-body > *:nth-child(8){animation-delay:.96s}
+/* 报告卡收尾区：时间戳 / 额度 / 操作按钮在正文落定后最后进场 */
+#reportModal.show .rc-time,#reportModal.show .report-quota,#reportModal.show .report-actions{animation:msg-in .5s cubic-bezier(.22,.9,.36,1) both;animation-delay:.95s}
+/* 轴星滑到落点后的一次性点亮辉光(JS 在滑动结束时加 .lit) */
+.axis-star.lit svg{animation:star-land 1.1s cubic-bezier(.22,1,.36,1) both}
+@keyframes star-land{
+  0%{opacity:.55;filter:drop-shadow(0 0 2px rgba(32,36,44,0))}
+  40%{opacity:1;filter:drop-shadow(0 0 13px rgba(32,36,44,.4))}
+  100%{opacity:1;filter:drop-shadow(0 0 6px rgba(32,36,44,.22))}
+}
+/* 选聊法：两张卡片与结尾一句依次浮现，与报告卡同一种节奏 */
+#modeModal.show .mode-card{animation:msg-in .5s cubic-bezier(.22,.9,.36,1) both}
+#modeModal.show .mode-card:nth-child(1){animation-delay:.16s}
+#modeModal.show .mode-card:nth-child(2){animation-delay:.28s}
+#modeModal.show .settings-note{animation:msg-in .5s cubic-bezier(.22,.9,.36,1) both;animation-delay:.38s}
 /* 序章：三节依次浮现 */
 .intro.show .intro-in > *{animation:msg-in .55s cubic-bezier(.22,.9,.36,1) both}
 .intro.show .intro-in > *:nth-child(1){animation-delay:.05s}
@@ -731,7 +752,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
   @keyframes ovOut{from{opacity:1}to{opacity:0}}
   @keyframes gateAway{to{opacity:0}}
   @keyframes land-up{from{opacity:0;transform:none}to{opacity:1;transform:none}}
-  .rail-step.active .rail-dot,.rail-step.ready .rail-dot,.typing .dot,.cursor{animation:none!important}
+  .rail-step.active .rail-dot,.rail-step.ready .rail-dot,.typing .dot,.cursor,.gate-star,.axis-star.lit svg{animation:none!important}
 }
 </style>
 </head>
@@ -2317,12 +2338,25 @@ function openOverlay(id){
   el.classList.add('show');
   const card = el.querySelector('.report-card, .data-card');
   if(card) card.scrollTop = 0;
+  if(id === 'reportModal' && lastReport){
+    /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖条归零，420ms 后再滑向落点 */
+    const star = document.getElementById('axis-star');
+    if(star._litTm){ clearTimeout(star._litTm); star._litTm = null; }
+    star.classList.remove('lit');
+    star.style.transition = 'none';
+    star.style.left = '50%';
+    document.querySelectorAll('#rp-combos .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.width = '0%'; });
+  }
   setTimeout(()=>{
     if(id === 'reportModal' && lastReport){
       const star = document.getElementById('axis-star');
-      star.style.transition = 'left 1.4s cubic-bezier(.22,.9,.3,1.05)';
-      star.style.left = (lastReport._lean ?? (lastReport._dir==='li' ? 68 : lastReport._dir==='wen' ? 32 : 50)) + '%';
-      document.querySelectorAll('#rp-combos .cov-fill').forEach(f=>{ f.style.width = (f.dataset.w||0)+'%'; });
+      const fills = document.querySelectorAll('#rp-combos .cov-fill');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        star.style.transition = 'left 1.4s cubic-bezier(.22,.9,.3,1.05)';
+        star.style.left = (lastReport._lean ?? (lastReport._dir==='li' ? 68 : lastReport._dir==='wen' ? 32 : 50)) + '%';
+        fills.forEach(f=>{ f.style.transition = 'width 1.2s cubic-bezier(.22,.9,.36,1)'; f.style.width = (f.dataset.w||0)+'%'; });
+      }));
+      star._litTm = setTimeout(()=>{ star.classList.add('lit'); }, 1550);
     }
     if(id === 'dataModal'){
       document.querySelectorAll('#comboTable .cov-fill').forEach(f=>{ f.style.width = (f.dataset.w||0)+'%'; });
@@ -2713,7 +2747,7 @@ function setupGate(){
     gateRemove(GATE_TOKEN_KEY);
     gateRemove(GATE_COMPLETION_KEY);
   }
-  if(gateOk()){ gate.classList.add('pass'); if(!restoreSession()) showModeSelect(); return; }   /* 免验证：续谈或先选聊法 */
+  if(gateOk()){ gate.classList.add('pass'); if(!restoreSession()){ setTimeout(showModeSelect, 480); } return; }   /* 免验证：续谈或先选聊法(稍候再弹,让星门先淡出) */
   /* 旧版本可能只留下时间标记，不能把首次进入误报成“验证已过期”。 */
   /* Remove tokens left by the older localStorage implementation. */
   try{ if(GATE_STORE !== window.localStorage) localStorage.removeItem(GATE_TOKEN_KEY); }catch(_){ }
