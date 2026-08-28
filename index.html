@@ -1761,16 +1761,35 @@ async function respond(guidance){
   try{
     // 思考阶段保留 typing 动画；首个正文 token 到达时才创建气泡
     const onReasoning = ()=> setTypingLabel('辰在安静思考');
-    const onDelta = (chunk, all)=>{
-      streamed = all;
-      if(expectingReport){
-        let stage = '辰在整理你的回答';
-        if(all.includes('【星卡】')) stage = '辰在描出你的多维星图';
-        if(all.includes('【组合】')) stage = '辰在核对选科组合';
-        if(all.includes('【专业】')) stage = '辰在收拢专业方向';
-        setTypingLabel(stage);
-        return; /* 报告格式标签留在后台，不在聊天气泡中闪现 */
-      }
+      const onDelta = (chunk, all)=>{
+        streamed = all;
+        if(expectingReport){
+          /* 星图前的前置回应实时上屏：等待不再是黑箱；遇到骨架标记后转分段进度 */
+          const cut = all.indexOf('【北辰星图】');
+          if(cut < 0){
+            if(renderFrame !== null) return;
+            renderFrame = requestAnimationFrame(()=>{
+              renderFrame = null;
+              /* 标记可能跨块到达：截掉尾部半截标签，避免闪现 */
+              let shown = all;
+              for(const t of ['【北辰星图】','【北辰星图','【北辰星','【北辰','【北','【']){ if(shown.endsWith(t)){ shown = shown.slice(0, -t.length); break; } }
+              if(!bubble || !bubble.parentElement){ removeTyping(); bubble = addMsg('ai',''); }
+              bubble.innerHTML = renderTurnHTML(shown) + '<span class="cursor"></span>';
+              scrollBottom();
+            });
+            return;
+          }
+          if(!document.getElementById('typingRow')){
+            showTyping();
+            setTypingLabel('辰在描出你的多维星图');
+            return;
+          }
+          let stage = '辰在描出你的多维星图';
+          if(all.includes('【组合】')) stage = '辰在核对选科组合';
+          if(all.includes('【专业】')) stage = '辰在收拢专业方向';
+          setTypingLabel(stage);
+          return;
+        }
       if(renderFrame !== null) return;
       renderFrame = requestAnimationFrame(()=>{
         renderFrame = null;
@@ -1878,6 +1897,7 @@ async function repairReportText(source){
 
 /* 解析【选项】与报告 */
 async function processResponse(rawInput, expectingReport){
+  removeTyping();   /* 先收掉打字行，让下方 .row:last-child 查找能命中流式气泡 */
   let raw = String(rawInput||'');
   let text = raw;
 
