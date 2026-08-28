@@ -6,7 +6,9 @@
 <!-- Keep this policy in sync with the deployed relay origin when changing RELAY. Inline UI code is legacy; a strict header should move it to an external file. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com;">
 <title>北辰 · 高一选科探索</title>
-<link rel="stylesheet" href="fonts/fonts.css">
+<!-- 字体表异步加载:不阻塞首屏渲染;font-display:swap 先显示后备字,分片到了再换装 -->
+<link rel="stylesheet" href="fonts/fonts.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="fonts/fonts.css"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
 <style>
 
