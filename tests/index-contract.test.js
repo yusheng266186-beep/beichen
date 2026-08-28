@@ -47,9 +47,21 @@ assert.match(index, /function openReportAsk\(\)/);
 assert.match(index, /async function requestReport\(\)/);
 assert.match(index, /id="reportAskModal"/);
 assert.match(index, /点亮会消耗 <b>1 次谈心额度<\/b>（剩 ' \+ \(GATE_MAX_RUNS - runs\) \+ '\/' \+ GATE_MAX_RUNS/);
-assert.match(index, /if\(turnCount >= OPEN_REPORT_MIN_TURNS\) renderChips\(\['点亮星图'\]\);/);
+assert.match(index, /if\(reportOffered \|\| turnCount >= OPEN_REPORT_FORCE_TURNS\) renderChips\(\['点亮星图'\]\);/);
 assert.match(index, /星图 · 可点亮/);
-assert.match(index, /const readyToLight = MODE === 'open' && !reportDone && turnCount >= OPEN_REPORT_MIN_TURNS;/);
+assert.match(index, /const readyToLight = MODE === 'open' && !reportDone && \(reportOffered \|\| turnCount >= OPEN_REPORT_FORCE_TURNS\);/);
+
+/* 夜航由辰实时评估点亮时机:第 5 轮起随轮下发评估指令,标记【可点亮】驱动入口,满 15 轮固定给出 */
+assert.match(index, /const OPEN_REPORT_FORCE_TURNS = 15;/);
+assert.match(index, /const OPEN_EVALUATION = /);
+assert.match(index, /【可点亮/);
+assert.match(index, /replace\(\/【可点亮\[\^】\]\*】\/g, ''\)/);
+assert.match(index, /reportOffered = !reportDone && !!s\.reportOffered;/);
+assert.match(index, /reportOffered: !reportDone && !!reportOffered,/);
+
+/* 星图后转解答者:回答为主,不再主动提问 */
+assert.match(index, /绝不再主动向 TA 提问/);
+assert.match(index, /你的角色转为解答者/);
 
 /* 开始任何新谈心前必须自选聊法：重新测试与无会话刷新都进模式选择 */
 assert.match(index, /if\(!restoreSession\(\)\) showModeSelect\(\); return; \}/);
