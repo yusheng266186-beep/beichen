@@ -879,7 +879,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
   <div class="restart-card">
     <div class="restart-mark" aria-hidden="true">✦</div>
     <h3 id="reportAskTitle">现在点亮星图？</h3>
-    <p id="reportAskBody">点亮会消耗 1 次谈心额度。<br>生成大约需要一分钟；之后仍可继续聊，也随时可以再次点亮。</p>
+    <p id="reportAskBody">点亮会消耗 1 次谈心额度。<br>生成大约需要一分钟；之后仍可继续聊，星图生成后点「点亮星图」即可随时回看。</p>
     <div class="restart-actions">
       <button class="mbtn" onclick="closeOverlay('reportAskModal')">再聊聊</button>
       <button class="mbtn pri" onclick="requestReport()">现在点亮</button>
@@ -1196,7 +1196,7 @@ function buildReportInstructions(){
 }
 
 /* 星图后的自由问答引导 */
-const POST_REPORT_GUIDANCE = '\n【谈心继续】星图已生成。从现在起你是解答者：以 TA 的提问为主，回答完 TA 的问题即止，绝不再主动向 TA 提问，「想问你：」第二段整体省略。可引用数据与之前的对话细节，温暖而克制。若 TA 补充了重要的新信息，可在结尾轻声提示：随时可以点“点亮星图”，把新的回答融进星图。不再输出报告，不再出选项。】';
+const POST_REPORT_GUIDANCE = '\n【谈心继续】星图已生成。从现在起你是解答者：以 TA 的提问为主，回答完 TA 的问题即止，绝不再主动向 TA 提问，「想问你：」第二段整体省略。可引用数据与之前的对话细节，温暖而克制。若 TA 补充了重要的新信息，可轻声告诉 TA：想看一张全新的星图，可以点「重新测试」再聊一轮。不再输出报告，不再出选项。】';
 
 /* 每一轮的引导（turnCount = 学生已回答的轮数，回答后进入对应引导） */
 function buildGuidance(n){
@@ -2037,8 +2037,8 @@ function renderChoices(arr, hideHint){
 
 function renderPostReportChoices(){
     const choices = quotaSyncPending
-    ? ['同步本次额度','查看星图','我还想补充','重新测试']
-    : ['再点亮一次','为什么是这个方位','组合帮我对比下','我还想补充','重新测试'];
+    ? ['同步本次额度','点亮星图','我还想补充','重新测试']
+    : ['点亮星图','为什么是这个方位','组合帮我对比下','我还想补充','重新测试'];
   renderChips(choices);
 }
 
@@ -2054,9 +2054,8 @@ function renderChips(arr){
     b.onclick = ()=>{
       if(opt === '重新测试'){ confirmRestart(); return; }
       if(opt === '同步本次额度'){ return retryQuotaSync(); }
+      /* 点亮星图:星图未生成时=生成(弹额度确认);已生成时=直接查看星图卡片 */
       if(opt === '点亮星图'){ if(reportDone) openOverlay('reportModal'); else openReportAsk(); return; }
-      if(opt === '查看星图'){ openOverlay('reportModal'); return; }
-      if(opt === '再点亮一次'){ openReportAsk(); return; }
       if(opt === '为什么是这个方位') return continueAsk('为什么是这个方位？讲讲你判断的核心依据。');
       if(opt === '组合帮我对比下') return continueAsk('帮我把首选组合和备选组合对比分析一下。');
       if(opt === '我还想补充'){ inp.value='我想补充：'; inp.focus(); return; }
@@ -2073,9 +2072,7 @@ function openReportAsk(){
   const runs = Math.max(0, Math.min(GATE_MAX_RUNS, gateRuns()));
   if(runs >= GATE_MAX_RUNS){ toast('本次验证的 3 次谈心已用完，重新验证后可再点亮'); return; }
   const body = document.getElementById('reportAskBody');
-  if(body) body.innerHTML = reportDone
-    ? '结合之后的聊天<b>重新生成星图</b>，会消耗 <b>1 次谈心额度</b>（剩 ' + (GATE_MAX_RUNS - runs) + '/' + GATE_MAX_RUNS + '），新图将替换当前星图。<br>生成大约需要一分钟；只想查看当前星图的话，点顶栏「星图报告」即可。'
-    : '点亮会消耗 <b>1 次谈心额度</b>（剩 ' + (GATE_MAX_RUNS - runs) + '/' + GATE_MAX_RUNS + '）。<br>生成大约需要一分钟；之后仍可继续聊，也随时可以再次点亮。不点也没关系，先聊着。';
+  if(body) body.innerHTML = '点亮会消耗 <b>1 次谈心额度</b>（剩 ' + (GATE_MAX_RUNS - runs) + '/' + GATE_MAX_RUNS + '）。<br>生成大约需要一分钟；之后仍可继续聊，星图生成后点「点亮星图」即可随时回看。';
   openOverlay('reportAskModal');
 }
 async function requestReport(){
