@@ -140,9 +140,10 @@ assert.match(index, /function revealWithin/);
 assert.match(index, /new IntersectionObserver/);
 assert.match(index, /revealWithin\(card \|\| el\)/);   /* 打开弹窗即开始观察 */
 assert.match(index, /sort\(\(a,b\)=>a\.boundingClientRect\.top - b\.boundingClientRect\.top\)/);   /* 同批自上而下错拍 */
-/* 已显现区域在重开弹窗时条形立即重长;未滚动到的交给 IO */
-assert.match(index, /#rp-combos \.combo\.revealed'\)\.forEach\(growFills\)/);
-assert.match(index, /#comboTable \.crow\.revealed'\)\.forEach\(growFills\)/);
+/* 每次打开都重新武装显现状态:第二次打开动画从头可播,不再"只演一次" */
+assert.match(index, /function rearmReveal/);
+assert.match(index, /rearmReveal\(card \|\| el\);/);
+assert.match(index, /t\.classList\.remove\('revealed'\);/);
 assert.doesNotMatch(index, /#reportModal\.show \.rc-body > \*/);   /* 打开即播的正文 stagger 必须移除 */
 assert.doesNotMatch(index, /#modeModal\.show \.mode-card\{/);
 /* data-reveal 布点:报告卡分区/收尾区/按钮,设置与数据与选聊法正文,JS 构建项 */

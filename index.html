@@ -2416,6 +2416,13 @@ function growFills(scope){
   });
 }
 let revealIO = null;
+function rearmReveal(scope){
+  /* 复位上一次打开留下的显现状态,让动画在这次打开时从头可播 */
+  scope.querySelectorAll('[data-reveal].revealed').forEach(t=>{
+    t.classList.remove('revealed');
+    t.style.animationDelay = '';
+  });
+}
 function revealWithin(scope){
   const targets = scope.querySelectorAll('[data-reveal]:not(.revealed)');
   if(!targets.length) return;
@@ -2453,21 +2460,21 @@ function openOverlay(id){
   }
   if(firstOpen && !(history.state && history.state.bcOv)){ try{ history.pushState({bcOv:1},''); }catch(e){} }
   if(id === 'reportModal' && lastReport){
-    /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖率条归零；
-       已显现过的组合立即重长，未滚动到的组合等滚动显现时再长 */
+    /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖率条归零；条形由重新武装后的滚动显现触发生长 */
     const star = document.getElementById('axis-star');
     if(star._litTm){ clearTimeout(star._litTm); star._litTm = null; }
     star.classList.remove('lit');
     star.style.transition = 'none';
     star.style.left = '50%';
     document.querySelectorAll('#rp-combos .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
-    document.querySelectorAll('#rp-combos .combo.revealed').forEach(growFills);
   }
   if(id === 'dataModal'){
     document.querySelectorAll('#comboTable .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
-    document.querySelectorAll('#comboTable .crow.revealed').forEach(growFills);
   }
-  revealWithin(card || el);   /* 视口内的当批错拍进场，折叠线以下交给滚动 */
+  /* 每次打开都重新武装显现状态:上一次打开播过的动画这次从头再演一遍——
+     视口内的当批错拍进场,折叠线以下继续等滚动;否则 .revealed 永久保留,第二次打开就没有动画了 */
+  rearmReveal(card || el);
+  revealWithin(card || el);
   setTimeout(()=>{
     if(id === 'reportModal' && lastReport){
       /* 轴星滑向落点:英雄区打开即在视口内,保留打开即播;条形的生长已交给滚动显现 */
