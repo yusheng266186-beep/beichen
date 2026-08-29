@@ -179,10 +179,24 @@ assert.match(index, /class="book" data-reveal/);
 assert.match(index, /class="dsec-t" data-reveal/);
 assert.equal((index.match(/class="dsec" data-reveal/g)||[]).length, 2);   /* 仅核心数据/十二组合保留容器级显现 */
 
+/* ── v2.6.5 回程淡入 + 细节打磨 ── */
+assert.match(index, /function watchReturn/);
+assert.match(index, /watchReturn\(card \|\| el\)/);   /* 回程淡入登记 */
+assert.match(index, /t\.animate\(\{opacity:\[0,1\]\},\{duration:180,easing:'ease-out'\}\)/);   /* 只淡入不位移 */
+assert.match(index, /t\._exitTop = en\.boundingClientRect\.top < 0/);   /* 只对从顶部离开的元素生效 */
+assert.match(index, /function rearmReveal/);
+assert.match(index, /rearmReveal\(el\);/);   /* 选聊法再次弹出也重播双卡进场 */
+assert.match(index, /\.gate-in\.enter\{animation:land-up/);   /* 星门入场可重播 */
+assert.match(index, /class="gate-in enter"/);
+assert.match(index, /gi\.classList\.remove\('enter'\); void gi\.offsetWidth; gi\.classList\.add\('enter'\);/);   /* 重新上锁重演 */
+assert.match(index, /#reportBtn\{animation:msg-in \.45s var\(--ease-stagger\) both\}/);   /* 星图按钮就绪弹出 */
+assert.match(index, /details\.faq summary:active\{opacity:\.7\}/);   /* FAQ 按压反馈 */
+assert.doesNotMatch(index, /[^.]\.gate-in > \*:nth-child/);   /* 星门子动画必须收编到 .enter 作用域 */
+
 /* 确认小卡整卡在首屏,保留打开即微递进 */
 assert.match(index, /\.overlay\.show \.restart-card > \*\{animation:msg-in/);
-assert.match(index, /\.gate-in > \*:nth-child\(2\)\{animation:msg-in/);
-assert.match(index, /\.gate-in > \*:nth-child\(10\)\{animation:msg-in/);
+assert.match(index, /\.gate-in\.enter > \*:nth-child\(2\)\{animation:msg-in/);
+assert.match(index, /\.gate-in\.enter > \*:nth-child\(10\)\{animation:msg-in/);
 
 /* ── 星图前置回应:引导词强制先写临别回应再输出星图(否则等待期无文字可流式) ── */
 assert.match(index, /第一段（先输出）：给 TA 的临别回应，60~100 字/);
