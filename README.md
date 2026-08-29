@@ -35,7 +35,7 @@
 百度千帆 Token Plan 个人版专属端点(/v2/tokenplan/personal) · GLM-5.2
 ```
 
-- 星门：TOTP 动态码(6 位)，验证后 7 天有效(令牌仅存 sessionStorage，sessionStorage 不可用时回退 localStorage)
+- 星门：TOTP 动态码(6 位)，验证后 7 天有效(令牌存 localStorage：关闭标签页/浏览器后仍有效，重新验证自动覆盖，过期或「清除本机记录」后失效；localStorage 不可用时回退 sessionStorage)
 - 额度：一次验证 3 次完整谈心(以星图生成为准)，`/run/complete` 幂等记账；服务端强制两项兜底——星图档请求在额度用尽后直接拒绝(防绕过记账)、单会话总轮数上限 300(防脚本烧额度，`MAX_SESSION_TURNS` 可调)
 - 思考：GLM-5.2 固定 max 档；思考预算分档——星图轮 4096 / 日常轮 2048
 - 星图解析：宽容降级渲染(组合支持"物化生"等口语缩写)，永不卡死

@@ -50,7 +50,10 @@ assert.match(index, /if\(s\.mode === 'open' \|\| s\.mode === 'guided'\)/);
 /* 自适应星图：reportRequested 驱动、阈值入口、额度先告知、确认弹窗、再点亮 */
 assert.match(index, /let reportRequested = false;/);
 assert.match(index, /const OPEN_REPORT_MIN_TURNS = 5;/);
-assert.match(index, /const expectingReport = reportRequested \|\| \(!reportDone && MODE === 'guided' && turnCount >= 10\);/);
+assert.match(index, /function guidedAutoReportDue\(\)\{/);
+assert.match(index, /return !reportDone && !reportRequested && MODE === 'guided' && turnCount >= 10 && !guidedAutoTried;/);
+assert.match(index, /if\(guidedAutoReportDue\(\)\) return buildReportInstructions\(\);/);
+assert.match(index, /const expectingReport = reportRequested \|\| autoGuidedReport;/);
 assert.match(index, /function openReportAsk\(\)/);
 assert.match(index, /async function requestReport\(\)/);
 assert.match(index, /id="reportAskModal"/);
@@ -287,5 +290,17 @@ assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
 assert.match(index, /id="statVer"/);
+
+/* ─── v2.6.15 领航自动星图只试一次 + 验证票据改存 localStorage ─── */
+assert.match(index, /let guidedAutoTried = false;/);
+assert.match(index, /if\(autoGuidedReport\) guidedAutoTried = true;/);
+assert.match(index, /reportAttempted: !reportDone && MODE === 'guided' && guidedAutoTried,/);
+assert.match(index, /guidedAutoTried = !reportDone && MODE === 'guided' && !!s\.reportAttempted;/);
+assert.match(index, /reportRequested = true; respond\(buildGuidance\(99\)\)/);   /* 解析失败按钮=显式点亮,按星图档重发 */
+assert.match(index, /if\(expectingReport\) reportRequested = true; respond\(guidance\)/);   /* 网络失败重试接回点亮意图 */
+assert.match(index, /领航自动星图已尝试过仍未成功/);   /* 刷新后恢复「点亮星图」入口而非自动重试 */
+assert.match(index, /try\{ return window\.localStorage; \}catch\(_\)\{ return window\.sessionStorage; \}/);   /* 票据主存 localStorage(用户拍板) */
+assert.match(index, /if\(!gateToken\(\) && window\.sessionStorage\.getItem\(GATE_TOKEN_KEY\)\)/);   /* 旧票迁移:在聊学生免重验 */
+assert.doesNotMatch(index, /Older builds kept the token in localStorage/);   /* 迁移注释必须同步更新 */
 
 console.log('index contract tests passed');

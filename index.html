@@ -1159,7 +1159,7 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.6.14';
+const APP_VERSION = 'v2.6.15';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */
@@ -1304,11 +1304,16 @@ function buildReportInstructions(){
 /* 星图后的自由问答引导 */
 const POST_REPORT_GUIDANCE = '\n【谈心继续】星图已生成。从现在起你是解答者：以 TA 的提问为主，回答完 TA 的问题即止，绝不再主动向 TA 提问，「想问你：」第二段整体省略。可引用数据与之前的对话细节，温暖而克制。若 TA 补充了重要的新信息，可轻声告诉 TA：想看一张全新的星图，可以点「重新测试」再聊一轮。不再输出报告，不再出选项。】';
 
+/* 领航自动星图的唯一判定(引导词与 respond 共用,两边必须永远一致) */
+function guidedAutoReportDue(){
+  return !reportDone && !reportRequested && MODE === 'guided' && turnCount >= 10 && !guidedAutoTried;
+}
+
 /* 每一轮的引导（turnCount = 学生已回答的轮数，回答后进入对应引导） */
 function buildGuidance(n){
   if(reportRequested) return buildReportInstructions();                /* 学生点了「点亮星图」(含再次点亮) */
   if(reportDone) return POST_REPORT_GUIDANCE;
-  if(MODE === 'guided' && n >= 10) return buildReportInstructions();   /* 领航：满十轮自动生成 */
+  if(guidedAutoReportDue()) return buildReportInstructions();   /* 领航：满十轮的自动星图轮(只此一次) */
   if(MODE === 'open'){
     const g = openGuidance(n);
     return n >= OPEN_REPORT_MIN_TURNS ? g + OPEN_EVALUATION : g;
@@ -1333,6 +1338,7 @@ let history = [];
 let waiting = false;
 let reportDone = false;
 let reportRequested = false;   /* 自适应星图：学生主动点亮(含再次点亮)，随生成成功复位 */
+let guidedAutoTried = false;   /* 领航满十轮的自动星图机会:无论成败只消耗一次,失败后改走「重新点亮星图」按钮 */
 let reportOffered = false;     /* 夜航：辰评估后给出的点亮提示，随会话保存 */
 let turnCount = 0;
 let lastReport = null;
@@ -1394,6 +1400,7 @@ function saveSession(){
     localStorage.setItem(SESSION_KEY, JSON.stringify({
       history: normalizeHistory(savedHistory) || [], turnCount: Math.max(0, Math.min(100, Number(turnCount)||0)),
       reportDone: !!reportDone, mode: MODE, lastReport: sanitizeReport(lastReport), reportOffered: !reportDone && !!reportOffered,
+      reportAttempted: !reportDone && MODE === 'guided' && guidedAutoTried,   /* 领航自动星图已试过:刷新后不再自动重试,恢复「点亮星图」入口 */
       quotaPending: !!quotaSyncPending,
       choices: [...choicesEl.querySelectorAll('.choc')].map(b=>String(b.textContent||'').slice(0,120)).filter(Boolean).filter(c => c !== '重新点亮星图' && c !== '再试一次').slice(0,4),   /* 瞬时动作按钮不回存，刷新后不得变成发字面文本 */
       savedAt: Date.now()
@@ -1419,6 +1426,7 @@ function restoreSession(){
     quotaSyncPending = reportDone && !!s.quotaPending;
     reportOffered = !reportDone && !!s.reportOffered;
     if(!reportDone && MODE === 'open' && turnCount >= OPEN_REPORT_FORCE_TURNS) reportOffered = true;
+    guidedAutoTried = !reportDone && MODE === 'guided' && !!s.reportAttempted;
     /* Rebuild every bubble from textContent-safe markdown instead of trusting saved HTML. */
     msgsEl.innerHTML = '';
     history.forEach(item=>{
@@ -1439,6 +1447,9 @@ function restoreSession(){
       if(!reportDone && MODE === 'open' && reportOffered
         && (savedChoices.length === 0 || (savedChoices.length === 1 && savedChoices[0] === '点亮星图'))){
         /* 「点亮星图」入口恢复成按钮而不是可发送文本；动作按钮被过滤后仍给出入口 */
+        renderChips(['点亮星图']);
+      }else if(!reportDone && MODE === 'guided' && guidedAutoTried && savedChoices.length === 0){
+        /* 领航自动星图已尝试过仍未成功:不再自动重试,给「点亮星图」入口(走额度确认) */
         renderChips(['点亮星图']);
       }else{
         renderChoices(savedChoices);
@@ -1905,8 +1916,11 @@ async function respond(guidance){
   setBusy(true);
   showTyping();
 
-  /* 自适应星图：学生点「点亮星图」即生成；领航保持满十轮自动生成(修 P-2) */
-  const expectingReport = reportRequested || (!reportDone && MODE === 'guided' && turnCount >= 10);
+  /* 自适应星图：学生点「点亮星图」即生成；领航满十轮自动生成但只自动尝试一次——
+     解析失败后不再逐轮静默重试(每次成功都会扣额度),改由「重新点亮星图」按钮显式触发(修 P-2) */
+  const autoGuidedReport = guidedAutoReportDue();
+  if(autoGuidedReport) guidedAutoTried = true;   /* 机会即刻消耗,成败与否都不影响"只试一次" */
+  const expectingReport = reportRequested || autoGuidedReport;
   let bubble = null, streamed = '';
 
   /* 超长对话裁剪：保留开场白 + 最近若干轮，保证不超过中转 24 条消息上限 */
@@ -2020,7 +2034,8 @@ async function respond(guidance){
     }
     renderChoices(['再试一次'], true);
     const btns = choicesEl.querySelectorAll('.choc');
-    btns.forEach(b=>{ b.onclick = ()=>{ choicesEl.innerHTML=''; respond(guidance); }; });
+    /* 刚才那一轮若是星图轮,重试仍是学生的点亮意图:接回 reportRequested,保证按星图档重发 */
+    btns.forEach(b=>{ b.onclick = ()=>{ choicesEl.innerHTML=''; if(expectingReport) reportRequested = true; respond(guidance); }; });
     if(Number(e?.status) === 401 && /BEICHEN_AUTH/.test(String(e?.message||''))){
       /* 验证在对话中途失效：除了提示，还要把星门拉起来让用户有地方重新输入 */
       lockGate('验证已失效，请重新输入动态验证码');
@@ -2198,7 +2213,8 @@ async function processResponse(rawInput, expectingReport, bubble, epoch){
     else addMsg('ai', mdLite(text.trim() || '…') + failTip);
     renderChoices(['重新点亮星图'], true);
     const btns = choicesEl.querySelectorAll('.choc');
-    btns.forEach(b=>{ b.onclick = ()=>{ choicesEl.innerHTML=''; respond(buildGuidance(99)); }; });
+    /* 点按钮=显式点亮:接回 reportRequested,本次重试按星图档(16384/深思考)发出 */
+    btns.forEach(b=>{ b.onclick = ()=>{ choicesEl.innerHTML=''; reportRequested = true; respond(buildGuidance(99)); }; });
     return;
   }
 
@@ -2833,8 +2849,8 @@ function wipeLocalData(btn){
   clearTimeout(wipeTimer); wipeArmed = false;
   try{
     [GATE_TOKEN_KEY, GATE_AT_KEY, GATE_EXP_KEY, GATE_RUNS_KEY, GATE_COMPLETION_KEY].forEach(gateRemove);
-    /* Older builds kept the token in localStorage; clear that too. */
-    if(GATE_STORE !== window.localStorage) localStorage.removeItem(GATE_TOKEN_KEY);
+    /* 旧版本(v2.6.13-)把票存在 sessionStorage,一并清掉 */
+    if(GATE_STORE !== window.sessionStorage) sessionStorage.removeItem(GATE_TOKEN_KEY);
     localStorage.removeItem('beichen_cfg');
     clearSession();
   }catch(_){ }
@@ -2984,7 +3000,7 @@ function restart(){
   }
   talkEpoch++;   /* 先作废旧一轮的收尾资格，再中止它的流式请求，报错就不会落进新对话 */
   if(activeStreamAbort){ try{ activeStreamAbort.abort(); }catch(e){} }
-  history = []; turnCount = 0; reportDone = false; reportRequested = false; reportOffered = false; lastReport = null; quotaSyncPending = false; waiting = false;
+  history = []; turnCount = 0; reportDone = false; reportRequested = false; guidedAutoTried = false; reportOffered = false; lastReport = null; quotaSyncPending = false; waiting = false;
   clearSession();
   msgsEl.innerHTML = '';
   choicesEl.innerHTML = ''; choicesWrap.classList.remove('hide','dis');
@@ -3025,11 +3041,13 @@ const GATE_AT_KEY = 'bc_gate';
 const GATE_EXP_KEY = 'bc_gate_exp';
 const GATE_RUNS_KEY = 'bc_runs';
 const GATE_COMPLETION_KEY = 'bc_gate_completion_request';
-const GATE_REMEMBER_MS = 7 * 24 * 60 * 60 * 1000;        /* 与服务端 Token TTL（7 天）对齐；只留在当前标签页 */
+const GATE_REMEMBER_MS = 7 * 24 * 60 * 60 * 1000;        /* 与服务端 Token TTL（7 天）对齐；存 localStorage:关标签页/重启浏览器仍有效,重新验证自动覆盖,过期或清除本机记录后失效 */
 const GATE_MAX_RUNS = 3;                            /* 每次验证允许 3 次完整对话（以星图生成为准） */
 
 const GATE_STORE = (()=>{
-  try{ return window.sessionStorage; }catch(_){ return window.localStorage; }
+  /* v2.6.15 用户拍板:票据存 localStorage(便利优先)——票在开着标签页时同样可被读取,
+     关标签页清除并不减少实际风险;7 天过期 / 3 次额度 / TOTP 重验 / 清除本机记录兜底不变 */
+  try{ return window.localStorage; }catch(_){ return window.sessionStorage; }
 })();
 function gateGet(key){ try{ return GATE_STORE.getItem(key) || ''; }catch(_){ return ''; } }
 function gateSet(key, value){ try{ GATE_STORE.setItem(key, String(value)); }catch(_){} }
@@ -3169,11 +3187,21 @@ function setupGate(){
     gateRemove(GATE_RUNS_KEY);
     gateRemove(GATE_TOKEN_KEY);
     gateRemove(GATE_COMPLETION_KEY);
+    try{ window.sessionStorage.removeItem(GATE_TOKEN_KEY); }catch(_){ }   /* 老版本残留票一并清,防下方迁移把它复活 */
   }
+  /* v2.6.15 迁移:令牌从 sessionStorage 搬到 localStorage(用户拍板改存,便利优先)。
+     必须在 gateOk() 之前执行,正在聊的老版本学生才能免重新验证;搬完即清。 */
+  try{
+    if(!gateToken() && window.sessionStorage.getItem(GATE_TOKEN_KEY)){
+      [GATE_TOKEN_KEY, GATE_AT_KEY, GATE_EXP_KEY, GATE_RUNS_KEY, GATE_COMPLETION_KEY].forEach(k=>{
+        const v = window.sessionStorage.getItem(k);
+        if(v) gateSet(k, v);
+        window.sessionStorage.removeItem(k);
+      });
+    }
+  }catch(_){ }
   if(gateOk()){ gate.classList.add('pass'); if(!restoreSession()){ setTimeout(showModeSelect, 480); } return; }   /* 免验证：续谈或先选聊法(稍候再弹,让星门先淡出) */
   /* 旧版本可能只留下时间标记，不能把首次进入误报成“验证已过期”。 */
-  /* Remove tokens left by the older localStorage implementation. */
-  try{ if(GATE_STORE !== window.localStorage) localStorage.removeItem(GATE_TOKEN_KEY); }catch(_){ }
   const savedToken = gateToken();
   const savedAt = Number(gateGet(GATE_AT_KEY) || 0);
   if(!savedToken || !savedAt){
