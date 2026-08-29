@@ -157,12 +157,21 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 @keyframes blink{50%{opacity:0}}
 
 /* 思考 / 输入中（nowrap 防止移动端键盘重排时逐字竖排） */
-.typing{display:flex;gap:5px;align-items:center;padding:13px 15px;width:fit-content;flex:0 0 auto;white-space:nowrap;max-width:100%}
+.typing{display:flex;flex-wrap:wrap;row-gap:4px;gap:5px;align-items:center;padding:13px 15px;width:fit-content;max-width:min(560px,84%);flex:0 0 auto}
 .typing .dot{width:4px;height:4px;background:var(--mut);border-radius:50%;animation:bop 1.15s ease infinite;flex-shrink:0}
 .typing .dot:nth-child(2){animation-delay:.16s}
 .typing .dot:nth-child(3){animation-delay:.32s}
 @keyframes bop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
 .typing-lb{font-size:11px;color:var(--mut);margin-left:8px;letter-spacing:0.14em;white-space:nowrap;flex-shrink:0;font-family:var(--kai)}
+/* 思考低语:打字框下方第二行,显示真实 reasoning 的最后一句;随增量 600ms 一换淡入 */
+.typing-think{
+  flex-basis:100%;margin-left:8px;
+  font-family:var(--kai);font-size:10.5px;line-height:1.7;color:var(--mut);
+  letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  opacity:.85;
+}
+.typing-think.swap{animation:think-in .45s ease both}
+@keyframes think-in{from{opacity:0}to{opacity:.85}}
 .typing-cancel{margin-left:12px;border:1px solid var(--line-2);background:transparent;color:var(--mut);border-radius:99px;padding:2px 11px;font-size:10px;cursor:pointer;letter-spacing:0.12em;transition:all .18s;font-family:var(--sans);flex-shrink:0}
 .typing-cancel:hover{color:var(--wen);border-color:rgba(169,78,50,.4)}
 
@@ -1564,6 +1573,7 @@ function addMsg(role, html){
   return bub;
 }
 let typingBase = '辰在听', typingTick = null, typingStart = 0;
+let lastThinkSwap = 0;
 function showTyping(){
   const row = document.createElement('div');
   row.className = 'row ai'; row.id = 'typingRow';
@@ -1573,7 +1583,7 @@ function showTyping(){
   row.appendChild(av); row.appendChild(t);
   msgsEl.appendChild(row);
   scrollBottom();
-  typingBase = '辰在听'; typingStart = Date.now();
+  typingBase = '辰在听'; typingStart = Date.now(); lastThinkSwap = 0;
   if(typingTick) clearInterval(typingTick);
   typingTick = setInterval(()=>{
     const e = document.getElementById('typingLb');
@@ -1587,7 +1597,59 @@ function setTypingLabel(txt){
 }
 function removeTyping(){
   if(typingTick){ clearInterval(typingTick); typingTick = null; }
+  stopReportWait();
   const e = document.getElementById('typingRow'); if(e) e.remove();
+}
+
+/* ── 思考低语:星图轮思考可达半分钟,把真实 reasoning 的"最后一句"淡入打字框下方,
+      让等待有内容可看;思考内容依旧不落 history(仅显示,不存储)。 ── */
+function showThink(full){
+  const row = document.getElementById('typingRow');
+  if(!row) return;
+  const box = row.querySelector('.typing');
+  if(!box) return;
+  let el = document.getElementById('typingThink');
+  if(!el){
+    el = document.createElement('div');
+    el.className = 'typing-think'; el.id = 'typingThink';
+    box.appendChild(el);
+  }
+  let s = String(full||'').replace(/\s+/g,' ');
+  const parts = s.split(/[。；!？!?]/).filter(Boolean);
+  s = (parts[parts.length-1] || s).trim();
+  if(s.length > 56) s = '…' + s.slice(-56);
+  if(el.textContent === s) return;
+  const now = Date.now();
+  if(now - lastThinkSwap < 600) return;   /* 节流:思考增量很密,600ms 一换足够"活" */
+  lastThinkSwap = now;
+  el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap');
+  el.textContent = s;
+}
+function clearThink(){
+  const el = document.getElementById('typingThink');
+  if(el) el.remove();
+}
+
+/* ── 纯等待兜底:若上游不流思考增量(部分网关只在最后给),星图轮每 4.5s 换一句
+      叙述文案,屏上有变化;一旦真实思考或正文开始,立即让位。 ── */
+const REPORT_WAIT_LINES = ['辰在回望这段谈心','辰把你的线索一颗颗串起来','辰在核对十二种组合的口径','星卡的措辞在慢慢打磨','寄语要留到最后才写'];
+let reportWaitTm = null, reportWaitIdx = 0, reportWaitArmed = false;
+function startReportWait(){
+  stopReportWait();
+  reportWaitArmed = true;
+  reportWaitIdx = 0;
+  reportWaitTm = setInterval(()=>{
+    if(!reportWaitArmed){ stopReportWait(); return; }
+    const e = document.getElementById('typingLb');
+    if(!e){ stopReportWait(); return; }
+    if(document.getElementById('typingThink')){ stopReportWait(); return; }   /* 真思考已上线,让位 */
+    setTypingLabel(REPORT_WAIT_LINES[reportWaitIdx % REPORT_WAIT_LINES.length]);
+    reportWaitIdx++;
+  }, 4500);
+}
+function stopReportWait(){
+  reportWaitArmed = false;
+  if(reportWaitTm){ clearInterval(reportWaitTm); reportWaitTm = null; }
 }
 
 /* ═══════════════════════════ 学科手感 ═══════════════════════════ */
@@ -1661,7 +1723,7 @@ function friendlyError(err){
 }
 
 async function askStream(messages, opt){
-  const { maxTokens=3000, temperature=1.0, timeoutMs=150000, onDelta, onReasoning } = opt;
+  const { maxTokens=3000, temperature=1.0, timeoutMs=150000, onDelta, onReasoning, onReasoningDelta } = opt;
   let lastErr = null;
   for(let attempt=0; attempt<3; attempt++){
     const ctrl = new AbortController();
@@ -1718,6 +1780,7 @@ async function askStream(messages, opt){
             reasonStart = true;
             if(onReasoning) onReasoning();
           }
+          if(onReasoningDelta) onReasoningDelta(reasoning);   /* 思考低语:把累计思考喂给等待指示器 */
         }
         const contentChunk = typeof delta.content === 'string'
           ? delta.content
@@ -1855,14 +1918,17 @@ async function respond(guidance){
     messages = [{role:'system', content:SYSTEM}, ...context, {role:'system', content:guidance}];
   }
   if(expectingReport) setTypingLabel('辰在准备点亮星图');
+  if(expectingReport) startReportWait();   /* 纯等待兜底:思考与正文开始前,叙述文案轮播 */
 
   let ok = false;
   let renderFrame = null;   /* 流式渲染节流：合并到 rAF，避免移动端逐 token 重排卡顿 */
   try{
     // 思考阶段保留 typing 动画；首个正文 token 到达时才创建气泡
-    const onReasoning = ()=> setTypingLabel('辰在安静思考');
+    const onReasoning = ()=>{ stopReportWait(); setTypingLabel('辰在安静思考'); };
+    const onThink = (full)=> showThink(full);   /* 思考低语:显示真实 reasoning 的最后一句 */
       const onDelta = (chunk, all)=>{
         streamed = all;
+        stopReportWait();   /* 正文开始了,轮播与低语都让位 */
         if(expectingReport){
           /* 星图前的前置回应实时上屏：等待不再是黑箱；遇到骨架标记后转分段进度 */
           const cut = all.indexOf('【北辰星图】');
@@ -1884,6 +1950,7 @@ async function respond(guidance){
             setTypingLabel('辰在描出你的多维星图');
             return;
           }
+          clearThink();   /* 骨架阶段:低语收起,只留分段进度 */
           let stage = '辰在描出你的多维星图';
           if(all.includes('【组合】')) stage = '辰在核对选科组合';
           if(all.includes('【专业】')) stage = '辰在收拢专业方向';
@@ -1912,7 +1979,7 @@ async function respond(guidance){
       /* The Tencent function allows 600s; keep 60s for cleanup and gateway
          propagation instead of cancelling a long max-thinking report at 5m. */
       timeoutMs: 540000,
-      onDelta, onReasoning
+      onDelta, onReasoning, onReasoningDelta: onThink
     });
     const raw = result.content;
     /* 立即取消未执行的帧，防止流式内容覆盖 processResponse 的最终渲染 */

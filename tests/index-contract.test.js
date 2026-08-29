@@ -164,6 +164,20 @@ assert.match(index, /div\.className = 'combo' \+ \(isPrimary\?'':' alt'\); div\.
 assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal',''\);/);
 assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
 
+/* ── v2.6.9 星图轮等待:思考低语(真实 reasoning 增量上屏)+叙述轮播兜底 ── */
+assert.match(index, /onReasoning, onReasoningDelta \} = opt/);   /* askStream 暴露思考增量回调 */
+assert.match(index, /if\(onReasoningDelta\) onReasoningDelta\(reasoning\)/);
+assert.match(index, /onReasoningDelta: onThink/);   /* respond 接线 */
+assert.match(index, /function showThink/);
+assert.match(index, /function clearThink/);
+assert.match(index, /const REPORT_WAIT_LINES = \[/);
+assert.match(index, /function startReportWait/);
+assert.match(index, /function stopReportWait/);
+assert.match(index, /stopReportWait\(\); setTypingLabel\('辰在安静思考'\)/);   /* 真思考上线,轮播让位 */
+assert.match(index, /if\(expectingReport\) startReportWait\(\)/);   /* 星图轮启动轮播兜底 */
+assert.match(index, /\.typing-think\{/);   /* 低语样式:第二行,淡入 */
+assert.match(index, /if\(now - lastThinkSwap < 600\) return;/);   /* 600ms 节流 */
+
 /* ── v2.6.7/8 专业解析悬浮卡(分析+就业方向,无角标,全站动效) + FAQ 赋分/改科 + 回程淡入可感知 ── */
 assert.match(index, /【专业】5-8个专业方向，每个依次输出三段：专业名\|\|推荐分析\|\|就业方向/);   /* 报告契约:名||分析||就业 三段成组,5-8个 */
 assert.match(index, /function openMajorPop/);
