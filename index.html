@@ -1142,7 +1142,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
       </div>
       <div>
         <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
-        <div class="stat-sub">每次更新这里会变 · 学生截图发你即可确认缓存是否已更新</div>
+        <div class="stat-sub">反馈问题时，请把这个版本号一并告诉开发者</div>
       </div>
       </div>
       <div class="dev-note" data-reveal>
@@ -1176,7 +1176,7 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.6.16';
+const APP_VERSION = 'v2.6.17';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */
