@@ -283,6 +283,7 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .report-card.capture-clone .rc-close,
 .report-card.capture-clone .rc-time,
 .report-card.capture-clone .report-quota,
+.report-card.capture-clone .mj-pop,
 .report-card.capture-clone .report-actions{display:none!important}
 @keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .report-card::-webkit-scrollbar{width:3px}
@@ -388,19 +389,39 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
   font-size:12px;padding:5px 14px;border-radius:99px;
   border:1px solid var(--line);color:var(--ink-2);
 }
-/* 带推荐理由的专业:可点击,展开理由卡 */
+/* 带推荐理由的专业:可点击,弹出悬浮解析卡 */
 button.mj{font-family:inherit;background:transparent;cursor:default}
 .mj.link{border-color:var(--line-2);cursor:pointer;transition:all .18s}
 .mj.link::after{content:'⌄';display:inline-block;margin-left:6px;font-size:9px;color:var(--mut);transform:translateY(-1px);transition:transform .22s var(--ease-stagger)}
 .mj.link:hover{background:var(--paper-2);color:var(--ink)}
 .mj.link.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .mj.link.on::after{color:var(--card);transform:rotate(180deg) translateY(1px)}
-.major-detail{overflow:hidden;max-height:0;opacity:0;transition:max-height .34s var(--ease-out-strong),opacity .28s var(--ease-stagger);margin:2px 0 0}
-.major-detail.open{max-height:200px;opacity:1}
-.md-in{border:1px solid var(--line-2);border-radius:var(--radius-m);padding:13px 16px;background:var(--paper-2)}
-.md-in h6{font-family:var(--kai);font-size:13.5px;font-weight:700;letter-spacing:.06em;color:var(--ink);margin-bottom:5px;display:flex;align-items:baseline;gap:7px}
-.md-in h6::before{content:'✦';font-size:9px;color:var(--line-2);flex-shrink:0;transform:translateY(-1px)}
-.md-in p{font-size:11.5px;line-height:1.9;color:var(--ink-2)}
+/* 专业解析悬浮卡:锚住所点 pill,浮在报告卡之上 */
+.mj-pop{
+  position:absolute;z-index:8;
+  background:var(--card);border:1px solid var(--line-2);border-radius:var(--radius-m);
+  box-shadow:0 14px 40px rgba(32,36,44,.16),0 3px 10px rgba(32,36,44,.08);
+  padding:16px 18px 15px;
+  animation:popIn .3s var(--ease-spring) both;
+}
+.mj-pop.out{transition:opacity .15s ease,transform .15s ease;opacity:0;transform:translateY(5px) scale(.98)}
+.mj-pop.above{animation-name:popInUp}
+@keyframes popIn{from{opacity:0;transform:translateY(9px) scale(.965)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes popInUp{from{opacity:0;transform:translateY(-9px) scale(.965)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mp-x{
+  position:absolute;top:9px;right:9px;width:26px;height:26px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);color:var(--mut);
+  font-size:11px;line-height:1;cursor:pointer;transition:all .16s;
+  display:flex;align-items:center;justify-content:center;
+}
+.mp-x:hover{background:var(--paper-2);color:var(--ink)}
+.mp-tag{font-size:9.5px;letter-spacing:.28em;color:var(--mut);margin-bottom:7px}
+.mj-pop h6{font-family:var(--kai);font-size:16px;font-weight:700;letter-spacing:.05em;color:var(--ink);margin-bottom:7px;display:flex;align-items:baseline;gap:8px;padding-right:24px}
+.mj-pop h6::before{content:'✦';font-size:10px;color:var(--li);flex-shrink:0;transform:translateY(-1px)}
+.mp-why{font-size:11.5px;line-height:1.95;color:var(--ink-2)}
+.mp-career{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}
+.mp-lb{font-size:9.5px;letter-spacing:.3em;color:var(--mut);display:block;margin-bottom:4px}
+.mp-career p{font-size:11.5px;line-height:1.9;color:var(--ink-2)}
 
 /* 寄语 */
 .bless{
@@ -914,7 +935,6 @@ html.js [data-reveal]:not(.revealed){opacity:0}
       <div class="combo-row" id="rp-combos"></div>
       <div class="rc-sec-lb" data-reveal>专 业 方 向 · 参 考</div>
       <div class="major-wrap" id="rp-majors"></div>
-      <div class="major-detail" id="rp-majdetail" hidden></div>
       <div class="rc-sec-lb" data-reveal>写 给 你</div>
       <div class="bless" data-reveal><p id="rp-bless">—</p><div class="bless-sign">—— 北 辰</div></div>
     </div>
@@ -1265,7 +1285,7 @@ function buildReportInstructions(){
   '5. 盲区与叮嘱——TA最容易被忽略的一点，与一句只属于TA的提醒。\n'+
   '每张正文都要把对话里的具体细节自然融入叙述。多用“你提到……”“当你说起……”“从你的回答里……”一类温柔表达，让文字像一位真诚的学长在回望这段谈心；要有情怀、有理想，也要克制真实。严禁出现“第几问”“第1问”“判断依据”“证据表明”等测评腔表达，禁止只写泛泛的性格形容词\n'+
   '【组合】首选组合||首选理由（80字内）||备选组合||备选理由（80字内）。组合必须是十二种3+1+2组合之一，首选备选不得相同\n'+
-  '【专业】3-8个专业方向，每个专业名后紧跟"||"和一段推荐理由，依次排列：专业A||理由A||专业B||理由B…。理由40字内，点明该专业与TA哪条对话线索呼应（热爱/手感/身边的现实取舍等），以及它与首选组合在选科要求上的衔接\n'+
+  '【专业】3-6个专业方向，每个依次输出三段：专业名||推荐分析||就业方向。推荐分析80字内且要分析到位：结合TA对话里的具体线索（学科手感、忘记时间的事、职业向往、家庭现实取舍）说明为什么适合TA，并点明它与首选组合的选科衔接；就业方向50字内，给出对应行业、典型职业或升学路径（如需读研、考公对口、行业趋势），写实不夸大。格式严格：专业A||分析A||就业A||专业B||分析B||就业B…\n'+
   '【寄语】100-160字，像学长在信末写给你的话：有具体回忆（引用对话细节）、有真诚叮嘱，禁止空话套话、口号和具体行动清单；只给能帮助TA理解自己方向的概括性提示】';
 }
 
@@ -1342,7 +1362,8 @@ function sanitizeReport(value){
   })).filter(card=>card.title && card.body) : [];
   out._majors = Array.isArray(value._majors) ? value._majors.slice(0,8).map(m=>({
     name: typeof m?.name === 'string' ? m.name.slice(0,60) : '',
-    reason: typeof m?.reason === 'string' ? m.reason.slice(0,220) : ''
+    reason: typeof m?.reason === 'string' ? m.reason.slice(0,300) : '',
+    career: typeof m?.career === 'string' ? m.career.slice(0,200) : ''
   })).filter(m=>m.name) : [];
   out._dir = ['wen','li','bal'].includes(value._dir) ? value._dir : 'bal';
   const lean = Number(value._lean);
@@ -2252,22 +2273,32 @@ function parseReport(text){
   const alternateCombo = comboCandidates.find(c => !primaryCombo || c.id !== primaryCombo.id) || null;
   map._comboPrimary = primaryCombo;
   map._comboAlternate = alternateCombo;
-  /* 专业:新格式"名||理由"成对;名字段必须短且不含列举分隔符,否则按旧格式(顿号名单)降级——
-     理由缺失时只渲染不可展开的纯名字 pill,绝不卡死 */
+  /* 专业:新格式"名||分析||就业方向"三段成组;名字段必须短且不含列举分隔符,否则逐级降级——
+     两段组(仅理由)与旧顿号名单都能渲染,绝不卡死 */
   map._majors = [];
   const mjParts = String(map['专业'] || '').split(/\|\||[|｜]/).map(s=>s.trim()).filter(Boolean);
-  if(mjParts.length >= 4){
+  const mjOk = (name) => name && name.length <= 40 && !/[、，,;；]/.test(name);
+  if(mjParts.length >= 6){
+    const triples = [];
+    for(let i = 0; i + 2 < mjParts.length; i += 3){
+      const name = mjParts[i], reason = mjParts[i+1], career = mjParts[i+2];
+      if(!mjOk(name) || !reason || reason.length > 300 || !career || career.length > 200){ break; }
+      triples.push({name, reason, career});
+    }
+    if(triples.length >= 2) map._majors = triples;
+  }
+  if(!map._majors.length && mjParts.length >= 4){
     const pairs = [];
     for(let i = 0; i + 1 < mjParts.length; i += 2){
       const name = mjParts[i], reason = mjParts[i+1];
-      if(!name || !reason || name.length > 40 || /[、，,;；]/.test(name) || reason.length > 220){ break; }
-      pairs.push({name, reason});
+      if(!mjOk(name) || !reason || reason.length > 300){ break; }
+      pairs.push({name, reason, career:''});
     }
     if(pairs.length >= 2) map._majors = pairs;
   }
   if(!map._majors.length){
     String(map['专业'] || '').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8)
-      .forEach(name=>map._majors.push({name, reason:''}));
+      .forEach(name=>map._majors.push({name, reason:'', career:''}));
   }
   const complete = REPORT_LABELS.every(label=>map[label]) && map.cards.length >= 5
     && primaryCombo && alternateCombo;
@@ -2392,27 +2423,29 @@ function renderReport(r){
     if(a && (!pFirst || a.id !== pFirst.id)) mkCombo(a, parts[3] || '', false);
   }
 
-  // 专业:pill 列表;带推荐理由的可点击展开理由卡(同一时间只开一张)
+  // 专业:pill 列表;带解析的可点击,弹出悬浮解析卡(分析+就业方向)
   const mjEl = document.getElementById('rp-majors');
   mjEl.innerHTML = '';
-  const mdBox = document.getElementById('rp-majdetail');
-  if(mdBox){ mdBox.hidden = true; mdBox.classList.remove('open'); mdBox.innerHTML = ''; mdBox._openFor = null; }
+  mjPopClose(true);
   const majors = (r._majors && r._majors.length)
     ? r._majors
-    : String(r['专业']||'').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8).map(name=>({name, reason:''}));
+    : String(r['专业']||'').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8).map(name=>({name, reason:'', career:''}));
   majors.slice(0,8).forEach(m=>{
     if(!m || !m.name) return;
     let b;
-    if(m.reason){
+    if(m.reason || m.career){
       b = document.createElement('button');
       b.type = 'button';
-      b.title = '点开看推荐理由';
+      b.title = '点开看专业解析';
       b.setAttribute('aria-expanded','false');
-      b.onclick = ()=>toggleMajorDetail(m, b);
+      b.onclick = ()=>{
+        if(mjPopState && mjPopState.pill === b){ mjPopClose(); return; }
+        openMajorPop(m, b);
+      };
     }else{
       b = document.createElement('span');
     }
-    b.className = 'mj' + (m.reason ? ' link' : '');
+    b.className = 'mj' + ((m.reason || m.career) ? ' link' : '');
     b.setAttribute('data-reveal','');
     b.textContent = m.name;
     mjEl.appendChild(b);
@@ -2424,26 +2457,64 @@ function renderReport(r){
   updateQuotaNote(gateRuns());
 }
 
-/* 专业理由卡:同一时间只展开一张,再点同一个收起;展开走 max-height+透明度过渡 */
-function toggleMajorDetail(m, btn){
-  const box = document.getElementById('rp-majdetail');
-  if(!box) return;
-  const same = box._openFor === btn;
-  if(box._openFor){ box._openFor.setAttribute('aria-expanded','false'); box._openFor.classList.remove('on'); }
-  if(same){
-    box.classList.remove('open'); box._openFor = null;
-    setTimeout(()=>{ if(!box._openFor) box.hidden = true; }, 260);
-    return;
+/* ── 专业解析悬浮卡:锚住所点 pill 的弹出卡片(内容坐标定位,随滚动保持锚定;
+      下方放不下自动翻到 pill 上方,左右夹在卡片内)。同一时间只开一张。 ── */
+let mjPopState = null;
+let mjPopArm = null;
+function mjPopClose(immediate){
+  if(!mjPopState) return false;
+  const st = mjPopState; mjPopState = null;
+  if(mjPopArm){ document.removeEventListener('pointerdown', mjPopArm, true); mjPopArm = null; }
+  st.pill.classList.remove('on'); st.pill.setAttribute('aria-expanded','false');
+  if(immediate){ st.pop.remove(); return true; }
+  st.pop.classList.add('out');
+  setTimeout(()=>st.pop.remove(), 160);
+  return true;
+}
+function openMajorPop(m, btn){
+  mjPopClose(true);
+  const card = document.querySelector('#reportModal .report-card');
+  if(!card) return;
+  const pop = document.createElement('div');
+  pop.className = 'mj-pop';
+  pop.setAttribute('role','dialog');
+  pop.setAttribute('aria-label','专业解析 · ' + m.name);
+  pop.innerHTML =
+    '<button type="button" class="mp-x" aria-label="关闭">✕</button>'+
+    '<div class="mp-tag">专业解析 · MAJOR</div>'+
+    '<h6>'+esc(m.name)+'</h6>'+
+    (m.reason ? '<p class="mp-why">'+esc(m.reason)+'</p>' : '')+
+    (m.career ? '<div class="mp-career"><div class="mp-lb">就业方向</div><p>'+esc(m.career)+'</p></div>' : '');
+  card.appendChild(pop);
+  mjPopState = {pop, pill:btn};
+  btn.classList.add('on'); btn.setAttribute('aria-expanded','true');
+  /* 定位:pill 在卡片内容坐标中的位置;同步量尺寸落位(读取 offsetHeight 强制布局),
+     不依赖 rAF 时机,低帧/节流环境同样生效;先隐着防闪跳 */
+  const cardRect = card.getBoundingClientRect();
+  const pillTop = btn.getBoundingClientRect().top - cardRect.top + card.scrollTop;
+  const pillLeft = btn.getBoundingClientRect().left - cardRect.left;
+  const maxW = Math.min(360, card.clientWidth - 24);
+  pop.style.width = maxW + 'px';
+  pop.style.visibility = 'hidden';
+  const popH = pop.offsetHeight;
+  let top = pillTop + btn.offsetHeight + 10, below = true;
+  if(top + popH > card.scrollTop + card.clientHeight - 12){
+    top = pillTop - popH - 10; below = false;
+    if(top < card.scrollTop + 8) top = card.scrollTop + card.clientHeight - popH - 12;
   }
-  box.hidden = false;
-  box.innerHTML = '<div class="md-in"><h6>'+esc(m.name)+'</h6><p>'+esc(m.reason)+'</p></div>';
-  box._openFor = btn;
-  btn.setAttribute('aria-expanded','true'); btn.classList.add('on');
-  /* 强制回流让起始态(max-height:0/opacity:0)先被计算,再展开——不依赖 rAF 时机,低帧环境同样生效 */
-  void box.offsetWidth;
-  box.classList.add('open');
-  /* 轻推进视线,不打断用户滚动位置 */
-  setTimeout(()=>{ box.scrollIntoView({block:'nearest', behavior:'smooth'}); }, 120);
+  pop.style.top = top + 'px';
+  pop.style.left = Math.min(Math.max(12, pillLeft), card.clientWidth - maxW - 12) + 'px';
+  pop.classList.toggle('above', !below);
+  pop.style.visibility = '';
+  pop.querySelector('.mp-x').onclick = (ev)=>{ ev.stopPropagation(); mjPopClose(); };
+  /* 点卡片其他任何地方即收起(pill 上除外——让 pill 自己的 click 决定开/关/换) */
+  mjPopArm = (ev)=>{
+    if(!mjPopState) return;
+    if(mjPopState.pop.contains(ev.target)) return;
+    if(ev.target && ev.target.closest && ev.target.closest('.mj')) return;
+    mjPopClose();
+  };
+  document.addEventListener('pointerdown', mjPopArm, true);
 }
 
 /* ═══════════════════════════ 数据面板 ═══════════════════════════ */
@@ -2480,7 +2551,12 @@ window.addEventListener('popstate', ()=>{
 });
 document.addEventListener('keydown', (e)=>{
   const top = topDismissible();
-  if(e.key === 'Escape' && top){ e.preventDefault(); closeOverlay(top); return; }
+  if(e.key === 'Escape' && top){
+    e.preventDefault();
+    /* 解析悬浮卡开着时,Esc 先收卡,不关整个报告 */
+    if(mjPopState){ mjPopClose(); return; }
+    closeOverlay(top); return;
+  }
   /* Tab 圈定在最上层弹窗内，键盘焦点不漏进被遮住的对话区 */
   if(e.key === 'Tab' && top){
     const card = document.getElementById(top).querySelector('.report-card, .data-card, .modal-card, .restart-card');
@@ -2598,8 +2674,7 @@ function openOverlay(id){
     star.style.transition = 'none';
     star.style.left = '50%';
     document.querySelectorAll('#rp-combos .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
-    const mdBox = document.getElementById('rp-majdetail');
-    if(mdBox){ mdBox.hidden = true; mdBox.classList.remove('open'); mdBox.innerHTML = ''; mdBox._openFor = null; }
+    mjPopClose(true);   /* 重开报告时收起专业解析悬浮卡 */
   }
   if(id === 'dataModal'){
     document.querySelectorAll('#dataModal .cov-fill, #dataModal .hl-f').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
@@ -2810,9 +2885,9 @@ function copyReport(){
   const parts = String(r['组合']||'').split(/\|\||[|｜]/).map(s=>s.trim());
   if(parts[0]) txt += '首选组合：' + parts[0] + '\n' + (parts[1]||'') + '\n';
   if(parts[2]) txt += '备选组合：' + parts[2] + '\n' + (parts[3]||'') + '\n';
-  if(r._majors && r._majors.length && r._majors.some(m=>m && m.reason)){
+  if(r._majors && r._majors.length && r._majors.some(m=>m && (m.reason || m.career))){
     txt += '\n专业方向参考：\n' + r._majors.filter(m=>m && m.name)
-      .map(m=>'· ' + m.name + (m.reason ? '——' + m.reason : '')).join('\n') + '\n\n';
+      .map(m=>'· ' + m.name + (m.reason ? '——' + m.reason : '') + (m.career ? '\n　就业方向：' + m.career : '')).join('\n') + '\n\n';
   }else{
     txt += '\n专业方向参考：' + (r['专业']||'—') + '\n\n';
   }

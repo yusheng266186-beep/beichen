@@ -159,18 +159,22 @@ assert.match(index, /class="dsec" data-reveal/);
 assert.match(index, /class="mode-card" data-reveal/);
 assert.match(index, /class="settings-note" data-reveal/);
 assert.match(index, /div\.className = 'starcard'; div\.setAttribute\('data-reveal',''\);/);
-assert.match(index, /b\.className = 'mj' \+ \(m\.reason \? ' link' : ''\);/);
+assert.match(index, /b\.className = 'mj' \+ \(\(m\.reason \|\| m\.career\) \? ' link' : ''\);/);
 assert.match(index, /div\.className = 'combo' \+ \(isPrimary\?'':' alt'\); div\.setAttribute\('data-reveal',''\);/);
 assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal',''\);/);
 assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
 
-/* ── v2.6.6 专业理由卡(点击展开) + FAQ 赋分/改科 + 回程淡入可感知 ── */
-assert.match(index, /【专业】3-8个专业方向，每个专业名后紧跟"||"和一段推荐理由/);   /* 报告契约:名理由成对 */
-assert.match(index, /function toggleMajorDetail/);
-assert.match(index, /id="rp-majdetail" hidden/);
-assert.match(index, /mdBox\._openFor = null;/);   /* 每次打开报告都复位理由卡 */
-assert.match(index, /\.major-detail\.open\{max-height:200px;opacity:1\}/);
-assert.match(index, /b\.title = '点开看推荐理由'/);
+/* ── v2.6.7 专业解析悬浮卡(分析+就业方向) + FAQ 赋分/改科 + 回程淡入可感知 ── */
+assert.match(index, /【专业】3-6个专业方向，每个依次输出三段：专业名\|\|推荐分析\|\|就业方向/);   /* 报告契约:名||分析||就业 三段成组 */
+assert.match(index, /function openMajorPop/);
+assert.match(index, /function mjPopClose\(immediate\)/);
+assert.match(index, /mjPopClose\(true\)/);   /* 重开报告/重新渲染时直接收起悬浮卡 */
+assert.match(index, /if\(mjPopState\)\{ mjPopClose\(\); return; \}/);   /* Esc 先收悬浮卡,不关报告 */
+assert.match(index, /\.mj-pop\{[\s\S]*?position:absolute;/);
+assert.match(index, /@keyframes popIn/);
+assert.match(index, /\.report-card\.capture-clone \.mj-pop,/);   /* 截图不含悬浮卡 */
+assert.match(index, /mp-career/);   /* 就业方向段 */
+assert.match(index, /b\.title = '点开看专业解析'/);
 assert.match(index, /再选科目要赋分，赋分是怎么算的？/);
 assert.match(index, /选科定了以后还能改吗？/);
 assert.match(index, /3\+1\+2 等级赋分通行规则/);   /* FAQ 事实来源注记 */
