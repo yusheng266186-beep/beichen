@@ -303,4 +303,14 @@ assert.match(index, /try\{ return window\.localStorage; \}catch\(_\)\{ return wi
 assert.match(index, /if\(!gateToken\(\) && window\.sessionStorage\.getItem\(GATE_TOKEN_KEY\)\)/);   /* 旧票迁移:在聊学生免重验 */
 assert.doesNotMatch(index, /Older builds kept the token in localStorage/);   /* 迁移注释必须同步更新 */
 
+/* ─── v2.6.16 字体主源切 Google Fonts(大陆边缘实测快一个量级) + load 后注入不拖进度条 + 本地兜底 ─── */
+assert.match(index, /fonts\.googleapis\.com\/css2\?family=Cormorant\+Garamond:ital,wght@0,400;0,600;1,400&family=Noto\+Serif\+SC:wght@400;500;700&display=swap/);
+assert.match(index, /loadFonts\(GOOGLE_FONTS, 'fonts\/fonts\.css'\)/);   /* Google 失败自动回退自托管,最坏情况字形照旧 */
+assert.match(index, /window\.addEventListener\('load', start\)/);   /* 页面 load 后才注入:字体不参与"加载完成"信号 */
+assert.match(index, /style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com/);
+assert.match(index, /font-src 'self' https:\/\/fonts\.gstatic\.com/);
+assert.match(index, /rel="preconnect" href="https:\/\/fonts\.gstatic\.com" crossorigin/);
+assert.match(index, /<noscript><link rel="stylesheet" href="fonts\/fonts\.css"><\/noscript>/);
+assert.doesNotMatch(index, /media="print" onload="this\.media='all'"/);   /* 旧 print-trick 必须移除(它会拖住进度条) */
+
 console.log('index contract tests passed');
