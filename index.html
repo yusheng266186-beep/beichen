@@ -1121,8 +1121,12 @@ html.js [data-reveal]:not(.revealed){opacity:0}
         </div>
         <div>
           <div class="stat-row"><span class="t-lb">对话模型</span><b>GLM-5.2 · 深度思考 max</b></div>
-          <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
-        </div>
+        <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
+      </div>
+      <div>
+        <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
+        <div class="stat-sub">每次更新这里会变 · 学生截图发你即可确认缓存是否已更新</div>
+      </div>
       </div>
       <div class="dev-note" data-reveal>
         <p><b>写给你</b></p>
@@ -1154,6 +1158,9 @@ function apiHeaders(){
   const token = typeof gateToken === 'function' ? gateToken() : '';
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
+/* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
+const APP_VERSION = 'v2.6.14';
+console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */
 const COMBOS = [
@@ -1344,6 +1351,9 @@ const choicesEl = document.getElementById('choices');
 /* 轻量续谈：只保存结构化对话状态。永远不要把可执行 HTML 放进 localStorage 再 innerHTML 恢复。 */
 const MAX_SESSION_MESSAGES = 40;
 const MAX_SESSION_TEXT = 20000;
+/* 单条发送上限:远低于云端单条 16000 上限。超长消息一旦被云端 400 拒收,它会永久留在
+   history 里——之后每一轮都带着它、每一轮都 400,整段会话锁死只能"重新测试"解脱。 */
+const MAX_INPUT_CHARS = 6000;
 /* /chat/completions 中转上限 24 条消息：system 基座与引导词各占 1 条，余量留给历史 */
 const MAX_CONTEXT_MESSAGES = 22;
 function normalizeHistory(value){
@@ -1718,6 +1728,8 @@ function friendlyError(err){
   if(status === 409 && /BEICHEN_QUOTA_EXHAUSTED/.test(msg)) return '本次验证的 3 次谈心已用完，重新输入动态验证码后可以再点亮星图。';
   if(status === 409) return '这段会话的聊天轮数已达上限，点"重新测试"开始一段新的谈心。';
   if(status === 429) return '请求过于频繁，稍等几秒再试。';
+  /* 400/413 是"内容没过云端校验",不是网络问题;不映射的话学生会对着"网络连接失败"白重试 */
+  if(status === 400 || status === 413) return /TOO_LARGE/.test(msg) ? '这段内容太长了，请删减一些再发送。' : '这条内容云端没能接受，请调整一下再发送。';
   if(status >= 500) return '模型服务暂时繁忙，请稍后重试。';
   if(err?.name === 'AbortError') return userAborted ? '已取消，可重新发送。' : '等待超时已自动取消，请重试。';
   if(err?.code === 'EMPTY') return '模型本轮没有返回内容，请重试。';
@@ -1866,6 +1878,11 @@ async function send(preset){
   if(reportDone && quotaSyncPending){ toast('请先同步本次星图额度'); return; }
   const text = String(preset || inp.value).trim();
   if(!text) return;
+  if(text.length > MAX_INPUT_CHARS){
+    toast('这条超过 ' + MAX_INPUT_CHARS + ' 字了，请删减一些再发送');
+    if(!preset){ autoH(inp); inp.focus(); }
+    return;
+  }
   if(!preset){ inp.value=''; autoH(inp); }
 
   addMsg('user', mdLite(text));
@@ -2775,6 +2792,8 @@ function fmtRemaining(ms){
 function refreshSettingsStats(){
   const runsEl = document.getElementById('statRuns');
   if(!runsEl) return;
+  const verEl = document.getElementById('statVer');
+  if(verEl) verEl.textContent = APP_VERSION;
   const runs = Math.max(0, Math.min(GATE_MAX_RUNS, gateRuns()));
   runsEl.textContent = runs + ' / ' + GATE_MAX_RUNS;
   const modeEl = document.getElementById('statMode');

@@ -278,4 +278,14 @@ assert.doesNotMatch(index, /relay-worker/);
 assert.doesNotMatch(index, /model: MODEL/);
 assert.doesNotMatch(index, /const MODEL =/);
 
+/* ─── v2.6.14 超长输入防线 + 设置面板版本标记 ─── */
+/* 发送前本地拦截超长输入:误粘长文被云端 400 拒收后会永久留在 history 里锁死整段会话 */
+assert.match(index, /const MAX_INPUT_CHARS = 6000;/);
+assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
+/* 400/413 不再误报为"网络连接失败" */
+assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
+/* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
+assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
+assert.match(index, /id="statVer"/);
+
 console.log('index contract tests passed');
