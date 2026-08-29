@@ -212,14 +212,12 @@ assert.match(index, /class="book" data-reveal/);
 assert.match(index, /class="dsec-t" data-reveal/);
 assert.equal((index.match(/class="dsec" data-reveal/g)||[]).length, 2);   /* 仅核心数据/十二组合保留容器级显现 */
 
-/* ── v2.6.5 回程淡入 + 细节打磨 ── */
-assert.match(index, /function watchReturn/);
-assert.match(index, /watchReturn\(card \|\| el\)/);   /* 回程重播登记 */
-assert.match(index, /@keyframes msg-in-back/);   /* 回程专用动画:从下方 16px 升起,从下往上 */
-assert.match(index, /t\.style\.animation = 'msg-in-back \.55s var\(--ease-stagger\) both';/);
-assert.doesNotMatch(index, /t\.animate\(\{opacity:\[0,1\]\}/);   /* 纯透明度淡入已废弃(曾被判"闪烁") */
-assert.match(index, /\{threshold:0\.3\}\);/);   /* 回程露出 30% 才开播,升起可见 */
-assert.match(index, /t\._exitTop = en\.boundingClientRect\.top < 0/);   /* 只对从顶部离开的元素生效 */
+/* ── v2.6.5 细节打磨;v2.6.13 回程动画整套移除(用户定案:回程即时呈现) ── */
+assert.doesNotMatch(index, /watchReturn/);   /* 上滑回程动画系统已删 */
+assert.doesNotMatch(index, /returnIO/);
+assert.doesNotMatch(index, /msg-in-back/);
+assert.doesNotMatch(index, /_exitTop/);
+assert.doesNotMatch(index, /t\.animate\(\{opacity:\[0,1\]\}/);   /* 纯透明度淡入同样不存在 */
 assert.match(index, /function rearmReveal/);
 assert.match(index, /rearmReveal\(el\);/);   /* 选聊法再次弹出也重播双卡进场 */
 assert.match(index, /\.gate-in\.enter\{animation:land-up/);   /* 星门入场可重播 */
