@@ -389,25 +389,20 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
   font-size:12px;padding:5px 14px;border-radius:99px;
   border:1px solid var(--line);color:var(--ink-2);
 }
-/* 带推荐理由的专业:可点击,弹出悬浮解析卡 */
+/* 可解析的专业:可点击(悬停反馈+按下反色,不加角标符号) */
 button.mj{font-family:inherit;background:transparent;cursor:default}
 .mj.link{border-color:var(--line-2);cursor:pointer;transition:all .18s}
-.mj.link::after{content:'⌄';display:inline-block;margin-left:6px;font-size:9px;color:var(--mut);transform:translateY(-1px);transition:transform .22s var(--ease-stagger)}
 .mj.link:hover{background:var(--paper-2);color:var(--ink)}
 .mj.link.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
-.mj.link.on::after{color:var(--card);transform:rotate(180deg) translateY(1px)}
-/* 专业解析悬浮卡:锚住所点 pill,浮在报告卡之上 */
+/* 专业解析悬浮卡:锚住所点 pill,浮在报告卡之上;入场复用全站 msg-in,与页面动效语言一致 */
 .mj-pop{
   position:absolute;z-index:8;
   background:var(--card);border:1px solid var(--line-2);border-radius:var(--radius-m);
   box-shadow:0 14px 40px rgba(32,36,44,.16),0 3px 10px rgba(32,36,44,.08);
   padding:16px 18px 15px;
-  animation:popIn .3s var(--ease-spring) both;
+  animation:msg-in .34s var(--ease-spring) both;
 }
-.mj-pop.out{transition:opacity .15s ease,transform .15s ease;opacity:0;transform:translateY(5px) scale(.98)}
-.mj-pop.above{animation-name:popInUp}
-@keyframes popIn{from{opacity:0;transform:translateY(9px) scale(.965)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes popInUp{from{opacity:0;transform:translateY(-9px) scale(.965)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mj-pop.out{transition:opacity .16s ease,transform .16s ease;opacity:0;transform:translateY(6px)}
 .mp-x{
   position:absolute;top:9px;right:9px;width:26px;height:26px;border-radius:50%;
   border:1px solid var(--line);background:var(--card);color:var(--mut);
@@ -1285,7 +1280,7 @@ function buildReportInstructions(){
   '5. 盲区与叮嘱——TA最容易被忽略的一点，与一句只属于TA的提醒。\n'+
   '每张正文都要把对话里的具体细节自然融入叙述。多用“你提到……”“当你说起……”“从你的回答里……”一类温柔表达，让文字像一位真诚的学长在回望这段谈心；要有情怀、有理想，也要克制真实。严禁出现“第几问”“第1问”“判断依据”“证据表明”等测评腔表达，禁止只写泛泛的性格形容词\n'+
   '【组合】首选组合||首选理由（80字内）||备选组合||备选理由（80字内）。组合必须是十二种3+1+2组合之一，首选备选不得相同\n'+
-  '【专业】3-6个专业方向，每个依次输出三段：专业名||推荐分析||就业方向。推荐分析80字内且要分析到位：结合TA对话里的具体线索（学科手感、忘记时间的事、职业向往、家庭现实取舍）说明为什么适合TA，并点明它与首选组合的选科衔接；就业方向50字内，给出对应行业、典型职业或升学路径（如需读研、考公对口、行业趋势），写实不夸大。格式严格：专业A||分析A||就业A||专业B||分析B||就业B…\n'+
+  '【专业】5-8个专业方向，每个依次输出三段：专业名||推荐分析||就业方向。推荐分析80字内且要分析到位：结合TA对话里的具体线索（学科手感、忘记时间的事、职业向往、家庭现实取舍）说明为什么适合TA，并点明它与首选组合的选科衔接；就业方向50字内，给出对应行业、典型职业或升学路径（如需读研、考公对口、行业趋势），写实不夸大。格式严格：专业A||分析A||就业A||专业B||分析B||就业B…\n'+
   '【寄语】100-160字，像学长在信末写给你的话：有具体回忆（引用对话细节）、有真诚叮嘱，禁止空话套话、口号和具体行动清单；只给能帮助TA理解自己方向的概括性提示】';
 }
 
@@ -2504,7 +2499,6 @@ function openMajorPop(m, btn){
   }
   pop.style.top = top + 'px';
   pop.style.left = Math.min(Math.max(12, pillLeft), card.clientWidth - maxW - 12) + 'px';
-  pop.classList.toggle('above', !below);
   pop.style.visibility = '';
   pop.querySelector('.mp-x').onclick = (ev)=>{ ev.stopPropagation(); mjPopClose(); };
   /* 点卡片其他任何地方即收起(pill 上除外——让 pill 自己的 click 决定开/关/换) */

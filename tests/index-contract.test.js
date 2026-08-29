@@ -164,14 +164,16 @@ assert.match(index, /div\.className = 'combo' \+ \(isPrimary\?'':' alt'\); div\.
 assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal',''\);/);
 assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
 
-/* ── v2.6.7 专业解析悬浮卡(分析+就业方向) + FAQ 赋分/改科 + 回程淡入可感知 ── */
-assert.match(index, /【专业】3-6个专业方向，每个依次输出三段：专业名\|\|推荐分析\|\|就业方向/);   /* 报告契约:名||分析||就业 三段成组 */
+/* ── v2.6.7/8 专业解析悬浮卡(分析+就业方向,无角标,全站动效) + FAQ 赋分/改科 + 回程淡入可感知 ── */
+assert.match(index, /【专业】5-8个专业方向，每个依次输出三段：专业名\|\|推荐分析\|\|就业方向/);   /* 报告契约:名||分析||就业 三段成组,5-8个 */
 assert.match(index, /function openMajorPop/);
 assert.match(index, /function mjPopClose\(immediate\)/);
 assert.match(index, /mjPopClose\(true\)/);   /* 重开报告/重新渲染时直接收起悬浮卡 */
 assert.match(index, /if\(mjPopState\)\{ mjPopClose\(\); return; \}/);   /* Esc 先收悬浮卡,不关报告 */
 assert.match(index, /\.mj-pop\{[\s\S]*?position:absolute;/);
-assert.match(index, /@keyframes popIn/);
+assert.match(index, /animation:msg-in \.34s var\(--ease-spring\) both/);   /* 悬浮卡入场复用全站 msg-in */
+assert.doesNotMatch(index, /@keyframes popIn/);   /* 不再私有 keyframes,与全站动效一致 */
+assert.doesNotMatch(index, /\.mj\.link::after/);   /* 专业 pill 不带角标符号 */
 assert.match(index, /\.report-card\.capture-clone \.mj-pop,/);   /* 截图不含悬浮卡 */
 assert.match(index, /mp-career/);   /* 就业方向段 */
 assert.match(index, /b\.title = '点开看专业解析'/);
