@@ -132,6 +132,9 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 
 .row{display:flex;gap:11px;max-width:100%;animation:msg-in .28s cubic-bezier(.23,1,.32,1) both}
 @keyframes msg-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* 上滑回程专用入场:从更深处(16px)升起淡入,与下滑的 msg-in 是两条独立动画。
+   位移幅度更大,是为了在回滚的相对运动里"从下往上"仍清晰可读 */
+@keyframes msg-in-back{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .row.user{justify-content:flex-end}
 .row.ai{margin-left:0;position:relative;left:-2px;top:-2px}
 
@@ -2664,9 +2667,10 @@ function countUp(el, delayMs, durMs){
   el._countRaf = requestAnimationFrame(tick);
 }
 let revealIO = null;
-/* 回程重播:已显现的元素从顶部离开视口后再回来(即用户往回滚),重播与下滑完全一致的
-   msg-in 入场(下方 10px 滑入+淡入,同 550ms 同缓动)——闪烁感来自早期版本的纯透明度
-   420ms 淡入,现在回程与下滑观感统一。往下滚的回访仍即时呈现。reduced-motion 不做。 */
+/* 上滑回程专用入场:回访的元素从下方 16px 升起淡入(msg-in-back,从下往上)。
+   不沿用下滑的 msg-in 范式——回程内容从视口顶部进来,若用下滑动画会被滚动
+   位移盖过,读起来像"从上往下";独立动画+露出 30% 才开播,升起才看得清。
+   往下滚的回访仍即时呈现。reduced-motion 不做。 */
 let returnIO = null;
 function watchReturn(scope){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -2678,13 +2682,15 @@ function watchReturn(scope){
         if(!en.isIntersecting){ t._exitTop = en.boundingClientRect.top < 0; return; }
         if(t.classList.contains('revealed') && t._exitTop){
           t._exitTop = false;
-          /* 摘掉再补回 .revealed:重播同一条 msg-in 动画,效果与下滑显现一致 */
           t.classList.remove('revealed');
-          void t.offsetWidth;
+          t.style.animation = 'none';
+          void t.offsetWidth;   /* 强制回流:确保"清空动画"先生效,再挂回程专用动画 */
           t.classList.add('revealed');
+          t.style.animation = 'msg-in-back .55s var(--ease-stagger) both';
+          t.addEventListener('animationend', ()=>{ t.style.animation = ''; }, {once:true});
         }
       });
-    }, {threshold:0.12});
+    }, {threshold:0.3});
   }
   scope.querySelectorAll('[data-reveal]').forEach(t=>returnIO.observe(t));
 }

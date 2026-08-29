@@ -215,9 +215,10 @@ assert.equal((index.match(/class="dsec" data-reveal/g)||[]).length, 2);   /* 仅
 /* ── v2.6.5 回程淡入 + 细节打磨 ── */
 assert.match(index, /function watchReturn/);
 assert.match(index, /watchReturn\(card \|\| el\)/);   /* 回程重播登记 */
-assert.match(index, /t\.classList\.remove\('revealed'\);\s*void t\.offsetWidth;\s*t\.classList\.add\('revealed'\);/);   /* 回程重播同一条 msg-in,与下滑观感一致 */
+assert.match(index, /@keyframes msg-in-back/);   /* 回程专用动画:从下方 16px 升起,从下往上 */
+assert.match(index, /t\.style\.animation = 'msg-in-back \.55s var\(--ease-stagger\) both';/);
 assert.doesNotMatch(index, /t\.animate\(\{opacity:\[0,1\]\}/);   /* 纯透明度淡入已废弃(曾被判"闪烁") */
-assert.match(index, /\{threshold:0\.12\}\);/);   /* 与下滑显现同一触发时机 */
+assert.match(index, /\{threshold:0\.3\}\);/);   /* 回程露出 30% 才开播,升起可见 */
 assert.match(index, /t\._exitTop = en\.boundingClientRect\.top < 0/);   /* 只对从顶部离开的元素生效 */
 assert.match(index, /function rearmReveal/);
 assert.match(index, /rearmReveal\(el\);/);   /* 选聊法再次弹出也重播双卡进场 */
