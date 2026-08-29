@@ -388,6 +388,19 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
   font-size:12px;padding:5px 14px;border-radius:99px;
   border:1px solid var(--line);color:var(--ink-2);
 }
+/* 带推荐理由的专业:可点击,展开理由卡 */
+button.mj{font-family:inherit;background:transparent;cursor:default}
+.mj.link{border-color:var(--line-2);cursor:pointer;transition:all .18s}
+.mj.link::after{content:'⌄';display:inline-block;margin-left:6px;font-size:9px;color:var(--mut);transform:translateY(-1px);transition:transform .22s var(--ease-stagger)}
+.mj.link:hover{background:var(--paper-2);color:var(--ink)}
+.mj.link.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.mj.link.on::after{color:var(--card);transform:rotate(180deg) translateY(1px)}
+.major-detail{overflow:hidden;max-height:0;opacity:0;transition:max-height .34s var(--ease-out-strong),opacity .28s var(--ease-stagger);margin:2px 0 0}
+.major-detail.open{max-height:200px;opacity:1}
+.md-in{border:1px solid var(--line-2);border-radius:var(--radius-m);padding:13px 16px;background:var(--paper-2)}
+.md-in h6{font-family:var(--kai);font-size:13.5px;font-weight:700;letter-spacing:.06em;color:var(--ink);margin-bottom:5px;display:flex;align-items:baseline;gap:7px}
+.md-in h6::before{content:'✦';font-size:9px;color:var(--line-2);flex-shrink:0;transform:translateY(-1px)}
+.md-in p{font-size:11.5px;line-height:1.9;color:var(--ink-2)}
 
 /* 寄语 */
 .bless{
@@ -901,6 +914,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
       <div class="combo-row" id="rp-combos"></div>
       <div class="rc-sec-lb" data-reveal>专 业 方 向 · 参 考</div>
       <div class="major-wrap" id="rp-majors"></div>
+      <div class="major-detail" id="rp-majdetail" hidden></div>
       <div class="rc-sec-lb" data-reveal>写 给 你</div>
       <div class="bless" data-reveal><p id="rp-bless">—</p><div class="bless-sign">—— 北 辰</div></div>
     </div>
@@ -998,9 +1012,11 @@ html.js [data-reveal]:not(.revealed){opacity:0}
       <div class="dsec-t" data-reveal>常见疑问 <small>FAQ</small></div>
       <details class="faq" data-reveal><summary>物化生覆盖率那么高，是不是应该无脑选它？</summary><div class="faq-a">不是。覆盖率只有在你能考到对应位次时才有价值。理科基础薄弱却硬选，大概率分数撑不住目标专业，进了大学也难跟上——覆盖率高不等于适合你。</div></details>
       <details class="faq" data-reveal><summary>选历史类就和好工作无缘了吗？</summary><div class="faq-a">误解。历史类的优势在稳定性：公务员、教师、法务等赛道需求长期持续，通过编制考试后的稳定性和保障未必逊色。只是高薪岗位更集中在法学、财会等少数专业。</div></details>
+      <details class="faq" data-reveal><summary>再选科目要赋分，赋分是怎么算的？</summary><div class="faq-a">语文、数学、外语和首选科目（物理/历史）按卷面原始分计入总分；化学、生物、政治、地理四门再选科目按你在全省选考该科考生中的排名划档——A/B/C/D/E 约占 15%/35%/35%/13%/2%，再等比换算为 30~100 分计入。要点有二：赋分看排名不看卷面分，试题难易对最终分数影响有限；同一科的竞争对手越强，同一名次换算出的分数越低，所以"选的人多"与"对手强"要分开看。</div></details>
       <details class="faq" data-reveal><summary>我理科中等，听说物化生太卷，转政史地是不是更划算？</summary><div class="faq-a">风险很高。理科中等的位次换到历史类赛道未必有优势，而政史地的记忆、材料分析、书面表达同样是硬功夫。历史类本科计划只有物理类的约三分之一，"逃避式转文"常常两头落空。</div></details>
       <details class="faq" data-reveal><summary>想报军警类院校，该怎么选？</summary><div class="faq-a">分开看：技术类（计算机、电子信息等）基本要求物理+化学；指挥类和公安学类多数必选政治。另外军警院校还有体检、政审等附加要求，先确认自身条件。</div></details>
       <details class="faq" data-reveal><summary>新高考下还有必要选纯文 / 纯理吗？</summary><div class="faq-a">对多数人仍是稳妥解：教学资源最成熟、对应赛道覆盖最完整、职业路径最清晰。但若目标专业有明确偏科要求，其他组合可能更优——先查清目标专业门槛再定。</div></details>
+      <details class="faq" data-reveal><summary>选科定了以后还能改吗？</summary><div class="faq-a">没有"一选定终身"的锁死时点——政策上不存在全省统一的改科禁令，选考科目最终以高考报名时为准；但实际的调整窗口集中在高一学年末到高二开学初，越往后，落下新课、走班重排、二次适应的代价越大，且需学校同意。真想调整：先找班主任和教务处确认本校规则，再用一次完整大考的排名验证决心，不要凭一两张卷子的挫败感就换赛道。</div></details>
     </div>
 
     <div class="dsec">
@@ -1014,7 +1030,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     </div>
 
     <div class="data-src">
-      数据来源：用户深度研究文档（四川 2025–2026 招录测算）· 政府公开的新高考解读 · 掌上高考等公开组合资料（2025）。<br>
+      数据来源：用户深度研究文档（四川 2025–2026 招录测算）· 政府公开的新高考解读 · 3+1+2 等级赋分通行规则（A/B/C/D/E ≈ 15%/35%/35%/13%/2%）· 掌上高考等公开组合资料（2025）。<br>
       覆盖率随省份与年份波动，本表数值仅供量级参考，请以本省当年官方公布为准。
     </div>
   </div>
@@ -1249,7 +1265,7 @@ function buildReportInstructions(){
   '5. 盲区与叮嘱——TA最容易被忽略的一点，与一句只属于TA的提醒。\n'+
   '每张正文都要把对话里的具体细节自然融入叙述。多用“你提到……”“当你说起……”“从你的回答里……”一类温柔表达，让文字像一位真诚的学长在回望这段谈心；要有情怀、有理想，也要克制真实。严禁出现“第几问”“第1问”“判断依据”“证据表明”等测评腔表达，禁止只写泛泛的性格形容词\n'+
   '【组合】首选组合||首选理由（80字内）||备选组合||备选理由（80字内）。组合必须是十二种3+1+2组合之一，首选备选不得相同\n'+
-  '【专业】3-8个专业方向，顿号分隔\n'+
+  '【专业】3-8个专业方向，每个专业名后紧跟"||"和一段推荐理由，依次排列：专业A||理由A||专业B||理由B…。理由40字内，点明该专业与TA哪条对话线索呼应（热爱/手感/身边的现实取舍等），以及它与首选组合在选科要求上的衔接\n'+
   '【寄语】100-160字，像学长在信末写给你的话：有具体回忆（引用对话细节）、有真诚叮嘱，禁止空话套话、口号和具体行动清单；只给能帮助TA理解自己方向的概括性提示】';
 }
 
@@ -1324,6 +1340,10 @@ function sanitizeReport(value){
     title: typeof card?.title === 'string' ? card.title.slice(0,200) : '',
     body: typeof card?.body === 'string' ? card.body.slice(0,2000) : ''
   })).filter(card=>card.title && card.body) : [];
+  out._majors = Array.isArray(value._majors) ? value._majors.slice(0,8).map(m=>({
+    name: typeof m?.name === 'string' ? m.name.slice(0,60) : '',
+    reason: typeof m?.reason === 'string' ? m.reason.slice(0,220) : ''
+  })).filter(m=>m.name) : [];
   out._dir = ['wen','li','bal'].includes(value._dir) ? value._dir : 'bal';
   const lean = Number(value._lean);
   out._lean = Number.isFinite(lean) ? Math.max(0, Math.min(100, lean)) : 50;
@@ -2232,6 +2252,23 @@ function parseReport(text){
   const alternateCombo = comboCandidates.find(c => !primaryCombo || c.id !== primaryCombo.id) || null;
   map._comboPrimary = primaryCombo;
   map._comboAlternate = alternateCombo;
+  /* 专业:新格式"名||理由"成对;名字段必须短且不含列举分隔符,否则按旧格式(顿号名单)降级——
+     理由缺失时只渲染不可展开的纯名字 pill,绝不卡死 */
+  map._majors = [];
+  const mjParts = String(map['专业'] || '').split(/\|\||[|｜]/).map(s=>s.trim()).filter(Boolean);
+  if(mjParts.length >= 4){
+    const pairs = [];
+    for(let i = 0; i + 1 < mjParts.length; i += 2){
+      const name = mjParts[i], reason = mjParts[i+1];
+      if(!name || !reason || name.length > 40 || /[、，,;；]/.test(name) || reason.length > 220){ break; }
+      pairs.push({name, reason});
+    }
+    if(pairs.length >= 2) map._majors = pairs;
+  }
+  if(!map._majors.length){
+    String(map['专业'] || '').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8)
+      .forEach(name=>map._majors.push({name, reason:''}));
+  }
   const complete = REPORT_LABELS.every(label=>map[label]) && map.cards.length >= 5
     && primaryCombo && alternateCombo;
   map._complete = Boolean(complete);
@@ -2355,19 +2392,58 @@ function renderReport(r){
     if(a && (!pFirst || a.id !== pFirst.id)) mkCombo(a, parts[3] || '', false);
   }
 
-  // 专业
+  // 专业:pill 列表;带推荐理由的可点击展开理由卡(同一时间只开一张)
   const mjEl = document.getElementById('rp-majors');
   mjEl.innerHTML = '';
-  String(r['专业']||'').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8).forEach((m,i)=>{
-    const s = document.createElement('span');
-    s.className = 'mj'; s.setAttribute('data-reveal',''); s.textContent = m;
-    mjEl.appendChild(s);
+  const mdBox = document.getElementById('rp-majdetail');
+  if(mdBox){ mdBox.hidden = true; mdBox.classList.remove('open'); mdBox.innerHTML = ''; mdBox._openFor = null; }
+  const majors = (r._majors && r._majors.length)
+    ? r._majors
+    : String(r['专业']||'').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8).map(name=>({name, reason:''}));
+  majors.slice(0,8).forEach(m=>{
+    if(!m || !m.name) return;
+    let b;
+    if(m.reason){
+      b = document.createElement('button');
+      b.type = 'button';
+      b.title = '点开看推荐理由';
+      b.setAttribute('aria-expanded','false');
+      b.onclick = ()=>toggleMajorDetail(m, b);
+    }else{
+      b = document.createElement('span');
+    }
+    b.className = 'mj' + (m.reason ? ' link' : '');
+    b.setAttribute('data-reveal','');
+    b.textContent = m.name;
+    mjEl.appendChild(b);
   });
 
   // 寄语
   document.getElementById('rp-bless').textContent = r['寄语'] || '愿你在自己的方位上，慢慢亮起来。';
   document.getElementById('rp-time').textContent = 'POLARIS · ' + new Date().toLocaleString('zh-CN',{hour12:false});
   updateQuotaNote(gateRuns());
+}
+
+/* 专业理由卡:同一时间只展开一张,再点同一个收起;展开走 max-height+透明度过渡 */
+function toggleMajorDetail(m, btn){
+  const box = document.getElementById('rp-majdetail');
+  if(!box) return;
+  const same = box._openFor === btn;
+  if(box._openFor){ box._openFor.setAttribute('aria-expanded','false'); box._openFor.classList.remove('on'); }
+  if(same){
+    box.classList.remove('open'); box._openFor = null;
+    setTimeout(()=>{ if(!box._openFor) box.hidden = true; }, 260);
+    return;
+  }
+  box.hidden = false;
+  box.innerHTML = '<div class="md-in"><h6>'+esc(m.name)+'</h6><p>'+esc(m.reason)+'</p></div>';
+  box._openFor = btn;
+  btn.setAttribute('aria-expanded','true'); btn.classList.add('on');
+  /* 强制回流让起始态(max-height:0/opacity:0)先被计算,再展开——不依赖 rAF 时机,低帧环境同样生效 */
+  void box.offsetWidth;
+  box.classList.add('open');
+  /* 轻推进视线,不打断用户滚动位置 */
+  setTimeout(()=>{ box.scrollIntoView({block:'nearest', behavior:'smooth'}); }, 120);
 }
 
 /* ═══════════════════════════ 数据面板 ═══════════════════════════ */
@@ -2448,7 +2524,8 @@ function countUp(el, delayMs, durMs){
   el._countRaf = requestAnimationFrame(tick);
 }
 let revealIO = null;
-/* 回程淡入:已显现的元素从顶部离开视口后再回来(即用户往回滚),只做 180ms 透明度淡入,无位移;
+/* 回程淡入:已显现的元素从顶部离开视口后再回来(即用户往回滚),只做透明度淡入,无位移。
+   420ms + 元素露出 35% 才开播:太快或太早(刚露边就播)用户都感知不到——等它进入视线中央时动画已播完。
    往下滚的回访仍即时呈现。reduced-motion 不做。 */
 let returnIO = null;
 function watchReturn(scope){
@@ -2461,10 +2538,10 @@ function watchReturn(scope){
         if(!en.isIntersecting){ t._exitTop = en.boundingClientRect.top < 0; return; }
         if(t.classList.contains('revealed') && t._exitTop){
           t._exitTop = false;
-          if(t.animate) t.animate({opacity:[0,1]},{duration:180,easing:'ease-out'});
+          if(t.animate) t.animate({opacity:[0,1]},{duration:420,easing:'ease-out'});
         }
       });
-    }, {threshold:0});
+    }, {threshold:0.35});
   }
   scope.querySelectorAll('[data-reveal]').forEach(t=>returnIO.observe(t));
 }
@@ -2521,6 +2598,8 @@ function openOverlay(id){
     star.style.transition = 'none';
     star.style.left = '50%';
     document.querySelectorAll('#rp-combos .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
+    const mdBox = document.getElementById('rp-majdetail');
+    if(mdBox){ mdBox.hidden = true; mdBox.classList.remove('open'); mdBox.innerHTML = ''; mdBox._openFor = null; }
   }
   if(id === 'dataModal'){
     document.querySelectorAll('#dataModal .cov-fill, #dataModal .hl-f').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
@@ -2731,7 +2810,12 @@ function copyReport(){
   const parts = String(r['组合']||'').split(/\|\||[|｜]/).map(s=>s.trim());
   if(parts[0]) txt += '首选组合：' + parts[0] + '\n' + (parts[1]||'') + '\n';
   if(parts[2]) txt += '备选组合：' + parts[2] + '\n' + (parts[3]||'') + '\n';
-  txt += '\n专业方向参考：' + (r['专业']||'—') + '\n\n';
+  if(r._majors && r._majors.length && r._majors.some(m=>m && m.reason)){
+    txt += '\n专业方向参考：\n' + r._majors.filter(m=>m && m.name)
+      .map(m=>'· ' + m.name + (m.reason ? '——' + m.reason : '')).join('\n') + '\n\n';
+  }else{
+    txt += '\n专业方向参考：' + (r['专业']||'—') + '\n\n';
+  }
   txt += '「' + (r['寄语']||'') + '」\n—— 北辰\n';
   txt += '\n仅供参考，正式选科以本省政策与高校章程为准。';
   const done = ()=>toast('星图已复制到剪贴板');

@@ -159,10 +159,21 @@ assert.match(index, /class="dsec" data-reveal/);
 assert.match(index, /class="mode-card" data-reveal/);
 assert.match(index, /class="settings-note" data-reveal/);
 assert.match(index, /div\.className = 'starcard'; div\.setAttribute\('data-reveal',''\);/);
-assert.match(index, /s\.className = 'mj'; s\.setAttribute\('data-reveal',''\);/);
+assert.match(index, /b\.className = 'mj' \+ \(m\.reason \? ' link' : ''\);/);
 assert.match(index, /div\.className = 'combo' \+ \(isPrimary\?'':' alt'\); div\.setAttribute\('data-reveal',''\);/);
 assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal',''\);/);
 assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
+
+/* ── v2.6.6 专业理由卡(点击展开) + FAQ 赋分/改科 + 回程淡入可感知 ── */
+assert.match(index, /【专业】3-8个专业方向，每个专业名后紧跟"||"和一段推荐理由/);   /* 报告契约:名理由成对 */
+assert.match(index, /function toggleMajorDetail/);
+assert.match(index, /id="rp-majdetail" hidden/);
+assert.match(index, /mdBox\._openFor = null;/);   /* 每次打开报告都复位理由卡 */
+assert.match(index, /\.major-detail\.open\{max-height:200px;opacity:1\}/);
+assert.match(index, /b\.title = '点开看推荐理由'/);
+assert.match(index, /再选科目要赋分，赋分是怎么算的？/);
+assert.match(index, /选科定了以后还能改吗？/);
+assert.match(index, /3\+1\+2 等级赋分通行规则/);   /* FAQ 事实来源注记 */
 
 /* ── v2.6.4 数据参考全量显现 + 霍兰德条形 + 数字计数 ── */
 assert.match(index, /function countUp/);
@@ -182,7 +193,8 @@ assert.equal((index.match(/class="dsec" data-reveal/g)||[]).length, 2);   /* 仅
 /* ── v2.6.5 回程淡入 + 细节打磨 ── */
 assert.match(index, /function watchReturn/);
 assert.match(index, /watchReturn\(card \|\| el\)/);   /* 回程淡入登记 */
-assert.match(index, /t\.animate\(\{opacity:\[0,1\]\},\{duration:180,easing:'ease-out'\}\)/);   /* 只淡入不位移 */
+assert.match(index, /t\.animate\(\{opacity:\[0,1\]\},\{duration:420,easing:'ease-out'\}\)/);   /* 只淡入不位移;420ms 须肉眼可感知 */
+assert.match(index, /\{threshold:0\.35\}\);/);   /* 露出 35% 才开播,避免刚露边就播完导致"看不见" */
 assert.match(index, /t\._exitTop = en\.boundingClientRect\.top < 0/);   /* 只对从顶部离开的元素生效 */
 assert.match(index, /function rearmReveal/);
 assert.match(index, /rearmReveal\(el\);/);   /* 选聊法再次弹出也重播双卡进场 */

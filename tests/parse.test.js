@@ -40,7 +40,9 @@ function buildReport(opts) {
   out += o.newlineCombo
     ? '\n【组合】' + combo + '\n首选理由：动手与原理兼顾\n' + alt + '\n备选理由：保留地理的赋分空间'
     : '\n【组合】' + combo + '||理由：动手与原理兼顾||' + alt + '||理由：保留地理的赋分空间';
-  if (!o.noMajor) out += '\n【专业】机械工程、车辆工程、自动化';
+  if (!o.noMajor) out += o.majorsPaired
+    ? '\n【专业】机械工程||与拆装机械的热爱直接对口，物理+化学满足工科门槛||车辆工程||动手直觉的延伸方向，首选组合完全覆盖||自动化||推理舒适区的落点，就业面宽'
+    : '\n【专业】机械工程、车辆工程、自动化';
   if (!o.noBless) out += '\n【寄语】愿你带着拆齿轮的好奇心，把每一道难题都拆成自己能懂的样子。';
   return out;
 }
@@ -59,4 +61,11 @@ check('组合换行分隔 → 渲染', buildReport({newlineCombo: true}), true);
 check('缺专业/寄语且仅4卡 → 宽容档渲染不卡死', buildReport({noMajor: true, noBless: true, fourCards: true}), 'loose');
 check('缺星值 → 宽容档渲染(方位回退)', buildReport({noStarValue: true}), 'loose');
 check('无关文本 → null(走一次修复)', '完全无关的闲聊内容。', null);
+
+/* v2.6.6 专业"名||理由"成对格式:解析出带理由的 _majors;旧顿号格式降级为纯名字 */
+const rp = parseReport(buildReport({majorsPaired: true}));
+assert.ok(rp && rp._complete, '成对专业格式 → 严格档解析');
+assert.ok(Array.isArray(rp._majors) && rp._majors.length >= 3 && rp._majors.every(m=>m.name && m.reason), '成对格式 → _majors 带推荐理由');
+const rl = parseReport(buildReport());
+assert.ok(Array.isArray(rl._majors) && rl._majors.length >= 3 && rl._majors.every(m=>m.name && !m.reason), '旧顿号格式 → 降级为纯名字');
 console.log('parse tests passed');
