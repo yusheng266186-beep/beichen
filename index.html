@@ -2664,9 +2664,9 @@ function countUp(el, delayMs, durMs){
   el._countRaf = requestAnimationFrame(tick);
 }
 let revealIO = null;
-/* 回程淡入:已显现的元素从顶部离开视口后再回来(即用户往回滚),只做透明度淡入,无位移。
-   420ms + 元素露出 35% 才开播:太快或太早(刚露边就播)用户都感知不到——等它进入视线中央时动画已播完。
-   往下滚的回访仍即时呈现。reduced-motion 不做。 */
+/* 回程重播:已显现的元素从顶部离开视口后再回来(即用户往回滚),重播与下滑完全一致的
+   msg-in 入场(下方 10px 滑入+淡入,同 550ms 同缓动)——闪烁感来自早期版本的纯透明度
+   420ms 淡入,现在回程与下滑观感统一。往下滚的回访仍即时呈现。reduced-motion 不做。 */
 let returnIO = null;
 function watchReturn(scope){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -2678,10 +2678,13 @@ function watchReturn(scope){
         if(!en.isIntersecting){ t._exitTop = en.boundingClientRect.top < 0; return; }
         if(t.classList.contains('revealed') && t._exitTop){
           t._exitTop = false;
-          if(t.animate) t.animate({opacity:[0,1]},{duration:420,easing:'ease-out'});
+          /* 摘掉再补回 .revealed:重播同一条 msg-in 动画,效果与下滑显现一致 */
+          t.classList.remove('revealed');
+          void t.offsetWidth;
+          t.classList.add('revealed');
         }
       });
-    }, {threshold:0.35});
+    }, {threshold:0.12});
   }
   scope.querySelectorAll('[data-reveal]').forEach(t=>returnIO.observe(t));
 }

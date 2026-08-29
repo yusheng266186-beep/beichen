@@ -214,9 +214,10 @@ assert.equal((index.match(/class="dsec" data-reveal/g)||[]).length, 2);   /* 仅
 
 /* ── v2.6.5 回程淡入 + 细节打磨 ── */
 assert.match(index, /function watchReturn/);
-assert.match(index, /watchReturn\(card \|\| el\)/);   /* 回程淡入登记 */
-assert.match(index, /t\.animate\(\{opacity:\[0,1\]\},\{duration:420,easing:'ease-out'\}\)/);   /* 只淡入不位移;420ms 须肉眼可感知 */
-assert.match(index, /\{threshold:0\.35\}\);/);   /* 露出 35% 才开播,避免刚露边就播完导致"看不见" */
+assert.match(index, /watchReturn\(card \|\| el\)/);   /* 回程重播登记 */
+assert.match(index, /t\.classList\.remove\('revealed'\);\s*void t\.offsetWidth;\s*t\.classList\.add\('revealed'\);/);   /* 回程重播同一条 msg-in,与下滑观感一致 */
+assert.doesNotMatch(index, /t\.animate\(\{opacity:\[0,1\]\}/);   /* 纯透明度淡入已废弃(曾被判"闪烁") */
+assert.match(index, /\{threshold:0\.12\}\);/);   /* 与下滑显现同一触发时机 */
 assert.match(index, /t\._exitTop = en\.boundingClientRect\.top < 0/);   /* 只对从顶部离开的元素生效 */
 assert.match(index, /function rearmReveal/);
 assert.match(index, /rearmReveal\(el\);/);   /* 选聊法再次弹出也重播双卡进场 */
