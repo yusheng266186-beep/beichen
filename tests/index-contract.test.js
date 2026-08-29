@@ -164,6 +164,21 @@ assert.match(index, /div\.className = 'combo' \+ \(isPrimary\?'':' alt'\); div\.
 assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal',''\);/);
 assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
 
+/* ── v2.6.4 数据参考全量显现 + 霍兰德条形 + 数字计数 ── */
+assert.match(index, /function countUp/);
+assert.match(index, /t\.querySelectorAll\('\.stat b'\)\.forEach\(\(b,i\)=>countUp\(b, 120 \+ i\*80\)\)/);   /* 核心数据逐格计数 */
+assert.match(index, /countUp\(leanEm, 200, 1400\)/);   /* 星值与轴星滑动同步计数 */
+assert.match(index, /matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches/) ;
+assert.match(index, /querySelectorAll\('\.cov-fill, \.hl-f'\)/);   /* 霍兰德六条与覆盖率条同款弹簧 */
+assert.match(index, /#dataModal \.cov-fill, #dataModal \.hl-f/);   /* 重置覆盖霍兰德条 */
+assert.match(index, /\.hl-f\{height:100%;border-radius:99px;transform:scaleX\(0\);transform-origin:0 50%;transition:transform 1\.1s var\(--ease-spring\)\}/);
+assert.match(index, /details\.faq\[open\] \.faq-a\{animation:msg-in/);   /* FAQ 展开轻浮现 */
+assert.match(index, /class="model-card" data-reveal/);
+assert.match(index, /class="faq" data-reveal/);
+assert.match(index, /class="book" data-reveal/);
+assert.match(index, /class="dsec-t" data-reveal/);
+assert.equal((index.match(/class="dsec" data-reveal/g)||[]).length, 2);   /* 仅核心数据/十二组合保留容器级显现 */
+
 /* 确认小卡整卡在首屏,保留打开即微递进 */
 assert.match(index, /\.overlay\.show \.restart-card > \*\{animation:msg-in/);
 assert.match(index, /\.gate-in > \*:nth-child\(2\)\{animation:msg-in/);
