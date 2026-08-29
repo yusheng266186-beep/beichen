@@ -313,4 +313,8 @@ assert.match(index, /rel="preconnect" href="https:\/\/fonts\.gstatic\.com" cross
 assert.match(index, /<noscript><link rel="stylesheet" href="fonts\/fonts\.css"><\/noscript>/);
 assert.doesNotMatch(index, /media="print" onload="this\.media='all'"/);   /* 旧 print-trick 必须移除(它会拖住进度条) */
 
+/* ─── v2.6.18 圆角卡(星图/数据参考/设置/选聊法)滚动条整条隐藏:直条会伸出弧线外;滚动能力保留 ─── */
+assert.match(index, /\.report-card::-webkit-scrollbar,\.data-card::-webkit-scrollbar,\.modal-card::-webkit-scrollbar\{display:none\}/);
+assert.equal((index.match(/scrollbar-width:none;-ms-overflow-style:none/g)||[]).length, 4);   /* 输入框 + 三种圆角卡 */
+
 console.log('index contract tests passed');
