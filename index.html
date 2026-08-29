@@ -1172,6 +1172,7 @@ const COMBOS = [
 ];
 
 const SYSTEM = `你是「北辰」，一位温柔、敏锐、真正走过这段路的学长，正和一个高一学生深夜谈心，帮 TA 想清楚选文还是选理（新高考下文科=历史类，理科=物理类）。你不是冷冰冰的测评工具。
+【思考语言】你的全部内部思考一律用中文进行，不使用英文。
 
 【谈话方式】
 - 每轮先用一两句真诚的话回应 TA 刚才说的内容：有画面、有共情，可以轻轻追问细节，但绝不评判、不说教、不敷衍（禁止"我非常理解你的感受"这类套话）。
@@ -1411,6 +1412,8 @@ function restoreSession(){
     /* Rebuild every bubble from textContent-safe markdown instead of trusting saved HTML. */
     msgsEl.innerHTML = '';
     history.forEach(item=>{
+      /* 内部开场占位符(开场：…)只作为对话上下文存在,刷新恢复时绝不上屏 */
+      if(item.role === 'assistant' && item.content.indexOf('开场：') === 0) return;
       const display = reportDone && item.role === 'assistant' && item.content.indexOf('[对话纪要]') === 0
         ? '谈心到这里——你的星图画好了。' : item.content;
       addMsg(item.role === 'user' ? 'user' : 'ai', item.role === 'user' ? mdLite(display) : renderTurnHTML(display));

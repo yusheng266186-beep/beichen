@@ -177,6 +177,8 @@ assert.match(index, /stopReportWait\(\); setTypingLabel\('辰在安静思考'\)/
 assert.match(index, /if\(expectingReport\) startReportWait\(\)/);   /* 星图轮启动轮播兜底 */
 assert.match(index, /\.typing-think\{/);   /* 低语样式:第二行,淡入 */
 assert.match(index, /if\(now - lastThinkSwap < 600\) return;/);   /* 600ms 节流 */
+assert.match(index, /item\.content\.indexOf\('开场：'\) === 0\) return/);   /* 刷新恢复:占位符不上屏 */
+assert.match(index, /【思考语言】你的全部内部思考一律用中文进行/);   /* 低语观感:中文思考 */
 
 /* ── v2.6.7/8 专业解析悬浮卡(分析+就业方向,无角标,全站动效) + FAQ 赋分/改科 + 回程淡入可感知 ── */
 assert.match(index, /【专业】5-8个专业方向，每个依次输出三段：专业名\|\|推荐分析\|\|就业方向/);   /* 报告契约:名||分析||就业 三段成组,5-8个 */
