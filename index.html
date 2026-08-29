@@ -13,6 +13,7 @@
 <noscript><link rel="stylesheet" href="fonts/fonts.css"></noscript>
 <!-- 截图组件自托管(vendor/):不再依赖 jsdelivr,defer 不阻塞首屏;调用处有加载失败降级 -->
 <script src="vendor/html2canvas.min.js" defer></script>
+<script>document.documentElement.classList.add('js');</script><!-- 滚动显现的隐藏规则只在 JS 可用时生效 -->
 <style>
 
 /* ══════════ Design tokens ══════════ */
@@ -557,42 +558,14 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
 #reportModal.show .rc-hero > *:nth-child(4){animation-delay:.36s}
 #reportModal.show .rc-hero > *:nth-child(5){animation-delay:.44s}
 #reportModal.show .rc-hero > *:nth-child(6){animation-delay:.52s}
-#reportModal.show .rc-body > *{animation:msg-in .55s cubic-bezier(.22,.9,.36,1) both}
-#reportModal.show .rc-body > *:nth-child(1){animation-delay:.4s}
-#reportModal.show .rc-body > *:nth-child(2){animation-delay:.48s}
-#reportModal.show .rc-body > *:nth-child(3){animation-delay:.56s}
-#reportModal.show .rc-body > *:nth-child(4){animation-delay:.64s}
-#reportModal.show .rc-body > *:nth-child(5){animation-delay:.72s}
-#reportModal.show .rc-body > *:nth-child(6){animation-delay:.8s}
-#reportModal.show .rc-body > *:nth-child(7){animation-delay:.88s}
-#reportModal.show .rc-body > *:nth-child(8){animation-delay:.96s}
-/* 报告卡收尾区：时间戳与额度先落定，操作按钮像片尾字幕逐个浮现 */
-#reportModal.show .rc-time,#reportModal.show .report-quota{animation:msg-in .5s var(--ease-stagger) both;animation-delay:.95s}
-#reportModal.show .report-actions .tbtn{animation:msg-in .45s var(--ease-stagger) both}
-#reportModal.show .report-actions .tbtn:nth-child(1){animation-delay:.95s}
-#reportModal.show .report-actions .tbtn:nth-child(2){animation-delay:1.02s}
-#reportModal.show .report-actions .tbtn:nth-child(3){animation-delay:1.09s}
-#reportModal.show .report-actions .tbtn:nth-child(4){animation-delay:1.16s}
-/* 星卡逐张、专业 chip 逐个进场(延迟由 renderReport 按序写入,此前一直空转) */
-#reportModal.show .starcard{animation:msg-in .55s var(--ease-stagger) both}
-#reportModal.show .mj{animation:msg-in .45s var(--ease-stagger) both}
-/* 设置弹窗正文逐段递进 */
-#settingsModal.show .modal-body > *{animation:msg-in .5s var(--ease-stagger) both}
-#settingsModal.show .modal-body > *:nth-child(1){animation-delay:.12s}
-#settingsModal.show .modal-body > *:nth-child(2){animation-delay:.18s}
-#settingsModal.show .modal-body > *:nth-child(3){animation-delay:.24s}
-#settingsModal.show .modal-body > *:nth-child(4){animation-delay:.3s}
-#settingsModal.show .modal-body > *:nth-child(5){animation-delay:.36s}
-#settingsModal.show .modal-body > *:nth-child(6){animation-delay:.42s}
-#settingsModal.show .modal-body > *:nth-child(7){animation-delay:.48s}
-#settingsModal.show .modal-body > *:nth-child(8){animation-delay:.54s}
-/* 数据参考:三个分区先后进场(十二行组合再各自递进,延迟由 buildComboTable 写入) */
-#dataModal.show .dsec{animation:msg-in .55s var(--ease-stagger) both}
-#dataModal.show .dsec:nth-child(3){animation-delay:.14s}
-#dataModal.show .dsec:nth-child(4){animation-delay:.26s}
-#dataModal.show .dsec:nth-child(5){animation-delay:.38s}
-#dataModal.show .crow{animation:msg-in .45s var(--ease-stagger) both}
-/* 确认小卡(重新测试 / 现在点亮)：内容微递进 */
+/* 报告卡正文(rc-body)与星卡/组合/专业/操作按钮不再打开即播:全部 data-reveal 随滚动逐步进场 */
+/* 滚动显现:元素进入视口(IntersectionObserver 加 .revealed)才播进场动画。
+   打开弹窗时已在视口内的元素当批按 60ms 错拍进场;折叠线以下的内容随滑动逐步出现,不再"打开瞬间全部演完"。
+   覆盖率条由 reveal 流程触发弹簧生长;截图克隆强制呈现最终态。 */
+html.js [data-reveal]:not(.revealed){opacity:0}
+[data-reveal].revealed{animation:msg-in .55s var(--ease-stagger) both}
+.report-card.capture-clone [data-reveal]{opacity:1!important;animation:none!important}
+/* 确认小卡(重新测试 / 现在点亮)整卡都在首屏,保持打开即微递进,不绕滚动显现 */
 .overlay.show .restart-card > *{animation:msg-in .45s var(--ease-stagger) both}
 .overlay.show .restart-card > *:nth-child(1){animation-delay:.1s}
 .overlay.show .restart-card > *:nth-child(2){animation-delay:.16s}
@@ -615,10 +588,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
   100%{opacity:1;filter:drop-shadow(0 0 6px rgba(32,36,44,.22))}
 }
 /* 选聊法：两张卡片与结尾一句依次浮现，与报告卡同一种节奏 */
-#modeModal.show .mode-card{animation:msg-in .5s cubic-bezier(.22,.9,.36,1) both}
-#modeModal.show .mode-card:nth-child(1){animation-delay:.16s}
-#modeModal.show .mode-card:nth-child(2){animation-delay:.28s}
-#modeModal.show .settings-note{animation:msg-in .5s cubic-bezier(.22,.9,.36,1) both;animation-delay:.38s}
+/* 选聊法两张卡片与结尾一句改走滚动显现(data-reveal) */
 /* 序章：三节依次浮现 */
 .intro.show .intro-in > *{animation:msg-in .55s cubic-bezier(.22,.9,.36,1) both}
 .intro.show .intro-in > *:nth-child(1){animation-delay:.05s}
@@ -915,22 +885,22 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
       </div>
     </div>
     <div class="rc-body">
-      <div class="rc-sec-lb">星 卡 · 你 的 多 维 画 像</div>
+      <div class="rc-sec-lb" data-reveal>星 卡 · 你 的 多 维 画 像</div>
       <div id="rp-cards" style="display:flex;flex-direction:column;gap:18px"></div>
-      <div class="rc-sec-lb">3 + 1 + 2 · 组 合 推 荐</div>
+      <div class="rc-sec-lb" data-reveal>3 + 1 + 2 · 组 合 推 荐</div>
       <div class="combo-row" id="rp-combos"></div>
-      <div class="rc-sec-lb">专 业 方 向 · 参 考</div>
+      <div class="rc-sec-lb" data-reveal>专 业 方 向 · 参 考</div>
       <div class="major-wrap" id="rp-majors"></div>
-      <div class="rc-sec-lb">写 给 你</div>
-      <div class="bless"><p id="rp-bless">—</p><div class="bless-sign">—— 北 辰</div></div>
+      <div class="rc-sec-lb" data-reveal>写 给 你</div>
+      <div class="bless" data-reveal><p id="rp-bless">—</p><div class="bless-sign">—— 北 辰</div></div>
     </div>
-    <div class="rc-time" id="rp-time">—</div>
-    <div class="report-quota" id="rp-quota"></div>
+    <div class="rc-time" data-reveal id="rp-time">—</div>
+    <div class="report-quota" data-reveal id="rp-quota"></div>
     <div class="report-actions">
-      <button class="tbtn pri" id="saveReportBtn" onclick="saveReportImage()">保存为图片</button>
-      <button class="tbtn" onclick="copyReport()">复制星图</button>
-      <button class="tbtn" onclick="continueAsk('为什么是这个方位？讲讲你判断的核心依据。')">追问依据</button>
-      <button class="tbtn danger" onclick="confirmRestart()">重新测试</button>
+      <button class="tbtn pri" id="saveReportBtn" data-reveal onclick="saveReportImage()">保存为图片</button>
+      <button class="tbtn" data-reveal onclick="copyReport()">复制星图</button>
+      <button class="tbtn" data-reveal onclick="continueAsk('为什么是这个方位？讲讲你判断的核心依据。')">追问依据</button>
+      <button class="tbtn danger" data-reveal onclick="confirmRestart()">重新测试</button>
     </div>
   </div>
 </div>
@@ -970,7 +940,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
       <p>选科决策的底层数据与理论工具 · 公开测算值，各省各年有差异</p>
     </div>
 
-    <div class="dsec">
+    <div class="dsec" data-reveal>
       <div class="dsec-t">核心数据 <small>四川 2025–2026 · 深度研究测算</small></div>
       <div class="stats">
         <div class="stat"><b>74%</b><span>首届新高考考生选择物化生 / 政史地两大经典组合</span></div>
@@ -983,12 +953,12 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
       <div class="data-src">适用范围：四川新高考 · 统计与测算年份：2025–2026 · 最近整理：2026-08-23。以上为公开资料综合测算值，用于比较量级，不等同于当年官方招生计划。</div>
     </div>
 
-    <div class="dsec">
+    <div class="dsec" data-reveal>
       <div class="dsec-t">十二种组合速查 <small>3+1+2 · 覆盖率为近似值</small></div>
       <div class="combo-table" id="comboTable"></div>
     </div>
 
-    <div class="dsec">
+    <div class="dsec" data-reveal>
       <div class="dsec-t">三个决策工具 <small>规划通用框架</small></div>
       <div class="models-grid">
         <div class="model-card">
@@ -1049,7 +1019,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
     </div>
     <div class="modal-body">
       <div class="mode-grid">
-        <button class="mode-card" onclick="chooseMode('open')">
+        <button class="mode-card" data-reveal onclick="chooseMode('open')">
           <div class="mode-head">
             <svg class="mode-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 3 L23 17 L37 20 L23 23 L20 37 L17 23 L3 20 L17 17 Z" stroke="currentColor" stroke-width="1.4"/><circle cx="20" cy="20" r="1.8" fill="currentColor"/></svg>
             <span class="mode-name">夜 航</span>
@@ -1062,7 +1032,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
           </ul>
           <div class="mode-tip">适合：愿意多说、想被认真听的你</div>
         </button>
-        <button class="mode-card" onclick="chooseMode('guided')">
+        <button class="mode-card" data-reveal onclick="chooseMode('guided')">
           <div class="mode-head">
             <svg class="mode-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="15" stroke="currentColor" stroke-width="1.4"/><path d="M26.5 13.5 L22.5 22.5 L13.5 26.5 L17.5 17.5 Z" stroke="currentColor" stroke-width="1.4"/><circle cx="20" cy="20" r="1.6" fill="currentColor"/></svg>
             <span class="mode-name">领 航</span>
@@ -1076,7 +1046,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
           <div class="mode-tip">适合：不知道说什么、想要引导的你</div>
         </button>
       </div>
-      <p class="settings-note">区别一句话：夜航自己掌舵，领航有人掌灯——最终都会点亮一张星图。重新测试时可以换一种聊法</p>
+      <p class="settings-note" data-reveal>区别一句话：夜航自己掌舵，领航有人掌灯——最终都会点亮一张星图。重新测试时可以换一种聊法</p>
     </div>
   </div>
 </div>
@@ -1090,7 +1060,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
       <p>CONVERSATION</p>
     </div>
     <div class="modal-body">
-      <div class="stat-card">
+      <div class="stat-card" data-reveal>
         <div>
           <div class="stat-row"><span class="t-lb">剩余谈心次数</span><b id="statRuns">–</b></div>
           <div class="stat-sub" id="statRunsSub">以星图生成为一次 · 追问不额外计次</div>
@@ -1104,7 +1074,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
           <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
         </div>
       </div>
-      <div class="dev-note">
+      <div class="dev-note" data-reveal>
         <p><b>写给你</b></p>
         <p class="dev-quote">愿每一个站在分科路口、抬头寻找方向的你，<br>都能在自己的星光里，听见内心的回答。</p>
         <p>北辰只陪你把心里的声音理清，不替你决定要走向的远方。</p>
@@ -1113,7 +1083,7 @@ button,.pk-chip{-webkit-tap-highlight-color:transparent}
         <p><b>开发者</b>　予笙　<span class="dev-qq">QQ 2661864056</span></p>
         <p>欢迎联系我获取动态验证码、分享使用感受或提出建议</p>
       </div>
-      <div class="modal-acts">
+      <div class="modal-acts" data-reveal>
         <button class="mbtn" onclick="checkRelay()">检查连接</button>
         <button class="mbtn" onclick="wipeLocalData(this)">清除本机记录</button>
       </div>
@@ -1247,7 +1217,9 @@ const GUIDED_OPTION_FORMAT = '\n【领航 · 格式】每轮末尾附【选项�
 
 /* 星图生成指令：首次点亮与再次点亮共用，文案不绑轮数 */
 function buildReportInstructions(){
-  return '\n【点亮星图】谈心到这里。现在以学长口吻，为这个具体的学生点亮星图。输出必须是纯标签格式：第一行【北辰星图】单独一行，随后逐字段换行、标签齐全，不要输出任何其他内容，不要再提问：】\n'+
+  return '\n【点亮星图】谈心到这里。现在以学长口吻，为这个具体的学生点亮星图。输出分两段，两段缺一不可：\n'+
+  '第一段（先输出）：给 TA 的临别回应，60~100 字、2~3 句话——接住 TA 最后一轮说的话，告诉 TA 这段谈心里你看见了什么，然后说你要为 TA 把这段谈心画成一张星图了。第一段之后空一行。\n'+
+  '第二段（另起一行）：第一行【北辰星图】单独一行，随后逐字段换行、标签齐全。从【北辰星图】这一行起不要输出标签格式之外的任何内容，星图字段结束后立即停止，不要再提问：】\n'+
   '【北辰星图】\n'+
   '【称号】8字内，只属于TA的称号\n'+
   '【方位】文科 / 理科 / 文理均衡 三选一\n'+
@@ -2341,8 +2313,7 @@ function renderReport(r){
   const cards = (r.cards && r.cards.length) ? r.cards : [{title:'画像', body:(r['一句话']||'').slice(0,150)}];
   cards.slice(0,6).forEach((c,i)=>{
     const div = document.createElement('div');
-    div.className = 'starcard';
-    div.style.animationDelay = (i*90)+'ms';
+    div.className = 'starcard'; div.setAttribute('data-reveal','');
     div.innerHTML = '<h6>'+esc(c.title)+'</h6><p>'+esc(c.body)+'</p>';
     cardsEl.appendChild(div);
   });
@@ -2353,7 +2324,7 @@ function renderReport(r){
   const parts = String(r['组合']||'').split(/\|\||[|｜]/).map(s=>s.trim()).filter(Boolean);
   const mkCombo = (combo, reason, isPrimary, fallbackName)=>{
     const div = document.createElement('div');
-    div.className = 'combo' + (isPrimary?'':' alt');
+    div.className = 'combo' + (isPrimary?'':' alt'); div.setAttribute('data-reveal','');
     const name = combo ? combo.id.replace(/\+/g,' + ') : (fallbackName || '—');
     const cov = combo ? combo.cov : null;
     div.innerHTML =
@@ -2379,7 +2350,7 @@ function renderReport(r){
   mjEl.innerHTML = '';
   String(r['专业']||'').split(/[、，,;；\s]+/).map(s=>s.trim()).filter(Boolean).slice(0,8).forEach((m,i)=>{
     const s = document.createElement('span');
-    s.className = 'mj'; s.style.animationDelay = (i*60)+'ms'; s.textContent = m;
+    s.className = 'mj'; s.setAttribute('data-reveal',''); s.textContent = m;
     mjEl.appendChild(s);
   });
 
@@ -2395,8 +2366,7 @@ function buildComboTable(){
   wrap.innerHTML = '';
   COMBOS.forEach((c,i)=>{
     const row = document.createElement('div');
-    row.className = 'crow';
-    row.style.animationDelay = (0.22 + i*0.045) + 's';   /* 十二行逐行浮现,与条形生长错开一拍 */
+    row.className = 'crow'; row.setAttribute('data-reveal','');
     row.innerHTML =
       '<div class="crow-name"><span class="cbadge '+(c.cat==='li'?'b-li':'b-wen')+'">'+(c.cat==='li'?'物理类':'历史类')+'</span>'+c.id.replace(/\+/g,' + ')+'</div>'+
       '<div class="crow-note">'+c.note+'</div>'+
@@ -2437,6 +2407,37 @@ document.addEventListener('keydown', (e)=>{
     else if(!e.shiftKey && (document.activeElement === last || !card.contains(document.activeElement))){ e.preventDefault(); first.focus(); }
   }
 });
+/* ── 滚动显现:元素进入视口才进场,不滑动就不播 ── */
+function growFills(scope){
+  scope.querySelectorAll('.cov-fill').forEach((f,i)=>{
+    f.style.transition = 'transform 1.1s var(--ease-spring)';
+    f.style.transitionDelay = (i*130)+'ms';
+    requestAnimationFrame(()=>{ f.style.transform = 'scaleX(1)'; });
+  });
+}
+let revealIO = null;
+function revealWithin(scope){
+  const targets = scope.querySelectorAll('[data-reveal]:not(.revealed)');
+  if(!targets.length) return;
+  if(!('IntersectionObserver' in window)){   /* 兜底:不支持就整批立即显现 */
+    targets.forEach(t=>{ t.classList.add('revealed'); t.style.animationDelay = '0s'; growFills(t); });
+    return;
+  }
+  if(!revealIO){
+    revealIO = new IntersectionObserver(entries=>{
+      entries.filter(en=>en.isIntersecting)
+        .sort((a,b)=>a.boundingClientRect.top - b.boundingClientRect.top)   /* 同批按位置从上到下错拍 */
+        .forEach((en,idx)=>{
+          const t = en.target;
+          revealIO.unobserve(t);
+          t.style.animationDelay = (idx*0.06).toFixed(2)+'s';
+          t.classList.add('revealed');
+          growFills(t);   /* 条形随所属元素显现那一刻才开始生长 */
+        });
+    }, {threshold:0.12, rootMargin:'0px 0px -6% 0px'});
+  }
+  targets.forEach(t=>revealIO.observe(t));
+}
 function openOverlay(id){
   const el = document.getElementById(id);
   const firstOpen = !topDismissible();
@@ -2452,31 +2453,30 @@ function openOverlay(id){
   }
   if(firstOpen && !(history.state && history.state.bcOv)){ try{ history.pushState({bcOv:1},''); }catch(e){} }
   if(id === 'reportModal' && lastReport){
-    /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖率条归零，420ms 后再各自生长 */
+    /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖率条归零；
+       已显现过的组合立即重长，未滚动到的组合等滚动显现时再长 */
     const star = document.getElementById('axis-star');
     if(star._litTm){ clearTimeout(star._litTm); star._litTm = null; }
     star.classList.remove('lit');
     star.style.transition = 'none';
     star.style.left = '50%';
     document.querySelectorAll('#rp-combos .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
+    document.querySelectorAll('#rp-combos .combo.revealed').forEach(growFills);
   }
   if(id === 'dataModal'){
     document.querySelectorAll('#comboTable .cov-fill').forEach(f=>{ f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; });
+    document.querySelectorAll('#comboTable .crow.revealed').forEach(growFills);
   }
+  revealWithin(card || el);   /* 视口内的当批错拍进场，折叠线以下交给滚动 */
   setTimeout(()=>{
     if(id === 'reportModal' && lastReport){
+      /* 轴星滑向落点:英雄区打开即在视口内,保留打开即播;条形的生长已交给滚动显现 */
       const star = document.getElementById('axis-star');
-      const fills = document.querySelectorAll('#rp-combos .cov-fill');
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         star.style.transition = 'left 1.4s var(--ease-glide)';
         star.style.left = (lastReport._lean ?? (lastReport._dir==='li' ? 68 : lastReport._dir==='wen' ? 32 : 50)) + '%';
-        /* 覆盖率条:弹簧式从左往右生长,首选/备选错开一拍 */
-        fills.forEach((f,i)=>{ f.style.transition = 'transform 1.1s var(--ease-spring)'; f.style.transitionDelay = (i*130)+'ms'; f.style.transform = 'scaleX(1)'; });
       }));
       star._litTm = setTimeout(()=>{ star.classList.add('lit'); }, 1550);
-    }
-    if(id === 'dataModal'){
-      document.querySelectorAll('#comboTable .cov-fill').forEach((f,i)=>{ f.style.transition = 'transform 1.1s var(--ease-spring)'; f.style.transitionDelay = (i*70)+'ms'; f.style.transform = 'scaleX(1)'; });
     }
   }, 420);
 }

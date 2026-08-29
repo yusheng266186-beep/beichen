@@ -118,32 +118,59 @@ assert.match(index, /聊到够了辰会主动告诉你/);
 assert.match(index, /rel="icon"/);
 assert.match(index, /name="theme-color"/);
 
-/* ─── v2.6.1 全站动效丰富 ─── */
+/* ─── v2.6.1 全站动效丰富 + v2.6.2 滚动显现 ─── */
 /* 动效 tokens 就位 */
 assert.match(index, /--ease-spring:cubic-bezier\(\.22,1\.1,\.36,1\)/);
 assert.match(index, /--ease-glide:cubic-bezier\(\.22,\.9,\.3,1\.05\)/);
-/* 覆盖率条:transform 弹簧生长(合成器动画),构建时写内联最终宽度,打开时错拍触发 */
+/* 覆盖率条:transform 弹簧生长(合成器动画),构建时写内联最终宽度 */
 assert.match(index, /transform:scaleX\(0\);transform-origin:0 50%;transition:transform 1\.1s var\(--ease-spring\)/);
 assert.match(index, /class="cov-fill" style="width:'\+cov\+'%"/);
 assert.match(index, /style="width:'\+c\.cov\+'%"/);
-assert.match(index, /f\.style\.transition = 'transform 1\.1s var\(--ease-spring\)'; f\.style\.transitionDelay = \(i\*130\)\+'ms'; f\.style\.transform = 'scaleX\(1\)';/);
-assert.match(index, /f\.style\.transitionDelay = \(i\*70\)\+'ms'/);
-assert.match(index, /#comboTable \.cov-fill'\)\.forEach\(f=>\{ f\.style\.transition = 'none'; f\.style\.transform = 'scaleX\(0\)'; \}\)/);
 assert.doesNotMatch(index, /transition:width 1\.2s/);   /* 旧 width 过渡必须彻底移除 */
 /* 轴星滑动统一走滑行 token */
 assert.match(index, /transition:left 1\.4s var\(--ease-glide\)/);
-/* 星卡逐张 / 专业逐个 / 报告按钮片尾式落位 */
-assert.match(index, /#reportModal\.show \.starcard\{animation:msg-in \.55s var\(--ease-stagger\) both\}/);
-assert.match(index, /#reportModal\.show \.mj\{animation:msg-in \.45s var\(--ease-stagger\) both\}/);
-assert.match(index, /#reportModal\.show \.report-actions \.tbtn:nth-child\(4\)\{animation-delay:1\.16s\}/);
-/* 设置/数据弹窗正文递进;十二组合行逐行浮现(JS 写行延迟) */
-assert.match(index, /#settingsModal\.show \.modal-body > \*\{animation:msg-in/);
-assert.match(index, /#dataModal\.show \.crow\{animation:msg-in/);
-assert.match(index, /row\.style\.animationDelay = \(0\.22 \+ i\*0\.045\) \+ 's'/);
-/* 确认小卡微递进;星门文字逐行浮现(跳过 <br> 与呼吸星) */
+
+/* ── 滚动显现:进入视口才进场,不滑动就不播 ── */
+assert.match(index, /document\.documentElement\.classList\.add\('js'\)/);   /* 隐藏规则只在 JS 可用时生效 */
+assert.match(index, /html\.js \[data-reveal\]:not\(\.revealed\)\{opacity:0\}/);
+assert.match(index, /\[data-reveal\]\.revealed\{animation:msg-in \.55s var\(--ease-stagger\) both\}/);
+assert.match(index, /\.report-card\.capture-clone \[data-reveal\]\{opacity:1!important;animation:none!important\}/);   /* 截图克隆强制最终态 */
+assert.match(index, /function growFills/);
+assert.match(index, /function revealWithin/);
+assert.match(index, /new IntersectionObserver/);
+assert.match(index, /revealWithin\(card \|\| el\)/);   /* 打开弹窗即开始观察 */
+assert.match(index, /sort\(\(a,b\)=>a\.boundingClientRect\.top - b\.boundingClientRect\.top\)/);   /* 同批自上而下错拍 */
+/* 已显现区域在重开弹窗时条形立即重长;未滚动到的交给 IO */
+assert.match(index, /#rp-combos \.combo\.revealed'\)\.forEach\(growFills\)/);
+assert.match(index, /#comboTable \.crow\.revealed'\)\.forEach\(growFills\)/);
+assert.doesNotMatch(index, /#reportModal\.show \.rc-body > \*/);   /* 打开即播的正文 stagger 必须移除 */
+assert.doesNotMatch(index, /#modeModal\.show \.mode-card\{/);
+/* data-reveal 布点:报告卡分区/收尾区/按钮,设置与数据与选聊法正文,JS 构建项 */
+assert.match(index, /class="rc-sec-lb" data-reveal/);
+assert.match(index, /class="bless" data-reveal/);
+assert.match(index, /data-reveal id="rp-time"/);
+assert.match(index, /data-reveal id="rp-quota"/);
+assert.match(index, /id="saveReportBtn" data-reveal/);
+assert.match(index, /class="stat-card" data-reveal/);
+assert.match(index, /class="dev-note" data-reveal/);
+assert.match(index, /class="modal-acts" data-reveal/);
+assert.match(index, /class="dsec" data-reveal/);
+assert.match(index, /class="mode-card" data-reveal/);
+assert.match(index, /class="settings-note" data-reveal/);
+assert.match(index, /div\.className = 'starcard'; div\.setAttribute\('data-reveal',''\);/);
+assert.match(index, /s\.className = 'mj'; s\.setAttribute\('data-reveal',''\);/);
+assert.match(index, /div\.className = 'combo' \+ \(isPrimary\?'':' alt'\); div\.setAttribute\('data-reveal',''\);/);
+assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal',''\);/);
+assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
+
+/* 确认小卡整卡在首屏,保留打开即微递进 */
 assert.match(index, /\.overlay\.show \.restart-card > \*\{animation:msg-in/);
 assert.match(index, /\.gate-in > \*:nth-child\(2\)\{animation:msg-in/);
 assert.match(index, /\.gate-in > \*:nth-child\(10\)\{animation:msg-in/);
+
+/* ── 星图前置回应:引导词强制先写临别回应再输出星图(否则等待期无文字可流式) ── */
+assert.match(index, /第一段（先输出）：给 TA 的临别回应，60~100 字/);
+assert.match(index, /从【北辰星图】这一行起不要输出标签格式之外的任何内容/);
 
 /* 全站主题化命名：开发代号"自由聊/有扶手"不得再出现在页面任何位置 */
 assert.doesNotMatch(index, /自由聊|有扶手/);
