@@ -48,7 +48,7 @@
 腾讯云 SCF Web Function（beichen-qianfan-mini，本仓库 scf-relay.js）
    │  Bearer 千帆 Key（仅存云端环境变量）
    ▼
-百度千帆 Token Plan 个人版专属端点 · GLM-5.2（深度思考 max）
+百度千帆 Token Plan 个人版专属端点 · qianfan-code-latest（深度思考 max）
 ```
 
 | 机制 | 说明 |
@@ -97,7 +97,7 @@ node --test tests/*.test.js   # 三套契约测试全绿为基线（parse / inde
 
 ## 版本与历史
 
-- 当前版本 **v2.6.18**（`index.html` 内 `APP_VERSION` 与设置面板同步展示；每次改动随提交递增）；
+- 当前版本 **v2.6.19**（`index.html` 内 `APP_VERSION` 与设置面板同步展示；每次改动随提交递增）；
 - v2 重构版（v2.6.x，30+ 次迭代提交）于 2026-08-29 自调试库整体并入本仓库，`git log` 可完整回溯每一步的动机与实现；
 - v1 旧版见 `legacy/` 与 `legacy-v1` 标签；早期私有调试库见 `archive/` 与 `archive/*` 标签；
 - 历史发布与变更说明见 [Releases](https://github.com/yusheng266186-beep/beichen/releases)。

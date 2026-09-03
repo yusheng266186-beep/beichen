@@ -43,7 +43,7 @@
    | `GATE_SESSION_SECRET` | 至少 32 字节随机字符串；用于签发会话 Token |
    | `CORS_ALLOWED_ORIGINS` | 网页来源，例如 `https://yusheng266186-beep.github.io`，不要写 `/beichen/` 路径 |
 
-   `QIANFAN_BASE_URL` 填 Token Plan 个人版专属地址 `https://qianfan.baidubce.com/v2/tokenplan/personal`（个人版专属 Key 只认这个入口，也是代码唯一放行的入口）。`QIANFAN_MODEL` 可以留空，默认模型是 **`glm-5.2`**，也可以填写你账号已开通的模型 ID。模板见根目录 [`.env.example`](.env.example)，它只有占位符，不能直接当作真实 Secret 使用。
+   `QIANFAN_BASE_URL` 填 Token Plan 个人版专属地址 `https://qianfan.baidubce.com/v2/tokenplan/personal`（个人版专属 Key 只认这个入口，也是代码唯一放行的入口）。`QIANFAN_MODEL` 可以留空，默认模型是 **`qianfan-code-latest`**，也可以填写你账号已开通的模型 ID。模板见根目录 [`.env.example`](.env.example)，它只有占位符，不能直接当作真实 Secret 使用。
 
    不要把普通后付费 key 或 Coding Plan/Coding Plan Lite 专属 key、专属 endpoint 填进 `QIANFAN_API_KEY`。本适配器只访问 Token Plan 个人版专属端点 `/v2/tokenplan/personal/chat/completions`（见[官方接入文档](https://cloud.baidu.com/doc/qianfan/s/kmracfgi2)）；代码内置 host 与 endpoint 白名单，标准 `/v2`、coding 系与任何第三方域名都会被直接拒绝。
 

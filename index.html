@@ -1140,7 +1140,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
           <div class="stat-sub" id="statExpSub">输入动态码验证后即可开始谈心</div>
         </div>
         <div>
-          <div class="stat-row"><span class="t-lb">对话模型</span><b>GLM-5.2 · 深度思考 max</b></div>
+          <div class="stat-row"><span class="t-lb">对话模型</span><b>qianfan-code-latest · 深度思考 max</b></div>
         <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
       </div>
       <div>
@@ -1169,8 +1169,8 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 
 <script>
 /* ═══════════════════════════ 配置 ═══════════════════════════ */
-/* 模型名与思考档位全部由云端固定（GLM-5.2 · max），页面请求不携带 model 字段 */
-/* 统一经腾讯云函数中转调用千帆 GLM-5.2；凭据在中转服务侧，页面零密钥。 */
+/* 模型名与思考档位全部由云端固定（qianfan-code-latest · max），页面请求不携带 model 字段 */
+/* 统一经腾讯云函数中转调用千帆 qianfan-code-latest；凭据在中转服务侧，页面零密钥。 */
 /* Deployment placeholder: replace the entire origin and the CSP connect-src entry together. */
 const RELAY = 'https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com';
 function apiEndpoint(){ return RELAY + '/chat/completions'; }
@@ -1179,7 +1179,7 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.6.18';
+const APP_VERSION = 'v2.6.19';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */
@@ -1783,7 +1783,7 @@ async function askStream(messages, opt){
           messages, max_tokens:maxTokens,
           temperature, stream:true,
           /* All turns, including report and continuation turns, use the
-             server-pinned GLM-5.2 max reasoning contract. */
+             server-pinned qianfan-code-latest max reasoning contract. */
           thinking: {type:'enabled'}
         })
       });
@@ -2023,9 +2023,9 @@ async function respond(guidance){
       });
     };
     const result = await ask(messages, {
-      /* GLM-5.2 max reasoning contributes to completion_tokens. Give normal
+      /* qianfan-code-latest max reasoning contributes to completion_tokens. Give normal
          rounds and the structured report enough room to finish cleanly. */
-      /* GLM-5.2 counts hidden reasoning and visible text together. Give the
+      /* qianfan-code-latest counts hidden reasoning and visible text together. Give the
          structured report the provider's full supported completion window so
          max reasoning cannot consume the budget before the chart is emitted. */
       maxTokens: expectingReport ? 16384 : 5000,
@@ -2077,7 +2077,7 @@ function cleanChoiceText(value){
     .trim();
 }
 
-/* GLM-5.2 occasionally repeats an option while satisfying a long instruction
+/* qianfan-code-latest occasionally repeats an option while satisfying a long instruction
    block. Keep the chips useful and provide deterministic stage-local fallbacks
    when formatting is incomplete; free-form input remains available. */
 const CHOICE_FALLBACKS = {
@@ -2102,7 +2102,7 @@ function uniqueChoices(values){
 }
 
 /* A malformed report should not consume a run or render half a star chart.
-   One bounded repair pass lets GLM-5.2 re-emit the same content under the
+   One bounded repair pass lets qianfan-code-latest re-emit the same content under the
    exact label contract; it still uses the pinned max-thinking request path. */
 async function repairReportText(source){
   const raw = String(source || '');

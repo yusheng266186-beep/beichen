@@ -22,7 +22,7 @@ const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
 /* 默认 4 万字符:中文按 3 字节/字约 120KB,先于 128KiB 正文上限触发,两道口径一致 */
 const MAX_PROMPT_CHARS = boundedInt(process.env.MAX_PROMPT_CHARS, 40000, 2000, 200000);
-/* GLM-5.2 的思考与正文共用 completion_tokens 预算,给足余量防截断 */
+/* qianfan-code-latest 的思考与正文共用 completion_tokens 预算,给足余量防截断 */
 const MAX_COMPLETION_TOKENS = 16384;
 const MAX_UPSTREAM_BYTES = 2 * 1024 * 1024;
 const CLOCK_SKEW_MS = 60 * 1000;
@@ -39,7 +39,7 @@ const QIANFAN_BASE_URL = 'https://qianfan.baidubce.com/v2/tokenplan/personal';
 const QIANFAN_ALLOWED_HOSTS = new Set(['qianfan.baidubce.com']);
 /* Token Plan 个人版专属端点;coding 系端点一律拒绝 */
 const QIANFAN_ENDPOINT_BASES = ['/v2/tokenplan/personal'];
-const DEFAULT_QIANFAN_MODEL = 'glm-5.2';
+const DEFAULT_QIANFAN_MODEL = 'qianfan-code-latest';
 
 const TOKEN_TTL_MS = boundedInt(process.env.GATE_TOKEN_TTL_MS, DEFAULT_TOKEN_TTL_MS, 60 * 1000, MAX_TOKEN_TTL_MS);
 const UPSTREAM_TIMEOUT_MS = boundedInt(process.env.UPSTREAM_TIMEOUT_MS, DEFAULT_UPSTREAM_TIMEOUT_MS, 30 * 1000, 570 * 1000);
