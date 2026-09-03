@@ -1,48 +1,58 @@
 /* ═══════════════════════════════════════════════════════════════════
-   北辰 · 选科谈心 中转服务(腾讯云 SCF Web Function 入口)
+   北辰 · 选科谈心中转服务（腾讯云 SCF Web Function 入口）
    ------------------------------------------------------------------
-   职责(仅此四件事):
-     1. 星门:TOTP 动态码验证 → 签发短生命周期的会话令牌(HMAC 签名)
-     2. 额度:一次验证 3 次完整谈心;/run/complete 原子记账(幂等)
-     3. 对话:校验请求 → 附加思考档位 → 转发百度千帆并回流 SSE
-     4. 边界:固定 CORS、严格路由、请求体/响应体上限、上游超时
+   1. 星门：TOTP 动态码验证 → HMAC 会话票据
+   2. 额度：星图生成成功后由服务端原子结算；失败释放预占
+   3. 对话：严格校验请求 → 百度千帆 → SSE 原样回流
+   4. 边界：固定 CORS、请求/响应上限、超时、共享状态、防重放
 
-   设计原则:
-   - 页面零密钥:千帆 Key 只存在本服务环境变量
-   - 模型参数服务端说了算:模型名、思考档位、预算上限客户端不可指定
-   - 会话/额度/TOTP 防重放为单实例内存实现(P0 待办:外部持久化)
+   前端协议保持兼容：现有页面用 max_tokens≥10000 表示星图档，用
+   X-Request-ID 调 /run/complete。只有服务端共享状态改变，页面不需要
+   为这次后端修复改写调用流程。
+
+   生产状态必须进入共享 Redis。STATE_STORE=memory 只用于本地测试，
+   绝不会作为 Redis 故障时的自动降级路径。
    ═══════════════════════════════════════════════════════════════════ */
 'use strict';
+
 const http = require('http');
+const https = require('https');
 const crypto = require('crypto');
+const {
+  MemoryStateStore,
+  createStateStoreFromEnv
+} = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
+const BACKEND_VERSION = 'v2.7.0-stateful';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
-/* 默认 4 万字符:中文按 3 字节/字约 120KB,先于 128KiB 正文上限触发,两道口径一致 */
+/* 默认 4 万字符：中文按 3 字节/字约 120KB，先于正文上限触发 */
 const MAX_PROMPT_CHARS = boundedInt(process.env.MAX_PROMPT_CHARS, 40000, 2000, 200000);
-/* qianfan-code-latest 的思考与正文共用 completion_tokens 预算,给足余量防截断 */
 const MAX_COMPLETION_TOKENS = 16384;
 const MAX_UPSTREAM_BYTES = 2 * 1024 * 1024;
 const CLOCK_SKEW_MS = 60 * 1000;
 const DEFAULT_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_RUNS = 3;
-/* 单会话(一次验证)终身对话轮数上限:聊天接口不做次数记账,用总轮数兜底防脚本烧上游额度 */
-const MAX_SESSION_TURNS = boundedInt(process.env.MAX_SESSION_TURNS, 300, 20, 5000);
-/* 星图档判定阈值,与思考预算分档共用:≥ 此值的请求受额度门槛约束 */
 const REPORT_SCALE_TOKENS = 10000;
+/* 正式页面日常请求为 5000，≥10000 是星图请求；中间档禁止，避免伪装 */
+const NORMAL_MAX_TOKENS = boundedInt(process.env.NORMAL_MAX_TOKENS, 5000, 100, REPORT_SCALE_TOKENS - 1);
+const MAX_SESSION_TURNS = boundedInt(process.env.MAX_SESSION_TURNS, 300, 20, 5000);
+const REPORT_ATTEMPTS = boundedInt(process.env.REPORT_ATTEMPTS, 6, 1, 20);
+const REPORT_REPAIR_ATTEMPTS = boundedInt(process.env.REPORT_REPAIR_ATTEMPTS, 2, 0, 5);
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 540 * 1000;
 
 const QIANFAN_BASE_URL = 'https://qianfan.baidubce.com/v2/tokenplan/personal';
 const QIANFAN_ALLOWED_HOSTS = new Set(['qianfan.baidubce.com']);
-/* Token Plan 个人版专属端点;coding 系端点一律拒绝 */
 const QIANFAN_ENDPOINT_BASES = ['/v2/tokenplan/personal'];
 const DEFAULT_QIANFAN_MODEL = 'qianfan-code-latest';
 
 const TOKEN_TTL_MS = boundedInt(process.env.GATE_TOKEN_TTL_MS, DEFAULT_TOKEN_TTL_MS, 60 * 1000, MAX_TOKEN_TTL_MS);
 const UPSTREAM_TIMEOUT_MS = boundedInt(process.env.UPSTREAM_TIMEOUT_MS, DEFAULT_UPSTREAM_TIMEOUT_MS, 30 * 1000, 570 * 1000);
+const TURN_LEASE_MS = boundedInt(process.env.TURN_LEASE_MS, Math.min(900000, UPSTREAM_TIMEOUT_MS + 60000), 60000, 900000);
+const REPORT_LEASE_MS = boundedInt(process.env.REPORT_LEASE_MS, Math.min(900000, UPSTREAM_TIMEOUT_MS + 60000), 60000, 900000);
 const CORS_ALLOWED_ORIGINS = String(process.env.CORS_ALLOWED_ORIGINS || 'https://yusheng266186-beep.github.io')
   .split(',').map(s => s.trim()).filter(Boolean);
 
@@ -52,26 +62,37 @@ function boundedInt(raw, fallback, min, max) {
 }
 
 /* ── 小工具 ─────────────────────────────────────────────────────── */
-function httpError(status, code) { const e = new Error(code); e.status = status; e.code = code; return e; }
+function httpError(status, code) {
+  const error = new Error(code);
+  error.status = status;
+  error.code = code;
+  return error;
+}
+
 function constantTimeEqual(a, b) {
-  const ba = Buffer.from(String(a)), bb = Buffer.from(String(b));
+  const ba = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
 }
-function pruneMap(map, limit) {
-  if (map.size <= limit) return;
-  const it = map.keys();
-  while (map.size > limit * 0.9) map.delete(it.next().value);
-}
+
 function readJson(req, limit) {
   return new Promise((resolve, reject) => {
-    let size = 0; const chunks = [];
-    req.on('data', c => {
-      size += c.length;
-      /* 超限:只暂停读取,把错误交给外层 catch 写出 413;立即 destroy 会抢在响应送达前断连 */
-      if (size > limit) { reject(httpError(413, 'BEICHEN_PAYLOAD_TOO_LARGE')); req.pause(); return; }
-      chunks.push(c);
+    let size = 0;
+    const chunks = [];
+    let rejected = false;
+    req.on('data', chunk => {
+      if (rejected) return;
+      size += chunk.length;
+      if (size > limit) {
+        rejected = true;
+        req.pause();
+        reject(httpError(413, 'BEICHEN_PAYLOAD_TOO_LARGE'));
+        return;
+      }
+      chunks.push(chunk);
     });
     req.on('end', () => {
+      if (rejected) return;
       const raw = Buffer.concat(chunks).toString('utf8').trim();
       if (!raw) return resolve({});
       try { resolve(JSON.parse(raw)); }
@@ -80,15 +101,52 @@ function readJson(req, limit) {
     req.on('error', reject);
   });
 }
-function onlyKeys(obj, keys) { return Object.keys(obj).every(k => keys.includes(k)); }
+
+function onlyKeys(obj, keys) {
+  return obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).every(key => keys.includes(key));
+}
+
+function errorStatus(code, fallback = 500) {
+  const statuses = {
+    BEICHEN_AUTH_NOT_CONFIGURED: 503,
+    BEICHEN_STATE_STORE_UNAVAILABLE: 503,
+    BEICHEN_PROVIDER_NOT_CONFIGURED: 503,
+    BEICHEN_QIANFAN_HOST_NOT_ALLOWED: 503,
+    BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED: 503,
+    BEICHEN_AUTH_REQUIRED: 401,
+    BEICHEN_AUTH_EXPIRED: 401,
+    BEICHEN_AUTH_REPLAY: 401,
+    BEICHEN_AUTH_INVALID_CODE: 401,
+    BEICHEN_AUTH_RATE_LIMIT: 429,
+    BEICHEN_RATE_LIMIT: 429,
+    BEICHEN_QUOTA_EXHAUSTED: 409,
+    BEICHEN_REPORT_NOT_READY: 409,
+    BEICHEN_REPORT_IN_PROGRESS: 429,
+    BEICHEN_REPORT_ATTEMPTS_EXHAUSTED: 409,
+    BEICHEN_SESSION_TURNS_EXHAUSTED: 409,
+    BEICHEN_REPORT_SCALE_REQUIRED: 400,
+    BEICHEN_MAX_TOKENS_LIMIT: 400,
+    BEICHEN_UPSTREAM_TIMEOUT: 504,
+    BEICHEN_UPSTREAM_ERROR: 502,
+    BEICHEN_CLIENT_ABORTED: 499
+  };
+  return statuses[code] || fallback;
+}
+
+function sendError(req, res, error, fallbackCode = 'BEICHEN_INTERNAL_ERROR') {
+  const code = error && error.code ? error.code : fallbackCode;
+  if (res.headersSent) return res.destroy();
+  return json(req, res, errorStatus(code, error && error.status ? error.status : 500), { error: { message: code } });
+}
 
 /* ── CORS 与响应 ────────────────────────────────────────────────── */
 function allowedOrigin(req) {
   const origin = String(req.headers.origin || '');
   return !origin || CORS_ALLOWED_ORIGINS.includes(origin);
 }
+
 function securityHeaders(req, extra) {
-  const h = Object.assign({
+  const headers = Object.assign({
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
@@ -96,36 +154,38 @@ function securityHeaders(req, extra) {
     'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
   }, extra || {});
   if (req.headers.origin && CORS_ALLOWED_ORIGINS.includes(req.headers.origin)) {
-    h['Access-Control-Allow-Origin'] = req.headers.origin;
-    h['Vary'] = 'Origin';
-    h['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
-    h['Access-Control-Allow-Headers'] = 'content-type, authorization, x-request-id';
-    h['Access-Control-Max-Age'] = '600';
+    headers['Access-Control-Allow-Origin'] = req.headers.origin;
+    headers['Vary'] = 'Origin';
+    headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS';
+    headers['Access-Control-Allow-Headers'] = 'content-type, authorization, x-request-id';
+    headers['Access-Control-Max-Age'] = '600';
   }
-  return h;
+  return headers;
 }
+
 function json(req, res, status, body) {
   const payload = JSON.stringify(body);
   res.writeHead(status, securityHeaders(req, { 'Content-Type': 'application/json; charset=utf-8' }));
   res.end(payload);
 }
+
 function text(req, res, status, body) {
   res.writeHead(status, securityHeaders(req, { 'Content-Type': 'text/plain; charset=utf-8', 'Content-Disposition': 'attachment' }));
   res.end(body);
 }
-/* 宽松 IP 形态校验:IPv4 点分十进制 / IPv6 冒号十六进制(含 ::ffff: 映射、方括号包裹)/ 纯十六进制串。
-   只用于限流键取粒度,不做严格语义校验。 */
+
+/* 宽松 IP 形态校验，只用于限流键取粒度。 */
 function looksLikeIp(value) {
-  const s = String(value || '').trim().replace(/^\[(.+)\]$/, '$1');
-  if (!s || s.length > 45) return false;
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(s)) return s.split('.').every(n => Number(n) <= 255);
-  const mapped = s.match(/^::ffff:(\d{1,3}(\.\d{1,3}){3})$/i);
-  if (mapped) return mapped[1].split('.').every(n => Number(n) <= 255);
-  if (/^([0-9a-fA-F]{8}|[0-9a-fA-F]{32})$/.test(s)) return true;
-  return /^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$/.test(s);
+  const input = String(value || '').trim().replace(/^\[(.+)\]$/, '$1');
+  if (!input || input.length > 45) return false;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(input)) return input.split('.').every(part => Number(part) <= 255);
+  const mapped = input.match(/^::ffff:(\d{1,3}(\.\d{1,3}){3})$/i);
+  if (mapped) return mapped[1].split('.').every(part => Number(part) <= 255);
+  if (/^([0-9a-fA-F]{8}|[0-9a-fA-F]{32})$/.test(input)) return true;
+  return /^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$/.test(input);
 }
-/* CLB 把真实客户端 IP 追加在 X-Forwarded-For 末尾,前面的条目客户端可伪造:
-   从末尾往前取第一个合法条目;XFF 为空或全不合法时回退 TCP 对端。 */
+
+/* CLB 把真实客户端 IP 追加在 XFF 末尾，前面的条目可能被伪造。 */
 function pickClientIp(xffHeader, fallbackIp) {
   const raw = Array.isArray(xffHeader) ? xffHeader.join(',') : String(xffHeader || '');
   const entries = raw.split(',');
@@ -135,80 +195,83 @@ function pickClientIp(xffHeader, fallbackIp) {
   }
   return (fallbackIp && String(fallbackIp).trim()) || 'unknown';
 }
+
 function clientKey(req) {
-  /* 业务限流维度(键已含 sid):TCP 对端即可;verify 限流改用 pickClientIp 应对 CLB 共享出口 */
   return (req.socket && req.socket.remoteAddress) || 'unknown';
 }
-const attempts = new Map();      /* verify 失败限流 */
-const requestLimits = new Map(); /* 业务限流 */
-const usedTotp = new Map();      /* TOTP 防重放:counter:code → 过期时间 */
-const sessions = new Map();      /* sid → {runs, seq, jti, exp, lastCompletion} */
-/* 并发双提交的幂等重放表:旧 jti → 完成时的完整响应,有界防膨胀 */
-const recentCompletions = new Map();
-const COMPLETION_REPLAY_LIMIT = 8;
-function allowRate(map, key, limit, windowMs) {
-  const now = Date.now();
-  const cur = map.get(key);
-  if (!cur || now > cur.exp) { map.set(key, { n: 1, exp: now + windowMs }); pruneMap(map, 5000); return true; }
-  if (cur.n >= limit) return false;
-  cur.n += 1; return true;
+
+/* 仅为历史契约/离线自检保留的有界重放表工具；线上收据由 stateStore 管理。 */
+function pruneMap(map, limit) {
+  if (map.size <= limit) return;
+  const iterator = map.keys();
+  while (map.size > Math.floor(limit * 0.9)) map.delete(iterator.next().value);
 }
 
-/* ── TOTP(RFC 6238,SHA1/30s/6位,允许 ±1 窗口且一次性消费) ─────── */
+function recordCompletion(map, key, response) {
+  map.set(key, response);
+  pruneMap(map, 8);
+}
+
+/* ── TOTP（RFC 6238，SHA1/30s/6 位，允许 ±1 窗口） ────────────── */
 function base32Decode(value) {
   const clean = String(value || '').replace(/[\s-]/g, '').toUpperCase();
   if (clean.length < 16 || !/^[A-Z2-7]+$/.test(clean)) return Buffer.alloc(0);
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let bits = 0, buffer = 0; const out = [];
+  let bits = 0;
+  let buffer = 0;
+  const output = [];
   for (const ch of clean) {
     buffer = (buffer << 5) | alphabet.indexOf(ch);
     bits += 5;
-    if (bits >= 8) { out.push((buffer >>> (bits - 8)) & 0xff); bits -= 8; }
+    if (bits >= 8) {
+      output.push((buffer >>> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
   }
-  return Buffer.from(out);
+  return Buffer.from(output);
 }
+
 function totpCode(counter, secretBytes) {
   const message = Buffer.alloc(8);
   let value = counter;
-  for (let i = 7; i >= 0; i--) { message[i] = value & 0xff; value = Math.floor(value / 256); }
+  for (let i = 7; i >= 0; i--) {
+    message[i] = value & 0xff;
+    value = Math.floor(value / 256);
+  }
   const digest = crypto.createHmac('sha1', secretBytes).update(message).digest();
   const offset = digest[digest.length - 1] & 0x0f;
   const number = ((digest[offset] & 0x7f) << 24) | (digest[offset + 1] << 16) | (digest[offset + 2] << 8) | digest[offset + 3];
   return String(number % 1000000).padStart(6, '0');
 }
-function consumeTotp(code) {
-  if (!/^\d{6}$/.test(code) || !process.env.GATE_TOTP_SECRET) return false;
+
+function matchingTotpCounter(code, now = Date.now()) {
+  if (!/^\d{6}$/.test(code) || !process.env.GATE_TOTP_SECRET) return null;
   const secretBytes = base32Decode(process.env.GATE_TOTP_SECRET);
-  if (secretBytes.length < 10) return false;
-  const counter = Math.floor(Date.now() / 30000);
+  if (secretBytes.length < 10) return null;
+  const counter = Math.floor(now / 30000);
   for (const candidate of [counter - 1, counter, counter + 1]) {
-    if (!constantTimeEqual(code, totpCode(candidate, secretBytes))) continue;
-    const key = candidate + ':' + code;
-    const now = Date.now();
-    if (usedTotp.has(key)) return false;
-    usedTotp.set(key, now + 120000);
-    for (const [k, exp] of usedTotp) if (exp <= now) usedTotp.delete(k);
-    pruneMap(usedTotp, 5000);
-    return true;
+    if (constantTimeEqual(code, totpCode(candidate, secretBytes))) return candidate;
   }
-  return false;
+  return null;
 }
 
-/* ── 会话令牌:v1.payload.base64url + HMAC-SHA256 签名 ───────────── */
+/* ── 会话票据：v1.payload.base64url + HMAC-SHA256 ──────────────── */
 function sessionSecretReady() {
   return Buffer.byteLength(String(process.env.GATE_SESSION_SECRET || ''), 'utf8') >= 32;
 }
+
 function signToken(payload) {
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const sig = crypto.createHmac('sha256', String(process.env.GATE_SESSION_SECRET)).update(body).digest('base64url');
-  return body + '.' + sig;
+  const signature = crypto.createHmac('sha256', String(process.env.GATE_SESSION_SECRET)).update(body).digest('base64url');
+  return body + '.' + signature;
 }
+
 function decodeToken(token) {
   try {
-    const [body, sig] = String(token || '').split('.');
-    if (!body || !sig) return null;
+    const [body, signature] = String(token || '').split('.');
+    if (!body || !signature || !sessionSecretReady()) return null;
     const expected = crypto.createHmac('sha256', String(process.env.GATE_SESSION_SECRET)).update(body).digest('base64url');
-    if (!constantTimeEqual(sig, expected)) return null;
+    if (!constantTimeEqual(signature, expected)) return null;
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
     const now = Date.now();
     if (payload.v !== 1 || !/^[a-f0-9]{32}$/.test(payload.sid) || !/^[a-f0-9]{32}$/.test(payload.jti)) return null;
@@ -216,89 +279,129 @@ function decodeToken(token) {
     if (payload.exp - payload.iat > TOKEN_TTL_MS + CLOCK_SKEW_MS || !Number.isInteger(payload.runs) || payload.runs < 0 || payload.runs > MAX_RUNS) return null;
     if (!Number.isInteger(payload.seq) || payload.seq < 0) return null;
     return payload;
-  } catch (_) { return null; }
+  } catch (_) {
+    return null;
+  }
 }
-function newToken(runs, sid, seq = 0) {
-  const now = Date.now();
-  const sessionId = sid || crypto.randomBytes(16).toString('hex');
-  const jti = crypto.randomBytes(16).toString('hex');
-  const exp = now + TOKEN_TTL_MS;
-  sessions.set(sessionId, { runs, seq, jti, exp, lastCompletion: null });
-  pruneMap(sessions, 5000);
-  return { token: signToken({ v: 1, sid: sessionId, jti, seq, iat: now, exp, runs }), sid: sessionId, jti, seq, exp };
-}
-function authenticate(req) {
-  if (!sessionSecretReady()) return { error: 'BEICHEN_AUTH_NOT_CONFIGURED' };
+
+function bearerPayload(req) {
   const authorization = String(req.headers.authorization || '');
   const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
-  const payload = decodeToken(token);
+  return decodeToken(token);
+}
+
+function newSession() {
+  const now = Date.now();
+  return {
+    schema: 1,
+    sid: crypto.randomBytes(16).toString('hex'),
+    jti: crypto.randomBytes(16).toString('hex'),
+    seq: 0,
+    iat: now,
+    exp: now + TOKEN_TTL_MS,
+    runs: 0,
+    turns: 0,
+    report: { id: null, status: 'idle', attemptsUsed: 0, retries: 0, startedAt: 0, readyAt: 0, leaseExp: 0 }
+  };
+}
+
+function tokenForState(state) {
+  return signToken({ v: 1, sid: state.sid, jti: state.jti, seq: state.seq, iat: state.iat, exp: state.exp, runs: state.runs });
+}
+
+let stateStore = createStateStoreFromEnv();
+
+async function allowRate(key, limit, windowMs) {
+  return stateStore.consumeRate(key, limit, windowMs);
+}
+
+async function authenticate(req, options = {}) {
+  if (!sessionSecretReady()) return { error: 'BEICHEN_AUTH_NOT_CONFIGURED' };
+  const payload = bearerPayload(req);
   if (!payload) return { error: 'BEICHEN_AUTH_REQUIRED' };
-  const state = sessions.get(payload.sid);
+  const state = await stateStore.getSession(payload.sid);
   if (!state || state.exp <= Date.now()) return { error: 'BEICHEN_AUTH_EXPIRED', payload };
-  if (state.jti !== payload.jti || state.seq !== payload.seq || state.runs !== payload.runs) {
-    return { error: 'BEICHEN_AUTH_REPLAY', payload, state };
+  const stale = state.jti !== payload.jti || state.seq !== payload.seq || state.runs !== payload.runs;
+  if (stale && !options.allowStale) return { error: 'BEICHEN_AUTH_REPLAY', payload, state, stale: true };
+  return { payload, state, stale };
+}
+
+/* ── 路由：星门验证 ───────────────────────────────────────────── */
+async function handleVerify(req, res) {
+  if (!process.env.GATE_TOTP_SECRET || !sessionSecretReady()) {
+    return json(req, res, 503, { error: { message: 'BEICHEN_AUTH_NOT_CONFIGURED' } });
   }
-  return { payload, state };
+  const clientIp = pickClientIp(req.headers['x-forwarded-for'], req.socket && req.socket.remoteAddress);
+  if (!await allowRate('verify:' + clientIp, 8, 60000)) {
+    return json(req, res, 429, { error: { message: 'BEICHEN_AUTH_RATE_LIMIT' } });
+  }
+  const body = await readJson(req, 8 * 1024);
+  if (!onlyKeys(body, ['code']) || typeof body.code !== 'string') {
+    return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
+  }
+  const counter = matchingTotpCounter(body.code);
+  if (counter === null) return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
+  /* Redis SET NX/PX 让多实例只能消费同一组 counter+验证码一次。 */
+  const consumed = await stateStore.consumeTotp(counter + ':' + crypto.createHash('sha256').update(body.code).digest('hex'), 120000);
+  if (!consumed) return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
+
+  const state = newSession();
+  await stateStore.createSession(state);
+  return json(req, res, 200, { ok: true, token: tokenForState(state), runs: 0, maxRuns: MAX_RUNS, expiresIn: TOKEN_TTL_MS });
 }
 
-/* ── 路由:星门验证 ─────────────────────────────────────────────── */
-function handleVerify(req, res) {
-  if (!process.env.GATE_TOTP_SECRET || !sessionSecretReady()) return json(req, res, 503, { error: { message: 'BEICHEN_AUTH_NOT_CONFIGURED' } });
-  if (!allowRate(attempts, 'verify:' + pickClientIp(req.headers['x-forwarded-for'], req.socket && req.socket.remoteAddress), 8, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_AUTH_RATE_LIMIT' } });
-  readJson(req, 8 * 1024).then(body => {
-    if (!onlyKeys(body, ['code']) || typeof body.code !== 'string' || !consumeTotp(body.code)) {
-      return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
-    }
-    const token = newToken(0);
-    return json(req, res, 200, { ok: true, token: token.token, runs: 0, maxRuns: MAX_RUNS, expiresIn: TOKEN_TTL_MS });
-  }).catch(error => json(req, res, error.status || 400, { error: { message: error.code || 'BEICHEN_BAD_JSON' } }));
+/* ── 路由：额度结算（服务端原子、按请求号幂等） ──────────────── */
+function validRequestId(value) {
+  return /^[A-Za-z0-9._~-]{8,96}$/.test(value);
 }
 
-/* ── 路由:额度记账(幂等) ───────────────────────────────────────── */
-/* 重放表写入:超限按插入序淘汰最旧(与 pruneMap 同品格) */
-function recordCompletion(map, jti, response) {
-  map.set(jti, response);
-  pruneMap(map, COMPLETION_REPLAY_LIMIT);
-}
-function completeRun(req, res, auth) {
+async function handleRunComplete(req, res) {
   const requestId = String(req.headers['x-request-id'] || '').trim();
-  if (!/^[A-Za-z0-9._~-]{8,96}$/.test(requestId)) return json(req, res, 400, { error: { message: 'BEICHEN_BAD_REQUEST' } });
-  if (auth.payload.runs >= MAX_RUNS) return json(req, res, 409, { error: { message: 'BEICHEN_QUOTA_EXHAUSTED' } });
-  const state = auth.state;
-  if (state.jti !== auth.payload.jti) {
-    /* 并发双提交:处理到此刻本请求的 jti 已被更晚的完成覆盖 → 查重放表返回当初存的同形响应 */
-    const replayed = recentCompletions.get(auth.payload.jti);
-    if (replayed) return json(req, res, 200, replayed);
-    return json(req, res, 409, { error: { message: 'BEICHEN_AUTH_REPLAY' } });
+  if (!validRequestId(requestId)) return json(req, res, 400, { error: { message: 'BEICHEN_BAD_REQUEST' } });
+  const payload = bearerPayload(req);
+  if (!payload) return json(req, res, sessionSecretReady() ? 401 : 503, { error: { message: sessionSecretReady() ? 'BEICHEN_AUTH_REQUIRED' : 'BEICHEN_AUTH_NOT_CONFIGURED' } });
+  if (!await allowRate('run:' + clientKey(req) + ':' + payload.sid, 6, 60000)) {
+    return json(req, res, 429, { error: { message: 'BEICHEN_RATE_LIMIT' } });
   }
-  const next = newToken(auth.payload.runs + 1, auth.payload.sid, auth.payload.seq + 1);
-  state.runs = auth.payload.runs + 1;
-  state.seq = auth.payload.seq + 1;
-  state.jti = next.jti;
-  const response = { ok: true, token: next.token, runs: state.runs, remaining: MAX_RUNS - state.runs, expiresIn: Math.max(0, state.exp - Date.now()) };
-  state.lastCompletion = { requestId, priorJti: auth.payload.jti, response };
-  recordCompletion(recentCompletions, auth.payload.jti, response);
-  return json(req, res, 200, response);
-}
-function handleRunComplete(req, res) {
-  const auth = authenticate(req, true);
-  if (auth.error && !auth.state) return json(req, res, auth.error === 'BEICHEN_AUTH_NOT_CONFIGURED' ? 503 : 401, { error: { message: auth.error } });
-  if (!allowRate(requestLimits, 'run:' + clientKey(req) + ':' + auth.payload.sid, 6, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_RATE_LIMIT' } });
-  readJson(req, 4 * 1024).then(body => {
-    if (Object.keys(body).length) return json(req, res, 400, { error: { message: 'BEICHEN_BAD_REQUEST' } });
-    if (auth.error === 'BEICHEN_AUTH_REPLAY') {
-      const requestId = String(req.headers['x-request-id'] || '').trim();
-      const prior = auth.state.lastCompletion;
-      if (!prior || prior.requestId !== requestId || prior.priorJti !== auth.payload.jti) {
-        return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_REPLAY' } });
-      }
-      return json(req, res, 200, prior.response);
-    }
-    return completeRun(req, res, auth);
-  }).catch(error => json(req, res, error.status || 400, { error: { message: error.code || 'BEICHEN_BAD_JSON' } }));
+  const body = await readJson(req, 4 * 1024);
+  /* 兼容现有页面：确认请求就是空对象，不让客户端传“是否扣额”的指令。 */
+  if (!onlyKeys(body, []) || Object.keys(body).length) return json(req, res, 400, { error: { message: 'BEICHEN_BAD_REQUEST' } });
+
+  /* 先查收据：旧票据、更新后的票据、网络重试都拿到同一份响应。 */
+  const replay = await stateStore.getCompletion(payload.sid, requestId);
+  if (replay) return json(req, res, 200, replay);
+
+  const auth = await authenticate(req);
+  if (auth.error) return json(req, res, errorStatus(auth.error, 401), { error: { message: auth.error } });
+  if (auth.state.report.status !== 'ready') return json(req, res, 409, { error: { message: 'BEICHEN_REPORT_NOT_READY' } });
+  if (auth.payload.runs >= MAX_RUNS) return json(req, res, 409, { error: { message: 'BEICHEN_QUOTA_EXHAUSTED' } });
+
+  const next = {
+    jti: crypto.randomBytes(16).toString('hex'),
+    seq: auth.state.seq + 1,
+    runs: auth.state.runs + 1
+  };
+  const response = {
+    ok: true,
+    token: tokenForState(Object.assign({}, auth.state, next)),
+    runs: next.runs,
+    remaining: MAX_RUNS - next.runs,
+    expiresIn: Math.max(0, auth.state.exp - Date.now())
+  };
+  const result = await stateStore.completeRun({
+    sid: auth.payload.sid,
+    requestId,
+    expected: { jti: auth.payload.jti, seq: auth.payload.seq, runs: auth.payload.runs, exp: auth.state.exp },
+    next,
+    response,
+    maxRuns: MAX_RUNS,
+    receiptTtlMs: Math.max(1000, auth.state.exp - Date.now())
+  });
+  if (!result.ok) return json(req, res, errorStatus(result.code, 409), { error: { message: result.code } });
+  return json(req, res, 200, result.response);
 }
 
-/* ── 路由:对话转发 ─────────────────────────────────────────────── */
+/* ── 路由：对话转发 ───────────────────────────────────────────── */
 function validateChatBody(input) {
   const allowed = ['messages', 'max_tokens', 'temperature', 'stream', 'thinking', 'mode'];
   if (!onlyKeys(input, allowed) || !Array.isArray(input.messages) || input.messages.length < 1 || input.messages.length > MAX_MESSAGE_COUNT) {
@@ -321,8 +424,10 @@ function validateChatBody(input) {
     if (!input.thinking || typeof input.thinking !== 'object' || Array.isArray(input.thinking) || !onlyKeys(input.thinking, ['type']) || !['enabled', 'disabled'].includes(input.thinking.type)) throw httpError(400, 'BEICHEN_BAD_REQUEST');
     body.thinking = { type: input.thinking.type };
   }
+  if (input.mode !== undefined) body.mode = input.mode;
   return body;
 }
+
 function providerConfig() {
   const key = String(process.env.QIANFAN_API_KEY || '').trim();
   const model = String(process.env.QIANFAN_MODEL || DEFAULT_QIANFAN_MODEL).trim();
@@ -330,13 +435,14 @@ function providerConfig() {
   const url = String(process.env.QIANFAN_BASE_URL || QIANFAN_BASE_URL).trim();
   return { name: 'qianfan', key, model, url };
 }
+
 function upstreamUrl(config) {
   let url;
-  try { url = new URL(config.url); } catch (_) { throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED'); }
+  try { url = new URL(config.url); }
+  catch (_) { throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED'); }
   if (url.protocol !== 'https:' || url.search || url.hash || url.username || url.password) throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
   if (!QIANFAN_ALLOWED_HOSTS.has(url.hostname.toLowerCase()) || (url.port && url.port !== '443')) throw httpError(503, 'BEICHEN_QIANFAN_HOST_NOT_ALLOWED');
   let path = url.pathname.replace(/\/+$/, '');
-  /* 只放行官方 Token Plan 个人版专属端点;coding 系地址一律拒绝 */
   if (/coding/i.test(path)) throw httpError(503, 'BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED');
   let matched = false;
   for (const base of QIANFAN_ENDPOINT_BASES) {
@@ -347,132 +453,253 @@ function upstreamUrl(config) {
   url.pathname = path;
   return url;
 }
-/* 思考档位:服务端固定 max;预算按轮型分档(星图轮更深,日常轮更快) */
+
 function buildUpstreamBody(body, config) {
   const upstreamBody = Object.assign({}, body, { model: config.model });
   if (config.name === 'qianfan') {
     upstreamBody.thinking = { type: 'enabled' };
     upstreamBody.reasoning_effort = 'max';
     const reportScale = Number(body.max_tokens || 0) >= REPORT_SCALE_TOKENS;
-    /* 星图轮预算独立可调：4096 仍是深思考档（日常轮 2048 的两倍），比 6144 缩短约
-       三分之一等待；结构与格式质量由提示词契约保证，不受影响。两档都可覆盖。 */
     const budget = reportScale
       ? boundedInt(process.env.QIANFAN_REPORT_THINKING_BUDGET, 4096, 100, MAX_COMPLETION_TOKENS)
       : boundedInt(process.env.QIANFAN_THINKING_BUDGET, 2048, 100, MAX_COMPLETION_TOKENS);
-    if (Number.isInteger(budget) && budget >= 100) upstreamBody.thinking_budget = budget;
+    upstreamBody.thinking_budget = budget;
   }
-  delete upstreamBody.mode; /* mode 只用于统计,不透传上游 */
+  delete upstreamBody.mode;
   return upstreamBody;
 }
-function proxyChat(req, res, auth, body, config) {
-  const url = upstreamUrl(config);
-  const payload = JSON.stringify(buildUpstreamBody(body, config));
-  const upstream = https.request({
-    hostname: url.hostname,
-    port: url.port || 443,
-    path: url.pathname,
-    method: 'POST',
-    timeout: UPSTREAM_TIMEOUT_MS,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'text/event-stream, application/json',
-      'Authorization': 'Bearer ' + config.key,
-      'Content-Length': Buffer.byteLength(payload)
-    }
-  }, upstreamResponse => {
-    const status = Number(upstreamResponse.statusCode || 502);
-    if (status < 200 || status >= 300) {
-      let bytes = 0;
-      upstreamResponse.on('data', chunk => { bytes += chunk.length; });
-      upstreamResponse.on('end', () => {
-        if (!res.headersSent) json(req, res, status >= 400 && status < 500 ? status : 502, { error: { message: 'BEICHEN_UPSTREAM_ERROR' } });
-      });
-      return;
-    }
-    const contentType = String(upstreamResponse.headers['content-type'] || '').toLowerCase();
-    res.writeHead(status, securityHeaders(req, {
-      'Content-Type': contentType.startsWith('text/event-stream') ? 'text/event-stream' : 'application/json; charset=utf-8',
-      'X-Accel-Buffering': 'no'
-    }));
-    let bytes = 0;
-    /* 背压:res 写不进时暂停读上游(响应流用 pause),等 drain 再续传;2MB 上限不因背压改变 */
-    res.on('drain', () => upstreamResponse.resume());
-    upstreamResponse.on('data', chunk => {
-      bytes += chunk.length;
-      if (bytes > MAX_UPSTREAM_BYTES) { upstream.destroy(); res.destroy(); return; }
-      if (!res.write(chunk)) upstreamResponse.pause();
-    });
-    upstreamResponse.on('end', () => res.end());
-    upstreamResponse.on('error', () => res.destroy());
-  });
-  upstream.on('timeout', () => { upstream.destroy(); if (!res.headersSent) json(req, res, 504, { error: { message: 'BEICHEN_UPSTREAM_TIMEOUT' } }); else res.destroy(); });
-  upstream.on('error', () => { if (!res.headersSent) json(req, res, 502, { error: { message: 'BEICHEN_UPSTREAM_ERROR' } }); else res.destroy(); });
-  req.on('aborted', () => upstream.destroy());
-  upstream.write(payload);
-  upstream.end();
-}
-/* 额度纪律的服务端强制(纯函数,便于契约测试):
-   1. 星图档请求(max_tokens≥REPORT_SCALE_TOKENS)在额度用尽后拒绝——否则记账可被
-      "直接对 /chat 发星图提示词"整体绕过;
-   2. 单会话终身轮数上限——聊天本身不限次,用总量兜底,防挂机脚本烧上游额度。 */
+
+/* 纯函数保留给旧契约测试；线上次数预占/回退走 stateStore，不在 auth.state 上直接加一。 */
 function enforceSessionQuota(auth, body) {
-  if (Number(body.max_tokens) >= REPORT_SCALE_TOKENS && auth.state.runs >= MAX_RUNS) {
-    throw httpError(409, 'BEICHEN_QUOTA_EXHAUSTED');
-  }
+  if (Number(body.max_tokens) >= REPORT_SCALE_TOKENS && auth.state.runs >= MAX_RUNS) throw httpError(409, 'BEICHEN_QUOTA_EXHAUSTED');
   auth.state.turns = (Number(auth.state.turns) || 0) + 1;
   if (auth.state.turns > MAX_SESSION_TURNS) throw httpError(409, 'BEICHEN_SESSION_TURNS_EXHAUSTED');
 }
-function handleChat(req, res) {
-  const auth = requireSession(req, res);
-  if (!auth) return;
-  if (!allowRate(requestLimits, 'chat:' + clientKey(req) + ':' + auth.payload.sid, 10, 60000)) return json(req, res, 429, { error: { message: 'BEICHEN_RATE_LIMIT' } });
+
+function requestKind(body) {
+  const maxTokens = Number(body.max_tokens || 0);
+  if (maxTokens >= REPORT_SCALE_TOKENS) return 'report';
+  if (maxTokens > NORMAL_MAX_TOKENS) throw httpError(400, 'BEICHEN_MAX_TOKENS_LIMIT');
+  return 'normal';
+}
+
+/* 允许测试替换 HTTP 上游；生产默认使用 https.request。 */
+let upstreamRequester;
+
+function proxyChat(req, res, body, config) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let responseEnded = false;
+    let upstreamResponse;
+    let upstream;
+    const payload = JSON.stringify(buildUpstreamBody(body, config));
+
+    const fail = error => {
+      if (settled) return;
+      settled = true;
+      if (upstream && !upstream.destroyed) upstream.destroy();
+      if (res.headersSent && !res.writableEnded) res.destroy();
+      reject(error);
+    };
+    const success = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    try {
+      const url = upstreamUrl(config);
+      upstream = https.request({
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: url.pathname,
+        method: 'POST',
+        timeout: UPSTREAM_TIMEOUT_MS,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream, application/json',
+          'Authorization': 'Bearer ' + config.key,
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, response => {
+        upstreamResponse = response;
+        const status = Number(response.statusCode || 502);
+        if (status < 200 || status >= 300) {
+          let bytes = 0;
+          response.on('data', chunk => {
+            bytes += chunk.length;
+            if (bytes > 64 * 1024) response.destroy();
+          });
+          response.on('end', () => fail(httpError(status >= 400 && status < 500 ? status : 502, 'BEICHEN_UPSTREAM_ERROR')));
+          response.on('error', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
+          return;
+        }
+        const contentType = String(response.headers['content-type'] || '').toLowerCase();
+        res.writeHead(status, securityHeaders(req, {
+          'Content-Type': contentType.startsWith('text/event-stream') ? 'text/event-stream' : 'application/json; charset=utf-8',
+          'X-Accel-Buffering': 'no'
+        }));
+        let bytes = 0;
+        res.on('drain', () => response.resume());
+        response.on('data', chunk => {
+          bytes += chunk.length;
+          if (bytes > MAX_UPSTREAM_BYTES) return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
+          if (!res.write(chunk)) response.pause();
+        });
+        response.on('end', () => {
+          responseEnded = true;
+          if (!res.writableEnded) res.end();
+          success();
+        });
+        response.on('aborted', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
+        response.on('error', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
+      });
+      upstream.on('timeout', () => {
+        upstream.destroy();
+        fail(httpError(504, 'BEICHEN_UPSTREAM_TIMEOUT'));
+      });
+      upstream.on('error', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
+      req.on('aborted', () => {
+        if (upstream && !settled) { upstream.destroy(); fail(httpError(499, 'BEICHEN_CLIENT_ABORTED')); }
+      });
+      res.on('close', () => {
+        if (!responseEnded && upstream && !settled) { upstream.destroy(); fail(httpError(499, 'BEICHEN_CLIENT_ABORTED')); }
+      });
+      upstream.write(payload);
+      upstream.end();
+    } catch (error) {
+      if (upstreamResponse) upstreamResponse.destroy();
+      fail(error.code ? error : httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
+    }
+  });
+}
+
+upstreamRequester = proxyChat;
+
+function mapStoreResult(req, res, result) {
+  if (result.ok) return null;
+  return json(req, res, errorStatus(result.code, 409), { error: { message: result.code } });
+}
+
+async function handleChat(req, res) {
+  const auth = await authenticate(req);
+  if (auth.error) return json(req, res, errorStatus(auth.error, 401), { error: { message: auth.error } });
+  if (!await allowRate('chat:' + clientKey(req) + ':' + auth.payload.sid, 10, 60000)) {
+    return json(req, res, 429, { error: { message: 'BEICHEN_RATE_LIMIT' } });
+  }
   const config = providerConfig();
   if (!config) return json(req, res, 503, { error: { message: 'BEICHEN_PROVIDER_NOT_CONFIGURED' } });
-  validateChatBodyAsync(req, res, config, auth);
+  const input = await readJson(req, MAX_BODY_BYTES);
+  const body = validateChatBody(input);
+  const kind = requestKind(body);
+  const reservation = await stateStore.startChat(auth.payload.sid, {
+    report: kind === 'report',
+    maxRuns: MAX_RUNS,
+    maxTurns: MAX_SESSION_TURNS,
+    maxReportAttempts: REPORT_ATTEMPTS,
+    maxReportRetries: REPORT_REPAIR_ATTEMPTS,
+    leaseMs: kind === 'report' ? REPORT_LEASE_MS : TURN_LEASE_MS,
+    expected: { jti: auth.payload.jti, seq: auth.payload.seq, runs: auth.payload.runs }
+  });
+  const storeError = mapStoreResult(req, res, reservation);
+  if (storeError) return storeError;
+
+  let upstreamError = null;
+  let upstreamSucceeded = false;
+  try {
+    await upstreamRequester(req, res, body, config);
+    upstreamSucceeded = true;
+  } catch (error) {
+    upstreamError = error;
+  }
+  /* 流完成才结算；超时、上游错误、客户端中断都释放日常轮/报告预占。 */
+  try {
+    await stateStore.finishChat(auth.payload.sid, reservation.reservationId, upstreamSucceeded, kind === 'report');
+  } catch (error) {
+    /* 状态层短暂故障时不把故障细节/请求内容写日志；租约会负责回收。 */
+    if (!upstreamSucceeded) upstreamError = upstreamError || error;
+  }
+  if (upstreamError) throw upstreamError;
 }
-function requireSession(req, res) {
-  const auth = authenticate(req);
-  if (auth.error) { json(req, res, auth.error === 'BEICHEN_AUTH_NOT_CONFIGURED' ? 503 : 401, { error: { message: auth.error } }); return null; }
-  return auth;
-}
-function validateChatBodyAsync(req, res, config, auth) {
-  readJson(req, MAX_BODY_BYTES).then(input => {
-    const body = validateChatBody(input);
-    if (auth) enforceSessionQuota(auth, body);
-    return proxyChat(req, res, null, body, config);
-  }).catch(error => json(req, res, error.status || 400, { error: { message: error.code || 'BEICHEN_BAD_REQUEST' } }));
+
+/* ── 健康检查 ──────────────────────────────────────────────────── */
+async function handleHealth(req, res, ready) {
+  let storeReachable = false;
+  try { storeReachable = await stateStore.ping(); }
+  catch (_) { storeReachable = false; }
+  const configured = Boolean(process.env.QIANFAN_API_KEY && sessionSecretReady() && process.env.GATE_TOTP_SECRET);
+  const ok = configured && storeReachable;
+  return json(req, res, ready && !ok ? 503 : 200, {
+    ok: ready ? ok : true,
+    ready: ok,
+    version: BACKEND_VERSION,
+    frontendVersion: 'v2.6.19',
+    providerConfigured: Boolean(providerConfig()),
+    stateStore: stateStore.name,
+    stateStoreReachable: storeReachable,
+    maxRuns: MAX_RUNS
+  });
 }
 
 /* ── HTTP 入口 ──────────────────────────────────────────────────── */
-const https = require('https');
-const server = http.createServer((req, res) => {
-  handle(req, res).catch(error => {
-    if (!res.headersSent) json(req, res, error.status || 500, { error: { message: error.code || 'BEICHEN_INTERNAL_ERROR' } });
-    else res.destroy();
-  });
-});
 async function handle(req, res) {
   if (!allowedOrigin(req)) return json(req, res, 403, { error: { message: 'BEICHEN_ORIGIN_NOT_ALLOWED' } });
   const url = new URL(req.url, 'http://localhost');
-  const path = url.pathname.replace(/\/+$/, '');
-  const supported = ['/verify', '/run/complete', '/chat/completions'];
+  const path = url.pathname.replace(/\/+$/, '') || '/';
+  const postPaths = ['/verify', '/run/complete', '/chat/completions'];
   if (req.method === 'OPTIONS') {
-    if (!supported.includes(path) || url.search || String(req.headers['access-control-request-method'] || '') !== 'POST') return text(req, res, 404, 'beichen relay');
+    if (!postPaths.includes(path) || url.search || String(req.headers['access-control-request-method'] || '') !== 'POST') return text(req, res, 404, 'beichen relay');
     res.writeHead(204, securityHeaders(req));
     return res.end();
   }
+  if (req.method === 'GET' && path === '/healthz' && !url.search) return handleHealth(req, res, false);
+  if (req.method === 'GET' && path === '/readyz' && !url.search) return handleHealth(req, res, true);
   if (req.method === 'POST' && path === '/verify') return handleVerify(req, res);
   if (req.method === 'POST' && path === '/run/complete') return handleRunComplete(req, res);
   if (req.method === 'POST' && path === '/chat/completions') return handleChat(req, res);
   return text(req, res, 404, 'beichen relay');
 }
+
+const server = http.createServer((req, res) => {
+  handle(req, res).catch(error => sendError(req, res, error));
+});
 server.headersTimeout = 20000;
 server.requestTimeout = 20000;
 if (!process.env.BEICHEN_NO_LISTEN) {
-  /* SCF 平台不保证回环可用,必须显式绑定对外接口 */
   server.listen(Number(process.env.PORT || 9000), '0.0.0.0', () => console.log('beichen relay listening'));
 }
-/* 测试导出;生产环境永不设置 BEICHEN_NO_LISTEN */
+
+function setStateStore(next) {
+  if (!next || typeof next.getSession !== 'function') throw new TypeError('state store is incomplete');
+  stateStore = next;
+}
+
+function setUpstreamRequester(next) {
+  if (typeof next !== 'function') throw new TypeError('upstream requester must be a function');
+  upstreamRequester = next;
+}
+
+/* 兼容旧契约测试与运维自检；生产环境永不导出秘钥或内部状态。 */
 if (typeof module !== 'undefined') {
-  module.exports = { validateChatBody, buildUpstreamBody, upstreamUrl, enforceSessionQuota, pickClientIp, recordCompletion, maxPromptChars: MAX_PROMPT_CHARS, normMaxTokens: MAX_COMPLETION_TOKENS };
+  module.exports = {
+    BACKEND_VERSION,
+    MAX_RUNS,
+    REPORT_SCALE_TOKENS,
+    validateChatBody,
+    buildUpstreamBody,
+    upstreamUrl,
+    enforceSessionQuota,
+    pickClientIp,
+    matchingTotpCounter,
+    tokenForState,
+    setStateStore,
+    setUpstreamRequester,
+    getStateStore: () => stateStore,
+    handle,
+    server,
+    MemoryStateStore,
+    recordCompletion,
+    maxPromptChars: MAX_PROMPT_CHARS,
+    normMaxTokens: MAX_COMPLETION_TOKENS
+  };
 }
