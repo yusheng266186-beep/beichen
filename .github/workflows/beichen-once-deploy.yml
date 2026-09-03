@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   deploy:
-    if: github.event.head_commit.message != 'chore: remove one-time deploy workflow'
+    if: ${{ !contains(github.event.head_commit.message, 'remove one-time deploy workflow') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
