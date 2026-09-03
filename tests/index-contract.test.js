@@ -42,6 +42,12 @@ assert.doesNotMatch(index, /cdn\.jsdelivr/);
 }
 assert.match(index, /function wipeLocalData\(btn\)/);
 assert.match(index, /id="statRuns"/);
+assert.match(index, /id="gateHint"/);
+assert.match(index, /每组验证码只能验证一次，过期后请换最新一组/);
+assert.match(index, /pattern="\[0-9\]\{6\}"/);
+assert.match(index, /aria-describedby="gateHint"/);
+assert.match(index, /id="statRelay"/);
+assert.match(index, /id="statRelaySub"/);
 
 /* 模式随会话持久化 */
 assert.match(index, /mode: MODE,/);
@@ -289,7 +295,13 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
+assert.match(index, /const APP_VERSION = 'v2\.6\.20';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.7\.0-stateful';/);
 assert.match(index, /id="statVer"/);
+assert.match(index, /fetch\(RELAY \+ '\/readyz'/);
+assert.doesNotMatch(index, /fetch\(RELAY \+ '\/', \{mode:'no-cors'\}\)/);
+assert.match(index, /BEICHEN_AUTH_REPLAY/);
+assert.match(index, /BEICHEN_STATE_STORE_UNAVAILABLE/);
 
 /* ─── v2.6.15 领航自动星图只试一次 + 验证票据改存 localStorage ─── */
 assert.match(index, /let guidedAutoTried = false;/);

@@ -172,8 +172,17 @@ test('健康检查能区分存储可用性，但不返回任何秘钥内容', as
   const response = await request(port, '/healthz', {method: 'GET'});
   assert.equal(response.status, 200);
   assert.equal(response.body.version, relay.BACKEND_VERSION);
+  assert.equal(response.body.frontendVersion, relay.FRONTEND_VERSION);
   assert.equal(response.body.stateStore, 'memory');
   assert.equal(response.body.providerConfigured, true);
   assert.doesNotMatch(response.raw, /local-test-session-secret/);
   assert.doesNotMatch(response.raw, /local-test-provider-key/);
+
+  const ready = await request(port, '/readyz', {method: 'GET'});
+  assert.equal(ready.status, 200);
+  assert.equal(ready.body.ready, true);
+  assert.equal(ready.body.stateStoreReachable, true);
+  assert.equal(ready.body.providerConfigured, true);
+  assert.doesNotMatch(ready.raw, /local-test-session-secret/);
+  assert.doesNotMatch(ready.raw, /local-test-provider-key/);
 });

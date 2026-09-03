@@ -858,8 +858,8 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     </svg>
     <div class="gate-eyebrow">Polaris · Gate</div>
     <h2 class="gate-title">北辰</h2>
-    <p class="gate-sub">此星图仅向持有钥匙的人开放<br>请输入提供的 6 位动态验证码</p>
-    <input class="gate-input" id="gateInput" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="······" aria-label="6 位动态验证码" />
+    <p class="gate-sub" id="gateHint">此星图仅向持有钥匙的人开放<br>请输入提供的 6 位动态验证码<br>每组验证码只能验证一次，过期后请换最新一组</p>
+    <input class="gate-input" id="gateInput" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="······" aria-label="6 位动态验证码" aria-describedby="gateHint" />
     <br>
     <button class="gate-btn" id="gateBtn">进 入</button>
     <div class="gate-err" id="gateErr"></div>
@@ -1147,6 +1147,10 @@ html.js [data-reveal]:not(.revealed){opacity:0}
         <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
         <div class="stat-sub">反馈问题时，请把这个版本号一并告诉开发者</div>
       </div>
+      <div>
+        <div class="stat-row"><span class="t-lb">中转服务</span><b id="statRelay">未检查</b></div>
+        <div class="stat-sub" id="statRelaySub">点击“检查连接”确认后端和共享次数记录是否就绪</div>
+      </div>
       </div>
       <div class="dev-note" data-reveal>
         <p><b>写给你</b></p>
@@ -1179,7 +1183,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.6.19';
+const APP_VERSION = 'v2.6.20';
+const EXPECTED_BACKEND_VERSION = 'v2.7.0-stateful';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */
@@ -1759,6 +1764,8 @@ function friendlyError(err){
   if(status === 409 && /BEICHEN_QUOTA_EXHAUSTED/.test(msg)) return '本次验证的 3 次谈心已用完，重新输入动态验证码后可以再点亮星图。';
   if(status === 409) return '这段会话的聊天轮数已达上限，点"重新测试"开始一段新的谈心。';
   if(status === 429) return '请求过于频繁，稍等几秒再试。';
+  if(status === 503 && /BEICHEN_STATE_STORE_UNAVAILABLE/.test(msg)) return '云端次数记录服务暂时不可用，请稍后再试。';
+  if(status === 503 && /BEICHEN_AUTH_NOT_CONFIGURED|BEICHEN_PROVIDER_NOT_CONFIGURED/.test(msg)) return '验证服务尚未完成配置，请联系维护者。';
   /* 400/413 是"内容没过云端校验",不是网络问题;不映射的话学生会对着"网络连接失败"白重试 */
   if(status === 400 || status === 413) return /TOO_LARGE/.test(msg) ? '这段内容太长了，请删减一些再发送。' : '这条内容云端没能接受，请调整一下再发送。';
   if(status >= 500) return '模型服务暂时繁忙，请稍后重试。';
@@ -2850,12 +2857,54 @@ function refreshSettingsStats(){
   expEl.textContent = fmtRemaining(left);
   expSub.textContent = left > 0 ? '有效期内无需重新验证，过期后自动回到星门' : '验证已过期，重新输入动态码即可';
 }
-function checkRelay(){
-  /* no-cors 探测：只要网络层可达即视为在线，不读取跨域响应内容 */
+function setRelayCheck(status, detail){
+  const statusEl = document.getElementById('statRelay');
+  const detailEl = document.getElementById('statRelaySub');
+  if(statusEl) statusEl.textContent = status;
+  if(detailEl) detailEl.textContent = detail;
+}
+async function checkRelay(){
+  /* 读取 readyz：只有后端、共享次数记录和上游配置都就绪，才算真正可用 */
+  setRelayCheck('检查中…', '正在读取后端状态，请稍候');
   toast('正在检查与云端中转的连接…');
-  fetch(RELAY + '/', {mode:'no-cors'})
-    .then(()=>toast('连接正常 · 云端中转可达'))
-    .catch(()=>toast('无法连接中转服务，请检查网络后重试'));
+  const ac = new AbortController();
+  let timedOut = false;
+  const relayTm = setTimeout(()=>{ timedOut = true; ac.abort(); }, 10000);
+  try{
+    const res = await fetch(RELAY + '/readyz', {
+      method:'GET', cache:'no-store', signal:ac.signal,
+      headers:{Accept:'application/json'}
+    });
+    let data = {};
+    try{ data = await res.json(); }catch(_){ }
+    const backendVersion = String(data?.version || '未知');
+    const frontendVersion = String(data?.frontendVersion || '未知');
+    const versionText = '后端 ' + backendVersion + ' · 页面 ' + frontendVersion;
+    const ready = res.ok && data?.ready === true && data?.stateStoreReachable === true && data?.providerConfigured === true;
+    if(ready && backendVersion === EXPECTED_BACKEND_VERSION && frontendVersion === APP_VERSION){
+      setRelayCheck('正常', '后端与共享次数记录已就绪 · ' + versionText);
+      toast('连接正常 · 后端和共享次数记录已就绪');
+      return;
+    }
+    if(ready){
+      setRelayCheck('需同步', '服务已就绪，但页面和后端版本未对齐 · ' + versionText);
+      toast('已连通，但页面和后端版本未对齐，请同步本次更新');
+      return;
+    }
+    const reason = data?.stateStoreReachable === false
+      ? '共享次数记录服务未连通'
+      : data?.providerConfigured === false
+        ? '后端配置尚未完成'
+        : '后端尚未就绪';
+    setRelayCheck('未就绪', reason + ' · ' + versionText);
+    toast('中转服务未就绪 · ' + reason);
+  }catch(e){
+    const message = timedOut ? '检查超时，请检查网络或服务状态' : '未能读取后端状态，请检查网络或服务地址';
+    setRelayCheck(timedOut ? '检查超时' : '无法连接', message);
+    toast(message);
+  }finally{
+    clearTimeout(relayTm);
+  }
 }
 let wipeArmed = false, wipeTimer = null;
 function wipeLocalData(btn){
@@ -3172,8 +3221,21 @@ async function gateTry(){
     let data = {};
     try{ data = await res.json(); }catch(_){ }
     if(!res.ok || !data.token){
-      err.textContent = res.status === 429 ? '尝试次数过多，请稍后再试' : '动态验证码不正确或已过期，请换当前验证码重试';
-      input.value = ''; input.focus();
+      const errorCode = String(data?.error?.message || '');
+      if(res.status === 429 || errorCode === 'BEICHEN_AUTH_RATE_LIMIT'){
+        err.textContent = '尝试次数过多，请稍后再试';
+      }else if(errorCode === 'BEICHEN_AUTH_REPLAY'){
+        err.textContent = '这组动态验证码已经用过，请等下一组验证码再试';
+      }else if(errorCode === 'BEICHEN_STATE_STORE_UNAVAILABLE'){
+        err.textContent = '验证记录服务暂时不可用，请稍后重试';
+      }else if(errorCode === 'BEICHEN_AUTH_NOT_CONFIGURED'){
+        err.textContent = '验证服务尚未完成配置，请联系维护者';
+      }else{
+        err.textContent = '动态验证码不正确或已过期，请换当前验证码重试';
+      }
+      if(errorCode === 'BEICHEN_AUTH_INVALID_CODE' || errorCode === 'BEICHEN_AUTH_REPLAY' || res.status === 429){
+        input.value = ''; input.focus();
+      }
       return;
     }
     setGateToken(data.token);

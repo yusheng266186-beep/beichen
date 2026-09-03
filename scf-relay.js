@@ -6,9 +6,9 @@
    3. 对话：严格校验请求 → 百度千帆 → SSE 原样回流
    4. 边界：固定 CORS、请求/响应上限、超时、共享状态、防重放
 
-   前端协议保持兼容：现有页面用 max_tokens≥10000 表示星图档，用
-   X-Request-ID 调 /run/complete。只有服务端共享状态改变，页面不需要
-   为这次后端修复改写调用流程。
+   前端请求格式保持兼容：现有页面用 max_tokens≥10000 表示星图档，用
+   X-Request-ID 调 /run/complete；页面只增加版本展示、验证码提醒和
+   /readyz 就绪检查，不改变聊天请求流程。
 
    生产状态必须进入共享 Redis。STATE_STORE=memory 只用于本地测试，
    绝不会作为 Redis 故障时的自动降级路径。
@@ -25,6 +25,7 @@ const {
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
 const BACKEND_VERSION = 'v2.7.0-stateful';
+const FRONTEND_VERSION = 'v2.6.20';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
@@ -633,7 +634,7 @@ async function handleHealth(req, res, ready) {
     ok: ready ? ok : true,
     ready: ok,
     version: BACKEND_VERSION,
-    frontendVersion: 'v2.6.19',
+    frontendVersion: FRONTEND_VERSION,
     providerConfigured: Boolean(providerConfig()),
     stateStore: stateStore.name,
     stateStoreReachable: storeReachable,
@@ -683,6 +684,7 @@ function setUpstreamRequester(next) {
 if (typeof module !== 'undefined') {
   module.exports = {
     BACKEND_VERSION,
+    FRONTEND_VERSION,
     MAX_RUNS,
     REPORT_SCALE_TOKENS,
     validateChatBody,
