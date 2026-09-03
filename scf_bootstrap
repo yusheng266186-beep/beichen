@@ -25,4 +25,10 @@ if [ ! -f "${ENTRY_FILE}" ]; then
   echo "beichen relay: entry file not found" >&2
   exit 1
 fi
+
+# 生产默认使用共享 Redis；依赖缺失时直接报清楚，避免函数启动后才出现大量 503。
+if [ "${STATE_STORE:-redis}" != "memory" ] && [ ! -d "${SCRIPT_DIR}/node_modules/redis" ]; then
+  echo "beichen relay: node_modules/redis is missing; run npm ci --omit=dev before packaging" >&2
+  exit 1
+fi
 exec "${NODE_BIN}" "${ENTRY_FILE}"
