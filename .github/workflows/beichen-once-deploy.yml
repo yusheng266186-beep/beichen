@@ -1,0 +1,332 @@
+name: one-time Tencent deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/beichen-once-deploy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    if: github.event.head_commit.message != 'chore: remove one-time deploy workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out formal repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build deployment package
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --omit=dev
+          chmod 755 scf_bootstrap
+          zip -q -r "$RUNNER_TEMP/beichen-deploy.zip" \
+            scf-relay.js state-store.js scf_bootstrap package.json package-lock.json node_modules
+          test -s "$RUNNER_TEMP/beichen-deploy.zip"
+
+      - name: Deploy to Tencent Cloud
+        env:
+          HANDOVER_URL: https://raw.githubusercontent.com/yusheng266186-beep/beichen-handover/main/%E6%93%8D%E4%BD%9C%E6%89%A7%E8%A1%8C%E6%B8%85%E5%8D%95.md
+          FUNCTION_NAME: beichen-qianfan-mini
+          REGION: ap-chengdu
+          REDIS_INSTANCE_ID: crs-rp7kwaew
+          VPC_ID: vpc-2hfr89g6
+          SUBNET_ID: subnet-f4fpsi5d
+          READY_URL: https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com/readyz
+          READY_ORIGIN: https://yusheng266186-beep.github.io
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const https = require('https');
+          const crypto = require('crypto');
+
+          const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+          const sha256 = value => crypto.createHash('sha256').update(value).digest('hex');
+          const hmac = (key, value) => crypto.createHmac('sha256', key).update(value).digest();
+
+          async function requestText(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('HANDOVER_FETCH_FAILED_' + response.status);
+            return response.text();
+          }
+
+          function extractCredential(text, label) {
+            const candidates = [];
+            for (const line of text.split(/\r?\n/)) {
+              if (!new RegExp(label, 'i').test(line)) continue;
+              const parts = line.split(/[:：=]/);
+              if (parts.length < 2) continue;
+              const tail = parts.slice(1).join(':');
+              const matches = tail.match(/[A-Za-z0-9][A-Za-z0-9_+\/=.\-]{7,}/g) || [];
+              for (const value of matches) {
+                if (!/^(your|replace|填入|填写|这里|xxx|xxxxx|secret|example)/i.test(value)) {
+                  candidates.push(value.replace(/["'，。；;,]+$/g, ''));
+                }
+              }
+            }
+            return candidates.sort((a, b) => b.length - a.length)[0] || '';
+          }
+
+          function tc3Request(service, action, version, region, payload, secretId, secretKey) {
+            const host = service + '.tencentcloudapi.com';
+            const body = JSON.stringify(payload);
+            const timestamp = Math.floor(Date.now() / 1000);
+            const date = new Date(timestamp * 1000).toISOString().slice(0, 10);
+            const contentType = 'application/json; charset=utf-8';
+            const signedHeaders = 'content-type;host';
+            const canonicalHeaders = 'content-type:' + contentType + '\nhost:' + host + '\n';
+            const canonicalRequest = [
+              'POST', '/', '', canonicalHeaders, signedHeaders, sha256(body)
+            ].join('\n');
+            const credentialScope = date + '/' + service + '/tc3_request';
+            const stringToSign = [
+              'TC3-HMAC-SHA256', String(timestamp), credentialScope, sha256(canonicalRequest)
+            ].join('\n');
+            const signingKey = hmac(hmac(hmac('TC3' + secretKey, date), service), 'tc3_request');
+            const signature = crypto.createHmac('sha256', signingKey).update(stringToSign).digest('hex');
+            const authorization = 'TC3-HMAC-SHA256 Credential=' + secretId + '/' + credentialScope
+              + ', SignedHeaders=' + signedHeaders + ', Signature=' + signature;
+
+            return new Promise((resolve, reject) => {
+              const req = https.request({
+                hostname: host,
+                method: 'POST',
+                path: '/',
+                headers: {
+                  'Content-Type': contentType,
+                  'Host': host,
+                  'X-TC-Action': action,
+                  'X-TC-Version': version,
+                  'X-TC-Region': region,
+                  'X-TC-Timestamp': String(timestamp),
+                  'Authorization': authorization,
+                  'Content-Length': Buffer.byteLength(body)
+                }
+              }, response => {
+                let raw = '';
+                response.setEncoding('utf8');
+                response.on('data', chunk => { raw += chunk; });
+                response.on('end', () => {
+                  try {
+                    const top = JSON.parse(raw).Response || {};
+                    if (top.Error) {
+                      const error = new Error(top.Error.Code || 'TENCENT_API_ERROR');
+                      error.code = top.Error.Code || 'TENCENT_API_ERROR';
+                      reject(error);
+                      return;
+                    }
+                    resolve(top);
+                  } catch (_) {
+                    const error = new Error('TENCENT_INVALID_RESPONSE');
+                    error.code = 'TENCENT_INVALID_RESPONSE';
+                    reject(error);
+                  }
+                });
+              });
+              req.setTimeout(30000, () => {
+                const error = new Error('TENCENT_TIMEOUT');
+                error.code = 'TENCENT_TIMEOUT';
+                req.destroy(error);
+              });
+              req.on('error', reject);
+              req.write(body);
+              req.end();
+            });
+          }
+
+          async function main() {
+            const handover = await requestText(process.env.HANDOVER_URL);
+            const secretId = extractCredential(handover, 'SecretId');
+            const secretKey = extractCredential(handover, 'SecretKey');
+            if (!secretId || !secretKey) throw new Error('HANDOVER_CREDENTIALS_NOT_FOUND');
+
+            process.stdout.write('::add-mask::' + secretId + '\n');
+            process.stdout.write('::add-mask::' + secretKey + '\n');
+
+            const redisArgs = ['redis', '2018-04-12', process.env.REGION, secretId, secretKey];
+            let redisInfo = null;
+            for (let attempt = 1; attempt <= 36; attempt += 1) {
+              const result = await tc3Request(
+                redisArgs[0], 'DescribeInstances', redisArgs[1], redisArgs[2],
+                { InstanceId: process.env.REDIS_INSTANCE_ID }, redisArgs[3], redisArgs[4]
+              );
+              const info = (result.InstanceSet || [])[0] || {};
+              const vip = info.Vip || '';
+              const vport = info.VPort || '';
+              if (vip && vport) {
+                redisInfo = { vip, vport };
+                break;
+              }
+              console.log('Redis is still starting: attempt=' + attempt + ', status=' + (info.Status || 'unknown'));
+              await sleep(5000);
+            }
+            if (!redisInfo) throw new Error('REDIS_NOT_READY');
+
+            const redisPassword = 'Bc' + crypto.randomBytes(24).toString('hex');
+            const reset = await tc3Request(
+              'redis', 'ResetPassword', '2018-04-12', process.env.REGION,
+              {
+                InstanceId: process.env.REDIS_INSTANCE_ID,
+                Password: redisPassword,
+                NoAuth: false,
+                EncryptPassword: false
+              },
+              secretId, secretKey
+            );
+            if (reset.TaskId) {
+              let taskStatus = '';
+              for (let attempt = 1; attempt <= 40; attempt += 1) {
+                const task = await tc3Request(
+                  'redis', 'DescribeTaskInfo', '2018-04-12', process.env.REGION,
+                  { TaskId: Number(reset.TaskId) }, secretId, secretKey
+                );
+                taskStatus = task.Status || '';
+                if (taskStatus === 'succeed') break;
+                if (['failed', 'error'].includes(taskStatus)) throw new Error('REDIS_PASSWORD_RESET_FAILED');
+                await sleep(3000);
+              }
+              if (taskStatus !== 'succeed') throw new Error('REDIS_PASSWORD_RESET_TIMEOUT');
+            }
+
+            const current = await tc3Request(
+              'scf', 'GetFunction', '2018-04-16', process.env.REGION,
+              { FunctionName: process.env.FUNCTION_NAME }, secretId, secretKey
+            );
+            const variables = new Map(
+              ((current.Environment && current.Environment.Variables) || [])
+                .filter(item => item && item.Key)
+                .map(item => [item.Key, String(item.Value == null ? '' : item.Value)])
+            );
+            variables.delete('REDIS_URL');
+            for (const [key, value] of Object.entries({
+              STATE_STORE: 'redis',
+              REDIS_HOST: redisInfo.vip,
+              REDIS_PORT: String(redisInfo.vport),
+              REDIS_PASSWORD: redisPassword,
+              REDIS_TLS: 'false',
+              REDIS_DB: '0',
+              BEICHEN_REDIS_PREFIX: 'beichen:v27',
+              REDIS_CONNECT_TIMEOUT_MS: '3000'
+            })) variables.set(key, value);
+
+            const config = {
+              FunctionName: process.env.FUNCTION_NAME,
+              MemorySize: 256,
+              Timeout: 600,
+              Handler: 'scf_bootstrap',
+              InstallDependency: 'FALSE',
+              Environment: {
+                Variables: Array.from(variables.entries()).map(([Key, Value]) => ({ Key, Value }))
+              },
+              VpcConfig: {
+                VpcId: process.env.VPC_ID,
+                SubnetId: process.env.SUBNET_ID
+              },
+              PublicNetConfig: {
+                PublicNetStatus: 'ENABLE'
+              }
+            };
+
+            let runtime = 'Nodejs20';
+            try {
+              await tc3Request(
+                'scf', 'UpdateFunctionConfiguration', '2018-04-16', process.env.REGION,
+                Object.assign({}, config, { Runtime: runtime }), secretId, secretKey
+              );
+            } catch (error) {
+              console.log('Runtime update fallback=' + (error.code || 'unknown'));
+              runtime = current.Runtime || 'Nodejs16.13';
+              await tc3Request(
+                'scf', 'UpdateFunctionConfiguration', '2018-04-16', process.env.REGION,
+                config, secretId, secretKey
+              );
+            }
+
+            const zipFile = fs.readFileSync(process.env.RUNNER_TEMP + '/beichen-deploy.zip').toString('base64');
+            await tc3Request(
+              'scf', 'UpdateFunctionCode', '2018-04-16', process.env.REGION,
+              {
+                FunctionName: process.env.FUNCTION_NAME,
+                Handler: 'scf_bootstrap',
+                InstallDependency: 'FALSE',
+                Publish: 'TRUE',
+                ZipFile: zipFile
+              },
+              secretId, secretKey
+            );
+
+            let functionReady = false;
+            for (let attempt = 1; attempt <= 36; attempt += 1) {
+              const state = await tc3Request(
+                'scf', 'GetFunction', '2018-04-16', process.env.REGION,
+                { FunctionName: process.env.FUNCTION_NAME }, secretId, secretKey
+              );
+              console.log('Function update: attempt=' + attempt + ', status=' + (state.Status || 'unknown') + ', runtime=' + (state.Runtime || runtime) + ', codeSize=' + (state.CodeSize || 0));
+              if (Number(state.CodeSize || 0) > 0 && ['Active', 'Running', ''].includes(state.Status || '')) {
+                functionReady = true;
+                break;
+              }
+              await sleep(5000);
+            }
+            if (!functionReady) throw new Error('FUNCTION_UPDATE_TIMEOUT');
+
+            let ready = false;
+            for (let attempt = 1; attempt <= 12; attempt += 1) {
+              const response = await fetch(process.env.READY_URL, {
+                headers: {
+                  Origin: process.env.READY_ORIGIN,
+                  'Cache-Control': 'no-cache'
+                }
+              });
+              let body = {};
+              try { body = await response.json(); } catch (_) {}
+              const summary = {
+                httpStatus: response.status,
+                ready: body.ready === true,
+                providerConfigured: body.providerConfigured === true,
+                stateStore: body.stateStore || null,
+                stateStoreReachable: body.stateStoreReachable === true,
+                version: body.version || null
+              };
+              console.log('readyz=' + JSON.stringify(summary));
+              if (summary.httpStatus === 200 && summary.ready && summary.providerConfigured && summary.stateStoreReachable) {
+                ready = true;
+                break;
+              }
+              await sleep(8000);
+            }
+            if (!ready) throw new Error('READYZ_NOT_OK');
+
+            console.log('Tencent deployment completed without exposing credentials.');
+          }
+
+          main().catch(error => {
+            console.error('Deployment failed: ' + (error.code || error.message || 'UNKNOWN'));
+            process.exitCode = 1;
+          });
+          NODE
+
+      - name: Remove one-time deployment workflow
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=".github/workflows/beichen-once-deploy.yml"
+          sha="$(gh api "repos/$GITHUB_REPOSITORY/contents/$path" --jq .sha)"
+          gh api --method DELETE "repos/$GITHUB_REPOSITORY/contents/$path" \
+            -f message='chore: remove one-time deploy workflow' \
+            -f sha="$sha"
