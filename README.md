@@ -11,9 +11,9 @@
 
 ## 本次迭代先看这里
 
-本次是前后端对齐迭代：后端版本 **v2.7.0-stateful**，页面版本 **v2.6.20**。本次只改动后端变化确实需要同步的部分：验证提醒、后端版本标记、设置页的真实就绪检查和对应错误提示；原有聊天界面、提示词、样式、解析器及其他无关交互保持不变。
+本次是前后端统一版本迭代：后端和页面版本均为 **v2.7.0**。本次只改动后端变化确实需要同步的部分：验证提醒、前后端版本标记、设置页的真实就绪检查和对应错误提示；原有聊天界面、提示词、样式、解析器及其他无关交互保持不变。
 
-详细的版本、部署和验收记录见 [CHANGELOG.md](CHANGELOG.md)，正式发行版见 [v2.7.0-stateful Release](https://github.com/yusheng266186-beep/beichen/releases/tag/v2.7.0-stateful)。
+详细的版本、部署和验收记录见 [CHANGELOG.md](CHANGELOG.md)，正式发行版见 [v2.7.0 Release](https://github.com/yusheng266186-beep/beichen/releases/tag/v2.7.0)。
 
 这次改动只围绕“密钥保护下的会话和次数”展开：
 
@@ -131,8 +131,8 @@ node_modules/
 | 后端配置 | `providerConfigured: true` |
 | 状态保存 | `stateStore: redis` |
 | Redis 连接 | `stateStoreReachable: true` |
-| 后端版本 | `v2.7.0-stateful` |
-| 页面版本 | `v2.6.20` |
+| 后端版本 | `v2.7.0` |
+| 页面版本 | `v2.7.0` |
 
 此前“中转服务未就绪”的直接原因是部署检查脚本错误依赖腾讯云返回的 `CodeSize` 字段。函数已经进入运行状态，但该字段为空或为 0，脚本因此误报超时；现已改为根据函数进入 `Active` 或 `Running` 判断部署完成。
 
@@ -177,9 +177,9 @@ npm run verify
 
 ## 版本与历史
 
-- 当前生产版本：后端 **v2.7.0-stateful**，页面 **v2.6.20**；
-- 上一份正式 Release 为 **v2.6.18**；页面版本仍在 `index.html` 的 `APP_VERSION` 与设置面板同步展示；
-- 本次详细更新记录见 [CHANGELOG.md](CHANGELOG.md)，正式发行版见 [Releases](https://github.com/yusheng266186-beep/beichen/releases/tag/v2.7.0-stateful)；
+- 当前生产版本：后端和页面均为 **v2.7.0**；
+- 页面版本由 `index.html` 的 `APP_VERSION` 控制，并与设置面板、后端返回的页面版本同步展示；
+- 本次详细更新记录见 [CHANGELOG.md](CHANGELOG.md)，正式发行版见 [v2.7.0 Release](https://github.com/yusheng266186-beep/beichen/releases/tag/v2.7.0)；
 - v2 重构版（v2.6.x，30+ 次迭代提交）于 2026-08-29 自调试库整体并入本仓库，`git log` 可完整回溯每一步的动机与实现；
 - v1 旧版见 `legacy/` 与 `legacy-v1` 标签；早期私有调试库见 `archive/` 与 `archive/*` 标签；
 - 历史发布与变更说明见 [Releases](https://github.com/yusheng266186-beep/beichen/releases)。

@@ -1183,8 +1183,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.6.20';
-const EXPECTED_BACKEND_VERSION = 'v2.7.0-stateful';
+const APP_VERSION = 'v2.7.0';
+const EXPECTED_BACKEND_VERSION = 'v2.7.0';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */

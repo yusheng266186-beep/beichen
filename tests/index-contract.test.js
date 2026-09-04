@@ -295,8 +295,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.6\.20';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.7\.0-stateful';/);
+assert.match(index, /const APP_VERSION = 'v2\.7\.0';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.7\.0';/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);
 assert.doesNotMatch(index, /fetch\(RELAY \+ '\/', \{mode:'no-cors'\}\)/);
