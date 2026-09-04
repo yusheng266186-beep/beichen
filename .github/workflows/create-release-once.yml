@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   publish:
-    if: \${{ !contains(github.event.head_commit.message, 'remove one-time release workflow') }}
+    if: ${{ !contains(github.event.head_commit.message, 'remove one-time release workflow') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -24,7 +24,7 @@ jobs:
         env:
           RELEASE_TAG: v2.7.0-stateful
           RELEASE_TITLE: 北辰 v2.7.0-stateful · 页面 v2.6.20
-          TARGET_SHA: \${{ github.event.before }}
+          TARGET_SHA: ${{ github.event.before }}
         with:
           script: |
             const fs = require('fs');
