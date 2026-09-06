@@ -446,6 +446,7 @@ assert.match(index, /repeat\(4,minmax\(0,1fr\)\)/);
 assert.doesNotMatch(index, /clonedAxis\.style\.width/);
 assert.doesNotMatch(index, /width:680px!important/);
 assert.match(index, /getPropertyValue\('--card'\)/);
+assert.match(index, /clonedCard\.style\.borderRadius = '0';/);
 
 assert.match(index, /if\(MODE === 'open'\)\{ choicesWrap\.classList\.add\('hide'\)/);
 assert.match(index, /margin:12px 20px 2px/);

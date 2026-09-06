@@ -3397,6 +3397,8 @@ async function saveReportImage(){
         }
         if(clonedCard){
           clonedCard.classList.add('capture-clone');
+          clonedCard.style.borderRadius = '0';   /* v2.8.2:导出图去圆角与外描边,纯矩形卡片 */
+          clonedCard.style.border = 'none';
           clonedCard.scrollTop = 0;
           clonedCard.querySelector('.rc-close')?.remove();
           clonedCard.querySelector('.rc-time')?.remove();
