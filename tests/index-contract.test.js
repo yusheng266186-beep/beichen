@@ -411,8 +411,8 @@ assert.match(index, /getPropertyValue\('--card'\)/);
 assert.match(index, /\.history-tip\[hidden\]\{display:none\}/);
 /* 回到当前:重渲染后必须重新触发滚动显现,否则整卡空白 */
 assert.match(index, /if\(card\) revealWithin\(card\);/);
-/* 报告卡关闭钮悬于分段导航之上 */
-assert.match(index, /#reportModal \.rc-close\{z-index:7\}/);
+/* 报告卡关闭钮:悬于分段导航之上且垂直居中于导航条内 */
+assert.match(index, /#reportModal \.rc-close\{z-index:7;top:7px\}/);
 /* 星图轮:前置回应定稿一次(回应末尾不再少一截);阶段标签单写者防秒数闪烁 */
 assert.match(index, /let prefixFlushed = false, lastStage = '';/);
 assert.match(index, /if\(stage !== lastStage\)\{ lastStage = stage; setTypingLabel\(stage\); \}/);
