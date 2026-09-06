@@ -397,4 +397,13 @@ assert.match(index, /id="provLabel"/);
 /* 截图不含新增 UI */
 assert.match(index, /\.report-card\.capture-clone \.rp-nav,/);
 
+/* ═══════════════ v3.0 体验并版 L4:完整性门与导出 ═══════════════ */
+/* 宽容档(_complete!==true)不结算额度,可重新点亮;_complete 跨刷新保留 */
+assert.match(index, /if\(rep && rep\._complete === false\)\{/);
+assert.match(index, /本次未计入额度/);
+assert.match(index, /out\._complete = typeof value\._complete === 'boolean' \? value\._complete : true;/);
+/* PNG 导出:1200 万像素自适应 + 背景随主题 */
+assert.match(index, /Math\.sqrt\(12000000/);
+assert.match(index, /getPropertyValue\('--card'\)/);
+
 console.log('index contract tests passed');

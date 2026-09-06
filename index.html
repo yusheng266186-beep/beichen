@@ -2384,6 +2384,25 @@ async function processResponse(rawInput, expectingReport, bubble, epoch){
       }
     }
   }
+  if(rep && rep._complete === false){
+    /* 手册 7.1 完整性门:宽容档星图如实呈现但不扣额度;点「重新点亮星图」补全,完整才计费 */
+    lastReport = rep;
+    renderReport(rep);
+    document.getElementById('reportBtn').style.display = '';
+    const noteEl = document.getElementById('rp-note');
+    if(noteEl) noteEl.hidden = false;
+    document.getElementById('rp-quota').textContent = '本次星图部分字段以宽容模式呈现 · 未计入谈心额度';
+    const bub = (bubble && bubble.parentElement) ? bubble : addMsg('ai','');
+    const marker = text.indexOf('【北辰星图】');
+    const keep = (marker >= 0 ? text.slice(0, marker) : text).trim() || '…';
+    bub.innerHTML = mdLite(keep) + '<br><br><span style="color:var(--mut);font-size:12px">▲ 星图部分字段不完整，本次未计入额度；点下方按钮可重新点亮补全</span>';
+    renderChoices(['重新点亮星图'], true);
+    const btns = choicesEl.querySelectorAll('.choc');
+    btns.forEach(b=>{ b.onclick = ()=>{ choicesEl.innerHTML=''; reportRequested = true; respond(buildGuidance(99)); }; });
+    renderRail();
+    saveSession();
+    return;
+  }
   if(rep){
     let cloudQuota;
     try{
@@ -3287,12 +3306,16 @@ async function saveReportImage(){
     if(document.fonts?.ready){
       await Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,2500))]);
     }
+    const logicalW = 760;
+    const logicalH = Math.max(900, card.scrollHeight + 80);
+    /* v3:按 1200 万像素上限自适应缩放,长报告在低端机不再爆画布 */
+    const scale = Math.max(1, Math.min(3, Math.sqrt(12000000 / (logicalW * logicalH))));
     const canvas = await html2canvas(card, {
-      scale: 3, useCORS: true, logging: false,
-      backgroundColor: '#fcfbf8',
+      scale, useCORS: true, logging: false,
+      backgroundColor: (getComputedStyle(document.documentElement).getPropertyValue('--card') || '').trim() || '#fcfbf8',
       scrollX: 0, scrollY: 0,
-      windowWidth: 760,
-      windowHeight: Math.max(900, card.scrollHeight + 80),
+      windowWidth: logicalW,
+      windowHeight: logicalH,
       onclone: clonedDoc=>{
         const clonedModal = clonedDoc.getElementById('reportModal');
         const clonedCard = clonedModal?.querySelector('.report-card');
