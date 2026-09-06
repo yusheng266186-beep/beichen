@@ -718,9 +718,13 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 .rp-nav button:hover{border-color:var(--ink-2);color:var(--ink)}
 .rp-nav button:active{transform:scale(.97)}
 .rp-target{scroll-margin-top:56px}
+/* 分段导航 sticky(z6)悬于卡内,关闭钮(z5)会被遮:报告卡内提到 7 */
+#reportModal .rc-close{z-index:7}
 /* 宽容档提示与历史回看横幅 */
 .report-note{text-align:center;font-size:10.5px;color:var(--mut);letter-spacing:.06em;padding:6px 20px 0;line-height:1.7}
 .history-tip{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 20px 10px;padding:8px 12px;border:1px dashed var(--line-2);border-radius:var(--radius-m);font-size:11px;color:var(--mut);letter-spacing:.06em}
+/* display:flex 会压过 hidden 属性的默认 display:none,必须显式收回 */
+.history-tip[hidden]{display:none}
 .history-tip button{border:0;background:transparent;color:var(--li);font:inherit;cursor:pointer;border-bottom:1px solid currentColor;padding:0 0 1px;letter-spacing:.06em}
 /* 历次星图弹窗(压在报告卡之上) */
 #historyModal{z-index:85}
@@ -933,7 +937,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     </svg>
     <div class="gate-eyebrow">Polaris · Gate</div>
     <h2 class="gate-title">北辰</h2>
-    <p class="gate-sub" id="gateHint">此星图仅向持有钥匙的人开放<br>请输入提供的 6 位动态验证码<br>每组验证码只能验证一次，过期后请换最新一组</p>
+    <p class="gate-sub" id="gateHint">此星图仅向持有钥匙的人开放<br>请输入提供的 6 位动态验证码</p>
     <input class="gate-input" id="gateInput" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="······" aria-label="6 位动态验证码" aria-describedby="gateHint" />
     <br>
     <button class="gate-btn" id="gateBtn">进 入</button>
@@ -1356,10 +1360,10 @@ const MAJOR_DB = [
   ['中医学','多数要求物化,部分历史类可报','中医师 · 针灸推拿 · 康复'],
   ['法学','绝大多数不限选科','律师 · 法务 · 公检法(需过法考)'],
   ['公安学类','多数要求 政治','公安 · 国安 · 司法警察'],
-  ['汉语言文学','绝大多数不限选科','教师 · 编辑 · 文案 · 公务员'],
+  ['汉语言文学','多数院校要求 历史，物理类计划较少','教师 · 编辑 · 文案 · 公务员'],
   ['英语','绝大多数不限选科','翻译 · 外贸 · 教育 · 涉外岗位'],
   ['新闻传播学','绝大多数不限选科','媒体 · 新媒体运营 · 公关广告'],
-  ['历史学','绝大多数不限(部分要求历史)','教师 · 文博 · 学术研究'],
+  ['历史学','绝大多数要求 历史','教师 · 文博 · 学术研究'],
   ['教育学','多数不限(学科师范看对应学科)','中小学教师 · 教育管理'],
   ['经济学','绝大多数不限选科','银行 · 证券 · 分析(数学要求高)'],
   ['金融学','绝大多数不限选科','银行证券 · 投行 · 风控'],
@@ -2160,6 +2164,7 @@ async function respond(guidance){
   if(autoGuidedReport) guidedAutoTried = true;   /* 机会即刻消耗,成败与否都不影响"只试一次" */
   const expectingReport = reportRequested || autoGuidedReport;
   let bubble = null, streamed = '';
+  let prefixFlushed = false, lastStage = '';   /* 星图轮:前置回应只定稿一次;阶段标签防秒数闪烁 */
 
   /* 超长对话裁剪：保留开场白 + 最近若干轮，保证不超过中转 24 条消息上限 */
   const context = history.length > MAX_CONTEXT_MESSAGES
@@ -2222,6 +2227,19 @@ async function respond(guidance){
             setTypingLabel('辰在描出你的多维星图');
             return;
           }
+          /* 前置回应定稿:标记首次到达时补一次最终渲染,回应末尾不再少一小截 */
+          if(!prefixFlushed){
+            prefixFlushed = true;
+            if(renderFrame !== null){ cancelAnimationFrame(renderFrame); renderFrame = null; }
+            if(!bubble || !bubble.parentElement){ removeTyping(); bubble = addMsg('ai',''); }
+            bubble.innerHTML = renderTurnHTML(all.slice(0, cut).replace(/\s+$/, ''));
+            scrollBottom();
+          }
+          if(!document.getElementById('typingRow')){
+            showTyping();
+            setTypingLabel('辰在描出你的多维星图');
+            return;
+          }
           clearThink();   /* 骨架阶段:低语收起,只留分段进度 */
           /* v3 分段进度:按已到达字段计数(星卡按张数),等待可见可感 */
           const FIELDS = ['【称号】','【方位】','【星值】','【一句话】','【组合】','【专业】','【寄语】'];
@@ -2230,7 +2248,9 @@ async function respond(guidance){
           let stage = '辰在描出你的多维星图 · ' + done + '/' + total;
           if(all.includes('【组合】')) stage = '辰在核对选科组合 · ' + done + '/' + total;
           if(all.includes('【专业】')) stage = '辰在收拢专业方向 · ' + done + '/' + total;
-          setTypingLabel(stage);
+          /* 阶段变化才立即上屏;同阶段只刷新基准,由打字计时器统一渲染"阶段 · 秒数",不再闪烁 */
+          if(stage !== lastStage){ lastStage = stage; setTypingLabel(stage); }
+          else { typingBase = stage; }
           return;
         }
       if(renderFrame !== null) return;
@@ -2923,6 +2943,9 @@ function backToLiveReport(){
   if(lastReport) renderReport(lastReport);
   const tip = document.getElementById('rp-history-tip');
   if(tip) tip.hidden = true;
+  /* 重渲染出的 data-reveal 元素是未显现态,须重新触发滚动显现,否则整卡空白 */
+  const card = document.querySelector('#reportModal .report-card');
+  if(card) revealWithin(card);
 }
 
 /* ── 专业解析悬浮卡:锚住所点 pill 的弹出卡片(内容坐标定位,随滚动保持锚定;
@@ -2955,7 +2978,7 @@ function openMajorPop(m, btn){
     (m.reason ? '<p class="mp-why">'+esc(m.reason)+'</p>' : '')+
     (m.career ? '<div class="mp-career"><div class="mp-lb">就业方向</div><p>'+esc(m.career)+'</p></div>' : '')+
     /* v3:高频专业匹配到事实库时,给出官方口径的选科门槛锚点;匹配不到不加注,绝不编造 */
-    (dbRow ? '<div class="mp-db"><div class="mp-lb">选科门槛 · 多校常见口径</div><p>'+esc(dbRow.req)+'</p><div class="mp-lb">代表方向</div><p>'+esc(dbRow.jobs)+'</p></div><div class="mp-note">门槛为多校常见口径，请以目标院校当年公布为准</div>' : '');
+    (dbRow ? '<div class="mp-db"><div class="mp-lb">选科门槛 · 多校常见口径</div><p>'+esc(dbRow.req)+'</p></div><div class="mp-note">门槛为多校常见口径，请以目标院校当年公布为准</div>' : '');
   card.appendChild(pop);
   mjPopState = {pop, pill:btn};
   btn.classList.add('on'); btn.setAttribute('aria-expanded','true');

@@ -43,7 +43,7 @@ assert.doesNotMatch(index, /cdn\.jsdelivr/);
 assert.match(index, /function wipeLocalData\(btn\)/);
 assert.match(index, /id="statRuns"/);
 assert.match(index, /id="gateHint"/);
-assert.match(index, /每组验证码只能验证一次，过期后请换最新一组/);
+assert.doesNotMatch(index, /每组验证码只能验证一次/);   /* v3.1:星门提示删去该行 */
 assert.match(index, /pattern="\[0-9\]\{6\}"/);
 assert.match(index, /aria-describedby="gateHint"/);
 assert.match(index, /id="statRelay"/);
@@ -405,5 +405,20 @@ assert.match(index, /out\._complete = typeof value\._complete === 'boolean' \? v
 /* PNG 导出:1200 万像素自适应 + 背景随主题 */
 assert.match(index, /Math\.sqrt\(12000000/);
 assert.match(index, /getPropertyValue\('--card'\)/);
+
+/* ═══════════════ v3.1 用户验收修复 ═══════════════ */
+/* 回看横幅:display:flex 会压过 hidden 属性,必须显式收回 */
+assert.match(index, /\.history-tip\[hidden\]\{display:none\}/);
+/* 回到当前:重渲染后必须重新触发滚动显现,否则整卡空白 */
+assert.match(index, /if\(card\) revealWithin\(card\);/);
+/* 报告卡关闭钮悬于分段导航之上 */
+assert.match(index, /#reportModal \.rc-close\{z-index:7\}/);
+/* 星图轮:前置回应定稿一次(回应末尾不再少一截);阶段标签单写者防秒数闪烁 */
+assert.match(index, /let prefixFlushed = false, lastStage = '';/);
+assert.match(index, /if\(stage !== lastStage\)\{ lastStage = stage; setTypingLabel\(stage\); \}/);
+/* 专业悬浮卡:删除"代表方向",只保留模型就业方向与选科门槛 */
+assert.doesNotMatch(index, /代表方向/);
+assert.match(index, /多数院校要求 历史/);
+assert.match(index, /绝大多数要求 历史/);
 
 console.log('index contract tests passed');
