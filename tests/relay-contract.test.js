@@ -30,6 +30,37 @@ process.env.QIANFAN_REPORT_THINKING_BUDGET = '8192';
 assert.equal(relay.buildUpstreamBody(reportBody, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 8192);
 delete process.env.QIANFAN_REPORT_THINKING_BUDGET;
 
+/* v2.8 思考强度三档:客户端只能传枚举,预算由服务端换算(standard=环境变量口径,eco减半,deep加倍) */
+const ecoReport = relay.validateChatBody({
+  messages: [{role: 'user', content: 'contract'}], max_tokens: 12000, temperature: 0.25, stream: true, effort: 'eco'
+});
+assert.equal(relay.buildUpstreamBody(ecoReport, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 2048,
+  'eco halves the report budget (4096 -> 2048)');
+const deepCasual = relay.validateChatBody({
+  messages: [{role: 'user', content: 'x'}], max_tokens: 3500, stream: true, effort: 'deep'
+});
+assert.equal(relay.buildUpstreamBody(deepCasual, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 4096,
+  'deep doubles the casual budget (2048 -> 4096)');
+process.env.QIANFAN_THINKING_BUDGET = '512';
+assert.equal(relay.buildUpstreamBody(casualBody, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 512,
+  'standard follows the env override');
+assert.equal(
+  relay.buildUpstreamBody(relay.validateChatBody({...casualBody, effort: 'eco'}), {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 256,
+  'eco follows a tuned standard half');
+assert.equal(
+  relay.buildUpstreamBody(relay.validateChatBody({...casualBody, effort: 'deep'}), {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 1024,
+  'deep follows a tuned standard double');
+delete process.env.QIANFAN_THINKING_BUDGET;
+assert.equal(relay.buildUpstreamBody(casualBody, {name: 'qianfan', model: 'glm-5.2'}).thinking_budget, 2048,
+  'absent effort keeps the default (standard) budget');
+assert.throws(
+  () => relay.validateChatBody({messages: [{role: 'user', content: 'x'}], max_tokens: 100, stream: true, effort: '9999'}),
+  /BEICHEN_BAD_REQUEST/,
+  'effort is enum-locked; numeric smuggling is refused'
+);
+assert.equal(relay.buildUpstreamBody(deepCasual, {name: 'qianfan', model: 'glm-5.2'}).effort, undefined,
+  'effort must never reach the upstream');
+
 /* mode 仅用于统计:客户端可带,绝不透传上游 */
 const modeBody = relay.validateChatBody({
   messages: [{role: 'user', content: 'x'}], max_tokens: 3500, stream: true, mode: 'open'

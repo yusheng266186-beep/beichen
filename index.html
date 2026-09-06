@@ -209,7 +209,8 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .typing-lb{font-size:11px;color:var(--mut);margin-left:8px;letter-spacing:0.14em;white-space:nowrap;flex-shrink:0;font-family:var(--kai)}
 /* 思考低语:打字框下方第二行,显示真实 reasoning 的最后一句;随增量 600ms 一换淡入 */
 .typing-think{
-  flex-basis:100%;margin-left:8px;
+  flex-basis:auto;margin-left:8px;
+  width:min(440px,100%);min-height:1.7em;   /* v2.8:行宽锁定+占位高度,文字长短不再牵动布局 */
   font-family:var(--kai);font-size:10.5px;line-height:1.7;color:var(--mut);
   letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   opacity:.85;
@@ -699,11 +700,11 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 @keyframes gateAway{to{opacity:0;transform:translateY(-14px)}}
 
 /* ══════════ v3 新增组件 ══════════ */
-/* 主题三档切换(设置面板) */
-.theme-acts{display:flex;gap:6px;margin-top:8px}
-.theme-acts button{flex:1;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);border-radius:var(--radius-s);padding:7px 0;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .16s;font-family:var(--sans)}
-.theme-acts button:hover{border-color:var(--ink-2);color:var(--ink)}
-.theme-acts button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+/* 主题三档切换(设置面板);思考强度三档复用同款按钮组 */
+.theme-acts,.effort-acts{display:flex;gap:6px;margin-top:8px}
+.theme-acts button,.effort-acts button{flex:1;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);border-radius:var(--radius-s);padding:7px 0;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .16s;font-family:var(--sans)}
+.theme-acts button:hover,.effort-acts button:hover{border-color:var(--ink-2);color:var(--ink)}
+.theme-acts button.on,.effort-acts button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 /* 底部说明行:当前聊法指示 */
 .fn-mode:not(:empty)::after{content:' · '}
 /* 新回复浮标:上翻阅读时流式回复静默追加,给一个回到最新的入口 */
@@ -1230,6 +1231,15 @@ html.js [data-reveal]:not(.revealed){opacity:0}
         <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
       </div>
       <div>
+        <div class="stat-row"><span class="t-lb">思考强度</span><b id="statEffort">标准</b></div>
+        <div class="effort-acts" role="group" aria-label="思考强度">
+          <button type="button" data-e="eco">省时</button>
+          <button type="button" data-e="standard">标准</button>
+          <button type="button" data-e="deep">深思</button>
+        </div>
+        <div class="stat-sub">星图生成预估：省时 1~1.5 分钟 · 标准 1.5~2.5 分钟 · 深思 2~4 分钟（受网络与当期负载影响）</div>
+      </div>
+      <div>
         <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
         <div class="stat-sub">反馈问题时，请把这个版本号一并告诉开发者</div>
       </div>
@@ -1241,6 +1251,14 @@ html.js [data-reveal]:not(.revealed){opacity:0}
           <button type="button" data-t="dark">夜航</button>
         </div>
       </div>
+      <div>
+        <div class="stat-row"><span class="t-lb">思考低语</span><b id="statThink">开</b></div>
+        <div class="theme-acts" id="thinkActs" role="group" aria-label="思考低语">
+          <button type="button" data-k="on">开</button>
+          <button type="button" data-k="off">关</button>
+        </div>
+      </div>
+      <div class="stat-sub" style="margin-top:2px">每次输入新验证码会开始全新谈心，旧对话存档自动覆盖；历次星图仍保留在本机。</div>
       <div>
         <div class="stat-row"><span class="t-lb">中转服务</span><b id="statRelay">未检查</b></div>
         <div class="stat-sub" id="statRelaySub">点击“检查连接”确认后端和共享次数记录是否就绪</div>
@@ -1291,8 +1309,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.7.0';
-const EXPECTED_BACKEND_VERSION = 'v2.7.0';
+const APP_VERSION = 'v2.8.0';
+const EXPECTED_BACKEND_VERSION = 'v2.8.0';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */
@@ -1310,9 +1328,28 @@ function applyTheme(){
 }
 function markThemeButtons(){
   const pref = themePref();
-  document.querySelectorAll('.theme-acts button').forEach(b=>b.classList.toggle('on', b.dataset.t === pref));
+  document.querySelectorAll('.theme-acts[aria-label="界面主题"] button').forEach(b=>b.classList.toggle('on', b.dataset.t === pref));
   const st = document.getElementById('statTheme');
   if(st) st.textContent = pref === 'auto' ? '跟随系统' : (pref === 'dark' ? '夜航' : '亮色');
+}
+
+/* ═══════════════════════════ v2.8 思考强度三档 ═══════════════════════════ */
+/* 枚举由服务端换算成思考预算,客户端不传数值;预估时间见设置面板文案 */
+const EFFORT_KEY = 'bc_effort';
+function effortPref(){
+  try{ const v = localStorage.getItem(EFFORT_KEY); return ['eco','standard','deep'].includes(v) ? v : 'standard'; }catch(_){ return 'standard'; }
+}
+function markEffortButtons(){
+  const pref = effortPref();
+  document.querySelectorAll('.effort-acts button').forEach(b=>b.classList.toggle('on', b.dataset.e === pref));
+  const st = document.getElementById('statEffort');
+  if(st) st.textContent = pref === 'eco' ? '省时' : pref === 'deep' ? '深思' : '标准';
+}
+function markThinkSwitch(){
+  const on = thinkSwitchOn();
+  const st = document.getElementById('statThink');
+  if(st) st.textContent = on ? '开' : '关';
+  document.querySelectorAll('#thinkActs button').forEach(b=>b.classList.toggle('on', (b.dataset.k === 'on') === on));
 }
 
 /* ═══════════════════════════ 知识库 ═══════════════════════════ */
@@ -1431,7 +1468,6 @@ const OPENINGS = {
 /* ─── 对话模式:'guided'=领航(默认,选项+提示) / 'open'=夜航(无选项,开放提问) ─── */
 let MODE = 'guided';
 let talkEpoch = 0;              /* 每次「重新测试」递增：旧一轮的收尾渲染不得写进新对话 */
-let restartAfterVerify = false; /* 验证过期时点过「重新测试」：重验成功后直接重开，不再弹选聊法 */
 /* 夜航：第 5 轮起辰每轮评估画像成熟度；评估通过出现「点亮星图」入口，满 15 轮仍未点亮则固定给出 */
 const OPEN_REPORT_MIN_TURNS = 5;
 const OPEN_REPORT_FORCE_TURNS = 15;
@@ -1865,23 +1901,27 @@ function removeTyping(){
   const e = document.getElementById('typingRow'); if(e) e.remove();
 }
 
-/* ── 思考低语:星图轮思考可达半分钟,把真实 reasoning 的"最后一句"淡入打字框下方,
-      让等待有内容可看;思考内容依旧不落 history(仅显示,不存储)。 ── */
+/* ── 思考低语:星图轮思考可达半分钟,把真实 reasoning 的尾部淡入打字框下方,
+      让等待有内容可看;思考内容依旧不落 history(仅显示,不存储)。
+      v2.8:恒定尾窗(固定取尾部约40字)+行宽锁定,不再忽长忽短;设置面板可关。 ── */
+function thinkSwitchOn(){
+  try{ return localStorage.getItem('bc_think_switch') !== 'off'; }catch(_){ return true; }
+}
 function showThink(full){
+  if(!thinkSwitchOn()){ clearThink(); return; }
   const row = document.getElementById('typingRow');
   if(!row) return;
   const box = row.querySelector('.typing');
   if(!box) return;
+  let s = String(full||'').replace(/\s+/g,' ').trim();
+  if(!s){ clearThink(); return; }
+  if(s.length > 40) s = '…' + s.slice(-40);
   let el = document.getElementById('typingThink');
   if(!el){
     el = document.createElement('div');
     el.className = 'typing-think'; el.id = 'typingThink';
     box.appendChild(el);
   }
-  let s = String(full||'').replace(/\s+/g,' ');
-  const parts = s.split(/[。；!？!?]/).filter(Boolean);
-  s = (parts[parts.length-1] || s).trim();
-  if(s.length > 56) s = '…' + s.slice(-56);
   if(el.textContent === s) return;
   const now = Date.now();
   if(now - lastThinkSwap < 600) return;   /* 节流:思考增量很密,600ms 一换足够"活" */
@@ -2005,8 +2045,10 @@ async function askStream(messages, opt){
           messages, max_tokens:maxTokens,
           temperature, stream:true,
           /* All turns, including report and continuation turns, use the
-             server-pinned qianfan-code-latest max reasoning contract. */
-          thinking: {type:'enabled'}
+             server-pinned qianfan-code-latest max reasoning contract.
+             v2.8: effort 为三档枚举(eco/standard/deep),预算由服务端换算。 */
+          thinking: {type:'enabled'},
+          effort: effortPref()
         })
       });
       if(!res.ok){
@@ -3429,22 +3471,11 @@ function fallbackCopy(txt, done){
 function confirmRestart(){ openOverlay('restartModal'); }
 function restartFromConfirm(){ closeOverlay('restartModal'); restart(); }
 
-function restart(){
-  /* 先校验后中止：额度待同步/未验证时直接返回，不打断正在进行的生成 */
-  if(quotaSyncPending){
-    toast('请先同步本次星图额度');
-    return;
-  }
-  if(!gateOk()){
-    /* 验证额度已用完：上锁并提示；记下重开意图，重验成功后直接开始新谈心 */
-    restartAfterVerify = true;
-    lockGate(gateRuns() >= GATE_MAX_RUNS ? '本次验证的 3 次对话已用完，重新验证后即可继续' : '验证已过期，请重新输入动态验证码');
-    toast('请先完成验证');
-    return;
-  }
+/* v2.8:整段谈心状态重置(内存+本机对话存档);历次星图档案(IndexedDB)不动 */
+function resetConversation(){
   talkEpoch++;   /* 先作废旧一轮的收尾资格，再中止它的流式请求，报错就不会落进新对话 */
   if(activeStreamAbort){ try{ activeStreamAbort.abort(); }catch(e){} }
-  history = []; turnCount = 0; reportDone = false; reportRequested = false; guidedAutoTried = false; reportOffered = false; lastReport = null; quotaSyncPending = false; waiting = false;
+  history = []; turnCount = 0; reportDone = false; reportRequested = false; guidedAutoTried = false; reportOffered = false; lastReport = null; shownReport = null; quotaSyncPending = false; waiting = false;
   clearSession();
   msgsEl.innerHTML = '';
   choicesEl.innerHTML = ''; choicesWrap.classList.remove('hide','dis');
@@ -3452,6 +3483,21 @@ function restart(){
   document.getElementById('reportBtn').style.display = 'none';
   closeOverlay('reportModal'); closeOverlay('dataModal');
   renderRail();
+}
+
+function restart(){
+  /* 先校验后中止：额度待同步/未验证时直接返回，不打断正在进行的生成 */
+  if(quotaSyncPending){
+    toast('请先同步本次星图额度');
+    return;
+  }
+  if(!gateOk()){
+    /* 验证额度已用完或过期：上锁并提示；重新验证成功后自动开始全新谈心 */
+    lockGate(gateRuns() >= GATE_MAX_RUNS ? '本次验证的 3 次对话已用完，重新验证后即可继续' : '验证已过期，请重新输入动态验证码');
+    toast('请先完成验证');
+    return;
+  }
+  resetConversation();
   /* 每一段新的谈心都由学生自己选择聊法，不沿用上一段的模式 */
   showModeSelect();
   toast('我们重新开始');
@@ -3624,9 +3670,8 @@ async function gateTry(){
     document.getElementById('gate').classList.add('pass');
     setTimeout(()=>{ input.blur(); }, 100);
     setTimeout(()=>{
-      if(restartAfterVerify){ restartAfterVerify = false; restart(); return; }   /* 过期前点过「重新测试」：直接重开 */
-      if(restoreSession()) return;   /* 本机还有没聊完的会话：直接接回，不逼着重选聊法 */
-      /* 每次重新验证成功都重新展示序章；同一轮验证内刷新不会重复展示 */
+      /* v2.8:输入新密钥即覆盖旧对话存档(历次星图档案保留),从全新序章开始 */
+      resetConversation();
       document.getElementById('intro').classList.add('show');
     }, 500);
   }catch(e){
@@ -3760,13 +3805,30 @@ msgsEl.addEventListener('scroll', ()=>{ if(pressTm){ clearTimeout(pressTm); pres
 
 /* 主题三档 */
 applyTheme(); markThemeButtons();
-document.querySelectorAll('.theme-acts button').forEach(b=>{
+document.querySelectorAll('.theme-acts[aria-label="界面主题"] button').forEach(b=>{
   b.addEventListener('click', ()=>{
     try{ localStorage.setItem(THEME_KEY, b.dataset.t); }catch(_){ }
     applyTheme(); markThemeButtons();
   });
 });
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); }catch(_){ }
+/* 思考强度三档 */
+markEffortButtons();
+document.querySelectorAll('.effort-acts button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    try{ localStorage.setItem(EFFORT_KEY, b.dataset.e); }catch(_){ }
+    markEffortButtons();
+    toast('思考强度已切换为「' + (b.dataset.e === 'eco' ? '省时' : b.dataset.e === 'deep' ? '深思' : '标准') + '」，下一轮回复生效');
+  });
+});
+/* 思考低语开关 */
+markThinkSwitch();
+document.querySelectorAll('#thinkActs button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    try{ localStorage.setItem('bc_think_switch', b.dataset.k); }catch(_){ }
+    markThinkSwitch();
+  });
+});
 
 /* 数据面板省份标签(多省抽象,当前仅四川) */
 (function(){

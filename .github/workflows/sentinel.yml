@@ -1,0 +1,34 @@
+name: sentinel
+
+# 值班哨兵:每 5 分钟拨测一次云函数 /readyz,失败即红并邮件通知仓库所有者。
+# 函数地址存于仓库变量 RELAY_URL(Settings → Secrets and variables → Actions),不落仓库。
+# 注意:公开仓库的定时工作流在仓库 60 天无活动后会被 GitHub 自动停用,届时在 Actions 页重新启用即可。
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: 拨测 /readyz
+        run: |
+          URL="${{ vars.RELAY_URL }}"
+          if [ -z "$URL" ]; then
+            echo "::warning::仓库变量 RELAY_URL 未配置,跳过本次拨测"
+            exit 0
+          fi
+          body="$(curl -fsS --max-time 20 "$URL/readyz")" || {
+            echo "::error::readyz 不可达"
+            exit 1
+          }
+          echo "$body"
+          echo "$body" | grep -q '"ready":true' || {
+            echo "::error::后端未就绪(ready != true)"
+            exit 1
+          }

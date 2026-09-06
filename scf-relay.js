@@ -24,8 +24,8 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.7.0';
-const FRONTEND_VERSION = 'v2.7.0';
+const BACKEND_VERSION = 'v2.8.0';
+const FRONTEND_VERSION = 'v2.8.0';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
@@ -431,7 +431,7 @@ async function handleRunComplete(req, res) {
 
 /* ── 路由：对话转发 ───────────────────────────────────────────── */
 function validateChatBody(input) {
-  const allowed = ['messages', 'max_tokens', 'temperature', 'stream', 'thinking', 'mode'];
+  const allowed = ['messages', 'max_tokens', 'temperature', 'stream', 'thinking', 'mode', 'effort'];
   if (!onlyKeys(input, allowed) || !Array.isArray(input.messages) || input.messages.length < 1 || input.messages.length > MAX_MESSAGE_COUNT) {
     throw httpError(400, 'BEICHEN_BAD_REQUEST');
   }
@@ -451,6 +451,11 @@ function validateChatBody(input) {
   if (input.thinking !== undefined) {
     if (!input.thinking || typeof input.thinking !== 'object' || Array.isArray(input.thinking) || !onlyKeys(input.thinking, ['type']) || !['enabled', 'disabled'].includes(input.thinking.type)) throw httpError(400, 'BEICHEN_BAD_REQUEST');
     body.thinking = { type: input.thinking.type };
+  }
+  /* v2.8 思考强度:客户端只能传三档枚举,思考预算由服务端换算,不可指定数值 */
+  if (input.effort !== undefined) {
+    if (!['eco', 'standard', 'deep'].includes(input.effort)) throw httpError(400, 'BEICHEN_BAD_REQUEST');
+    body.effort = input.effort;
   }
   if (input.mode !== undefined) body.mode = input.mode;
   return body;
@@ -488,12 +493,19 @@ function buildUpstreamBody(body, config) {
     upstreamBody.thinking = { type: 'enabled' };
     upstreamBody.reasoning_effort = 'max';
     const reportScale = Number(body.max_tokens || 0) >= REPORT_SCALE_TOKENS;
-    const budget = reportScale
+    /* v2.8 思考强度三档:standard 沿用环境变量口径,eco 减半(下限100),deep 加倍(上限16384);
+       环境变量调优只作用于 standard 档,eco/deep 随动。 */
+    const base = reportScale
       ? boundedInt(process.env.QIANFAN_REPORT_THINKING_BUDGET, 4096, 100, MAX_COMPLETION_TOKENS)
       : boundedInt(process.env.QIANFAN_THINKING_BUDGET, 2048, 100, MAX_COMPLETION_TOKENS);
+    const effort = body.effort === 'eco' ? 'eco' : body.effort === 'deep' ? 'deep' : 'standard';
+    const budget = effort === 'eco' ? Math.max(100, Math.floor(base / 2))
+      : effort === 'deep' ? Math.min(MAX_COMPLETION_TOKENS, base * 2)
+      : base;
     upstreamBody.thinking_budget = budget;
   }
   delete upstreamBody.mode;
+  delete upstreamBody.effort;
   return upstreamBody;
 }
 

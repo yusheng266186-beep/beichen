@@ -99,9 +99,11 @@ assert.match(index, /await processResponse\(raw, expectingReport, bubble, epoch\
 assert.match(index, /if\(epoch !== undefined && epoch !== talkEpoch\) return;/);
 assert.doesNotMatch(index, /querySelector\('\.row:last-child \.bub'\)/);   /* 兜底只写流式气泡,不再按"最后一行"猜 */
 assert.match(index, /restart\(\)\{\s*\/\* 先校验后中止/);   /* 校验不过不打断正在进行的生成 */
-assert.match(index, /restartAfterVerify = true;/);
-assert.match(index, /if\(restartAfterVerify\)\{ restartAfterVerify = false; restart\(\); return; \}/);
-assert.match(index, /if\(restoreSession\(\)\) return;/);   /* 重验成功先接回本机未完的会话 */
+/* v2.8:输入新密钥即覆盖旧对话存档——重渲染状态收编 resetConversation,gateTry 成功即重置 */
+assert.match(index, /function resetConversation\(\)\{/);
+assert.match(index, /shownReport = null; quotaSyncPending = false; waiting = false;/);
+assert.match(index, /resetConversation\(\);\s*document\.getElementById\('intro'\)\.classList\.add\('show'\);/);
+assert.doesNotMatch(index, /restartAfterVerify/);
 /* 对话中途验证失效:把星门拉起来,用户有地方重新输入 */
 assert.match(index, /验证在对话中途失效：除了提示，还要把星门拉起来让用户有地方重新输入/);
 /* 星门验证 12s 超时,按钮不得永久卡住 */
@@ -295,8 +297,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.7\.0';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.7\.0';/);
+assert.match(index, /const APP_VERSION = 'v2\.8\.0';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.8\.0';/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);
 assert.doesNotMatch(index, /fetch\(RELAY \+ '\/', \{mode:'no-cors'\}\)/);
@@ -420,5 +422,21 @@ assert.match(index, /if\(stage !== lastStage\)\{ lastStage = stage; setTypingLab
 assert.doesNotMatch(index, /代表方向/);
 assert.match(index, /多数院校要求 历史/);
 assert.match(index, /绝大多数要求 历史/);
+
+/* ═══════════════ v2.8 第三阶段:低语优化/思考强度/新密钥覆盖 ═══════════════ */
+/* 低语:恒定尾窗 + 行宽锁定 + 设置开关 */
+assert.match(index, /bc_think_switch/);
+assert.match(index, /function thinkSwitchOn\(\)/);
+assert.match(index, /if\(s\.length > 40\) s = '…' \+ s\.slice\(-40\);/);
+assert.match(index, /width:min\(440px,100%\);min-height:1\.7em;/);
+assert.match(index, /id="thinkActs"/);
+/* 思考强度三档:设置面板 + 请求透传 + 预估时间文案 */
+assert.match(index, /const EFFORT_KEY = 'bc_effort';/);
+assert.match(index, /function effortPref\(\)/);
+assert.match(index, /effort: effortPref\(\)/);
+assert.match(index, /data-e="deep"/);
+assert.match(index, /星图生成预估：省时 1~1\.5 分钟 · 标准 1\.5~2\.5 分钟 · 深思 2~4 分钟/);
+/* 本机保存说明 */
+assert.match(index, /旧对话存档自动覆盖；历次星图仍保留在本机/);
 
 console.log('index contract tests passed');
