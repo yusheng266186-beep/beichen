@@ -93,6 +93,12 @@ assert.doesNotMatch(src, /logEvent\([^)]*process\.env\.QIANFAN_API_KEY/, 'log mu
 assert.doesNotMatch(src, /logEvent\([^)]*payload\.token/, 'log must never take session tokens');
 assert.doesNotMatch(src, /logEvent\([^)]*body\.code/, 'log must never take the TOTP code');
 
+/* SSE 心跳与上游内容类型校验就位 */
+assert.match(src, /const SSE_HEARTBEAT_MS = /, 'SSE heartbeat interval must be configurable');
+assert.match(src, /: ping\\n\\n/, 'heartbeat must emit SSE comment lines');
+assert.match(src, /!contentType\.startsWith\('text\/event-stream'\) && !contentType\.startsWith\('application\/json'\)/,
+  'upstream content-type must be enforced');
+
 /* 客户端真实 IP:CLB 把真实 IP 追加在 XFF 末尾,取最后一个合法条目;解析不出回退 TCP 对端 */
 assert.equal(relay.pickClientIp('203.0.113.7', '10.0.0.1'), '203.0.113.7', 'single entry wins');
 assert.equal(relay.pickClientIp('203.0.113.7, 198.51.100.9', '10.0.0.1'), '198.51.100.9',

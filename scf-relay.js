@@ -52,6 +52,7 @@ const DEFAULT_QIANFAN_MODEL = 'qianfan-code-latest';
 
 const TOKEN_TTL_MS = boundedInt(process.env.GATE_TOKEN_TTL_MS, DEFAULT_TOKEN_TTL_MS, 60 * 1000, MAX_TOKEN_TTL_MS);
 const UPSTREAM_TIMEOUT_MS = boundedInt(process.env.UPSTREAM_TIMEOUT_MS, DEFAULT_UPSTREAM_TIMEOUT_MS, 30 * 1000, 570 * 1000);
+const SSE_HEARTBEAT_MS = boundedInt(process.env.SSE_HEARTBEAT_MS, 15 * 1000, 1000, 60 * 1000);
 const TURN_LEASE_MS = boundedInt(process.env.TURN_LEASE_MS, Math.min(900000, UPSTREAM_TIMEOUT_MS + 60000), 60000, 900000);
 const REPORT_LEASE_MS = boundedInt(process.env.REPORT_LEASE_MS, Math.min(900000, UPSTREAM_TIMEOUT_MS + 60000), 60000, 900000);
 const CORS_ALLOWED_ORIGINS = String(process.env.CORS_ALLOWED_ORIGINS || 'https://yusheng266186-beep.github.io')
@@ -510,8 +511,9 @@ function requestKind(body) {
   return 'normal';
 }
 
-/* 允许测试替换 HTTP 上游；生产默认使用 https.request。 */
-let upstreamRequester;
+/* 允许测试注入假上游(node https.request 同构签名:(options, callback) → request);
+   生产默认 https.request,心跳/背压/上限等转发逻辑对两者一致生效。 */
+let upstreamRequester = (...args) => https.request(...args);
 
 function proxyChat(req, res, body, config) {
   return new Promise((resolve, reject) => {
@@ -519,11 +521,17 @@ function proxyChat(req, res, body, config) {
     let responseEnded = false;
     let upstreamResponse;
     let upstream;
+    let heartbeat = null;
+    let bytes = 0;
     const payload = JSON.stringify(buildUpstreamBody(body, config));
 
+    const stopHeartbeat = () => {
+      if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
+    };
     const fail = error => {
       if (settled) return;
       settled = true;
+      stopHeartbeat();
       if (upstream && !upstream.destroyed) upstream.destroy();
       if (res.headersSent && !res.writableEnded) res.destroy();
       reject(error);
@@ -531,12 +539,13 @@ function proxyChat(req, res, body, config) {
     const success = () => {
       if (settled) return;
       settled = true;
-      resolve();
+      stopHeartbeat();
+      resolve(bytes);
     };
 
     try {
       const url = upstreamUrl(config);
-      upstream = https.request({
+      upstream = upstreamRequester({
         hostname: url.hostname,
         port: url.port || 443,
         path: url.pathname,
@@ -552,21 +561,33 @@ function proxyChat(req, res, body, config) {
         upstreamResponse = response;
         const status = Number(response.statusCode || 502);
         if (status < 200 || status >= 300) {
-          let bytes = 0;
+          let errorBytes = 0;
           response.on('data', chunk => {
-            bytes += chunk.length;
-            if (bytes > 64 * 1024) response.destroy();
+            errorBytes += chunk.length;
+            if (errorBytes > 64 * 1024) response.destroy();
           });
           response.on('end', () => fail(httpError(status >= 400 && status < 500 ? status : 502, 'BEICHEN_UPSTREAM_ERROR')));
           response.on('error', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
           return;
         }
         const contentType = String(response.headers['content-type'] || '').toLowerCase();
+        if (!contentType.startsWith('text/event-stream') && !contentType.startsWith('application/json')) {
+          if (response.resume) response.resume();
+          if (response.destroy) response.destroy();
+          return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
+        }
         res.writeHead(status, securityHeaders(req, {
           'Content-Type': contentType.startsWith('text/event-stream') ? 'text/event-stream' : 'application/json; charset=utf-8',
           'X-Accel-Buffering': 'no'
         }));
-        let bytes = 0;
+        /* SSE 心跳:长思考的安静期发送注释行,防中间设备把空闲连接当死流掐断;
+           前端 consumeLine 只认 data: 行,注释行被自然忽略。 */
+        heartbeat = setInterval(() => {
+          if (!settled && !res.writableEnded && !res.destroyed) {
+            try { res.write(': ping\n\n'); } catch (_) { /* close 处理器负责中止上游 */ }
+          }
+        }, SSE_HEARTBEAT_MS);
+        if (heartbeat.unref) heartbeat.unref();
         res.on('drain', () => response.resume());
         response.on('data', chunk => {
           bytes += chunk.length;
@@ -600,8 +621,6 @@ function proxyChat(req, res, body, config) {
     }
   });
 }
-
-upstreamRequester = proxyChat;
 
 function mapStoreResult(req, res, result) {
   if (result.ok) return null;
@@ -649,8 +668,9 @@ async function handleChat(req, res) {
   const started = Date.now();
   let upstreamError = null;
   let upstreamSucceeded = false;
+  let upstreamBytes = 0;
   try {
-    await upstreamRequester(req, res, body, config);
+    upstreamBytes = await proxyChat(req, res, body, config);
     upstreamSucceeded = true;
   } catch (error) {
     upstreamError = error;
@@ -663,7 +683,7 @@ async function handleChat(req, res) {
     logEvent('store_error', { where: 'finish_chat', code: String(error && error.code || 'STORE_ERROR') });
     if (!upstreamSucceeded) upstreamError = upstreamError || error;
   }
-  if (upstreamSucceeded) logEvent('chat_ok', { kind, ms: Date.now() - started });
+  if (upstreamSucceeded) logEvent('chat_ok', { kind, ms: Date.now() - started, bytes: Number(upstreamBytes) || 0 });
   else logEvent('upstream_error', { kind, ms: Date.now() - started, code: String(upstreamError && upstreamError.code || 'UNKNOWN') });
   if (upstreamError) throw upstreamError;
 }
