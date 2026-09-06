@@ -405,7 +405,6 @@ assert.match(index, /本次未计入额度/);
 assert.match(index, /out\._complete = typeof value\._complete === 'boolean' \? value\._complete : true;/);
 /* PNG 导出:1200 万像素自适应 + 背景随主题 */
 assert.match(index, /Math\.sqrt\(12000000/);
-assert.match(index, /getPropertyValue\('--card'\)/);
 
 /* ═══════════════ v3.1 用户验收修复 ═══════════════ */
 /* 回看横幅:display:flex 会压过 hidden 属性,必须显式收回 */
@@ -441,5 +440,10 @@ assert.match(index, /旧对话存档自动覆盖；历次星图仍保留在本�
 assert.doesNotMatch(index, /'我还想补充'/);
 assert.doesNotMatch(index, /onclick="copyReport\(\)"/);
 assert.match(index, /repeat\(4,minmax\(0,1fr\)\)/);
+
+/* v2.8.2 导出所见即所得:克隆不强制宽度/轴宽,画布透明保留圆角 */
+assert.doesNotMatch(index, /clonedAxis.style.width/);
+assert.doesNotMatch(index, /width:680px!important/);
+assert.match(index, /backgroundColor: null/);
 
 console.log('index contract tests passed');

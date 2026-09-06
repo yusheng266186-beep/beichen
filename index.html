@@ -328,13 +328,12 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 #reportModal.show .report-card{animation:cardIn .45s cubic-bezier(.22,1,.36,1) both}
 /* 截图副本：脱离滚动弹窗后完整展开，避免直接截取滚动容器得到空白画布 */
 .report-card.capture-clone{
-  width:680px!important;max-height:none!important;overflow:visible!important;
+  max-height:none!important;overflow:visible!important;
   animation:none!important;transform:none!important;opacity:1!important;
   box-shadow:none!important;
 }
+/* v2.8.2:克隆不再强制宽度/轴宽——所见即所得,继承设备上卡片的真实宽度与圆角 */
 .report-card.capture-clone *{animation:none!important;transition:none!important}
-.report-card.capture-clone .axis{width:420px!important;max-width:420px!important;padding:0 8px!important}
-.report-card.capture-clone .axis-track{width:100%!important}
 .report-card.capture-clone .rc-close,
 .report-card.capture-clone .rc-time,
 .report-card.capture-clone .report-quota,
@@ -3378,13 +3377,13 @@ async function saveReportImage(){
     if(document.fonts?.ready){
       await Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,2500))]);
     }
-    const logicalW = 760;
-    const logicalH = Math.max(900, card.scrollHeight + 80);
+    const logicalW = Math.max(320, Math.round(card.getBoundingClientRect().width || 680));
+    const logicalH = Math.max(700, Math.round(card.scrollHeight + 80));
     /* v3:按 1200 万像素上限自适应缩放,长报告在低端机不再爆画布 */
     const scale = Math.max(1, Math.min(3, Math.sqrt(12000000 / (logicalW * logicalH))));
     const canvas = await html2canvas(card, {
       scale, useCORS: true, logging: false,
-      backgroundColor: (getComputedStyle(document.documentElement).getPropertyValue('--card') || '').trim() || '#fcfbf8',
+      backgroundColor: null,   /* v2.8.2:画布透明,保留卡片圆角——所见即所得 */
       scrollX: 0, scrollY: 0,
       windowWidth: logicalW,
       windowHeight: logicalH,
@@ -3393,7 +3392,7 @@ async function saveReportImage(){
         const clonedCard = clonedModal?.querySelector('.report-card');
         if(clonedModal){
           clonedModal.classList.remove('show');
-          clonedModal.style.cssText = 'display:block;position:static;inset:auto;padding:0;background:transparent;overflow:visible;';
+          clonedModal.style.cssText = 'display:block;position:static;inset:auto;padding:0;background:transparent;overflow:visible;width:' + logicalW + 'px;';
         }
         if(clonedCard){
           clonedCard.classList.add('capture-clone');
@@ -3402,13 +3401,10 @@ async function saveReportImage(){
           clonedCard.querySelector('.rc-time')?.remove();
           clonedCard.querySelector('.report-quota')?.remove();
           clonedCard.querySelector('.report-actions')?.remove();
-          const clonedAxis = clonedCard.querySelector('.axis');
-          const clonedTrack = clonedCard.querySelector('.axis-track');
-          const clonedRightDot = clonedCard.querySelector('.axis-dot-right');
+          clonedCard.querySelector('.rp-nav')?.remove();
+          clonedCard.querySelector('#rp-history-tip')?.remove();
+          clonedCard.querySelector('.report-note')?.remove();
           const clonedStar = clonedCard.querySelector('.axis-star');
-          if(clonedAxis){ clonedAxis.style.width = '420px'; clonedAxis.style.maxWidth = '420px'; }
-          if(clonedTrack){ clonedTrack.style.width = '100%'; }
-          if(clonedRightDot){ clonedRightDot.style.right = '0'; clonedRightDot.style.left = 'auto'; }
           if(clonedStar){ clonedStar.style.left = (shownReport?._lean ?? 50) + '%'; }
         }
       }
