@@ -1473,6 +1473,7 @@ let lastReport = null;
 let quotaSyncPending = false;
 let activeStreamAbort = null;
 const SESSION_KEY = 'beichen_session_v1';
+const DRAFT_KEY = 'bc_draft_v1';          /* v3:输入草稿,刷新/切后台不丢 */
 
 const ACTS = ['初见','底色','热爱','远方','星图'];
 const msgsEl = document.getElementById('msgs');
@@ -1590,6 +1591,7 @@ function restoreSession(){
     renderRail();
     requestAnimationFrame(()=>msgsEl.classList.remove('no-anim'));
     setTimeout(()=>scrollBottom(true), 80);
+    restoreDraft();
     /* Migrate old sessions away from the legacy msgsHTML field on next save. */
     saveSession();
     toast('已接回上次未完的谈话');
@@ -1617,8 +1619,21 @@ function onKey(e){
 }
 /* 仅当用户本来就在底部附近时才自动跟随滚动，避免上翻阅读时被强制拉底 */
 function nearBottom(){ return msgsEl.scrollHeight - msgsEl.scrollTop - msgsEl.clientHeight < 140; }
+let jumpBtn = null;   /* v3:上翻阅读时流式回复静默追加,给"回到最新"浮标 */
 function scrollBottom(force){
-  if(force || nearBottom()){ msgsEl.scrollTop = msgsEl.scrollHeight; }
+  if(force || nearBottom()){
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+    if(jumpBtn) jumpBtn.classList.remove('show');
+  }else if(waiting && jumpBtn){
+    jumpBtn.classList.add('show');   /* 生成中新回复落在视口外,提示可回底 */
+  }
+}
+/* v3 输入草稿:打字中途刷新/切后台不丢 */
+function restoreDraft(){
+  try{
+    const d = localStorage.getItem(DRAFT_KEY);
+    if(d && !inp.value){ inp.value = d; autoH(inp); }
+  }catch(_){ }
 }
 /* 移动端视口：软键盘弹出/收起时同步 --vvh，保证输入栏始终可见 */
 function setupViewport(){
@@ -3318,6 +3333,7 @@ async function gateTry(){
   const input = document.getElementById('gateInput');
   const btn = document.getElementById('gateBtn');
   const err = document.getElementById('gateErr');
+  if(btn.disabled) return;   /* v3:自动提交与手动点击并发时只放行一次 */
   const code = input.value.replace(/\D/g, '');
   if(code.length !== 6){ err.textContent = '请输入 6 位动态验证码'; return; }
   btn.disabled = true; err.textContent = '正在核对星位…';
@@ -3409,6 +3425,16 @@ function setupGate(){
   const btn = document.getElementById('gateBtn');
   btn.addEventListener('click', gateTry);
   input.addEventListener('keydown', e => { if(e.key === 'Enter') gateTry(); });
+  /* v3 星门:输入即时过滤非数字,满 6 位自动提交(与手动点击并发时只放行一次) */
+  input.addEventListener('input', ()=>{
+    const digits = input.value.replace(/\D/g, '').slice(0, 6);
+    if(digits !== input.value) input.value = digits;
+    if(digits.length === 6 && !btn.disabled) gateTry();
+  });
+  /* v3:桌面端自动聚焦(触屏设备不自动弹键盘骚扰) */
+  if(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches){
+    setTimeout(()=>{ if(!gateOk()) input.focus({preventScroll:true}); }, 700);
+  }
   /* 动态验证码周期提示 */
   const timerEl = document.getElementById('gateTimer');
   const tick = ()=>{
@@ -3436,6 +3462,7 @@ function chooseMode(mode){
   inp.placeholder = MODE === 'open' ? '夜航 · 用自己的话说说看…' : '用自己的话，说你想说的…';
   const m = document.getElementById('chatModeTag');
   if(m) m.textContent = MODE === 'open' ? '夜航' : '领航';
+  restoreDraft();
   boot();
 }
 
@@ -3445,6 +3472,42 @@ setupViewport();
 setupGate();
 
 /* ═══════════════════════════ v3 体验接线 ═══════════════════════════ */
+/* 新回复浮标:生成中上翻阅读时不丢进度,一键回底 */
+jumpBtn = document.createElement('button');
+jumpBtn.type = 'button'; jumpBtn.className = 'jump-latest'; jumpBtn.textContent = '↓ 新回复';
+jumpBtn.onclick = ()=>{ scrollBottom(true); };
+document.querySelector('.stage').appendChild(jumpBtn);
+msgsEl.addEventListener('scroll', ()=>{ if(nearBottom() && jumpBtn) jumpBtn.classList.remove('show'); });
+
+/* 输入草稿:打字中途刷新/切后台不丢 */
+let draftTm = null;
+inp.addEventListener('input', ()=>{
+  clearTimeout(draftTm);
+  draftTm = setTimeout(()=>{
+    try{ inp.value.trim() ? localStorage.setItem(DRAFT_KEY, inp.value) : localStorage.removeItem(DRAFT_KEY); }catch(_){ }
+  }, 300);
+});
+
+/* 气泡长按复制:触屏按住 550ms 复制整条;正在选字时不触发 */
+let pressTm = null, pressBub = null;
+msgsEl.addEventListener('pointerdown', e=>{
+  const bub = e.target && e.target.closest ? e.target.closest('.bub') : null;
+  if(!bub) return;
+  pressBub = bub;
+  pressTm = setTimeout(()=>{
+    pressTm = null;
+    const sel = window.getSelection && window.getSelection();
+    if(sel && !sel.isCollapsed) return;
+    const txt = (pressBub && pressBub.innerText || '').trim();
+    if(!txt) return;
+    const done = ()=>toast('已复制这条消息');
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt, done));
+    else fallbackCopy(txt, done);
+  }, 550);
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>msgsEl.addEventListener(ev, ()=>{ if(pressTm){ clearTimeout(pressTm); pressTm = null; } }));
+msgsEl.addEventListener('scroll', ()=>{ if(pressTm){ clearTimeout(pressTm); pressTm = null; } });
+
 /* 主题三档 */
 applyTheme(); markThemeButtons();
 document.querySelectorAll('.theme-acts button').forEach(b=>{

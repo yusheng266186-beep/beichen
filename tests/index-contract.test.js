@@ -353,4 +353,22 @@ assert.match(index, /大学里转专业难吗？/);
 assert.match(index, /艺考、体育、职教这些路径呢？/);
 assert.match(index, /家里人意见不一样，怎么办？/);
 
+/* ═══════════════ v3.0 体验并版 L2:星门/草稿/长按/浮标 ═══════════════ */
+/* 星门:过滤非数字 + 满6位自动提交 + 桌面自动聚焦 + 并发守卫 */
+assert.match(index, /replace\(\/\\D\/g, ''\)\.slice\(0, 6\)/);
+assert.match(index, /digits\.length === 6 && !btn\.disabled\) gateTry\(\)/);
+assert.match(index, /\(hover:hover\) and \(pointer:fine\)/);
+assert.match(index, /if\(btn\.disabled\) return;/);
+/* 输入草稿 */
+assert.match(index, /const DRAFT_KEY = 'bc_draft_v1';/);
+assert.match(index, /function restoreDraft\(\)/);
+assert.match(index, /restoreDraft\(\);\s+boot\(\);/);
+/* 气泡长按复制 */
+assert.match(index, /已复制这条消息/);
+assert.match(index, /pointerdown/, '长按复制走 pointer 事件');
+/* 新回复浮标 */
+assert.match(index, /jump-latest/);
+assert.match(index, /let jumpBtn = null;/);
+assert.match(index, /↓ 新回复/);
+
 console.log('index contract tests passed');
