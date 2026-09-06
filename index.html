@@ -719,10 +719,10 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 .rp-nav button:active{transform:scale(.97)}
 .rp-target{scroll-margin-top:56px}
 /* 分段导航 sticky(z6)悬于卡内,关闭钮(z5)会被遮:报告卡内提到 7 */
-#reportModal .rc-close{z-index:7;top:7px}   /* 下滑时垂直居中于分段导航条内,不再压住底部分隔线 */
+#reportModal .rc-close{z-index:7;top:6px}   /* 下滑时垂直居中于分段导航条内 */
 /* 宽容档提示与历史回看横幅 */
 .report-note{text-align:center;font-size:10.5px;color:var(--mut);letter-spacing:.06em;padding:6px 20px 0;line-height:1.7}
-.history-tip{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 20px 10px;padding:7px 8px 7px 14px;border:1px solid var(--line);border-radius:var(--radius-m);background:var(--paper-2);font-size:11px;color:var(--ink-2);letter-spacing:.06em}
+.history-tip{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 20px 2px;padding:7px 8px 7px 14px;border:1px solid var(--line);border-radius:var(--radius-m);background:var(--paper-2);font-size:11px;color:var(--ink-2);letter-spacing:.06em}
 /* v2.8.2:实底提示条,文字居左、回到当前收进右侧胶囊按钮,不再挤成一团 */
 .history-tip button{border:1px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:99px;padding:4px 12px;font-size:10.5px;cursor:pointer;transition:all .16s;font-family:var(--sans)}
 .history-tip button:hover{border-color:var(--ink-2)}
@@ -745,6 +745,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
   .jump-latest{bottom:150px;right:12px}
   /* v2.8.2:移动端恢复卡片式报告(撤全屏 sheet);分段导航在卡内照常吸顶 */
   .rp-nav{padding:10px 14px 8px}
+  #reportModal .rc-close{top:4px}   /* 手机端 40px 按钮对 48px 导航条,4px 才居中 */
 }
 
 /* ══════════ Toast ══════════ */
@@ -3383,7 +3384,7 @@ async function saveReportImage(){
     const scale = Math.max(1, Math.min(3, Math.sqrt(12000000 / (logicalW * logicalH))));
     const canvas = await html2canvas(card, {
       scale, useCORS: true, logging: false,
-      backgroundColor: null,   /* v2.8.2:画布透明,保留卡片圆角——所见即所得 */
+      backgroundColor: (getComputedStyle(document.documentElement).getPropertyValue('--card') || '').trim() || '#fcfbf8',
       scrollX: 0, scrollY: 0,
       windowWidth: logicalW,
       windowHeight: logicalH,
@@ -3752,6 +3753,9 @@ function chooseMode(mode){
   inp.placeholder = MODE === 'open' ? '夜航 · 用自己的话说说看…' : '用自己的话，说你想说的…';
   const m = document.getElementById('chatModeTag');
   if(m) m.textContent = MODE === 'open' ? '夜航' : '领航';
+  /* v2.8.2:夜航没有选项组件,开场不得显示"点选最接近的一个"提示 */
+  if(MODE === 'open'){ choicesWrap.classList.add('hide'); choicesEl.innerHTML=''; }
+  else { choicesWrap.classList.remove('hide','dis'); choicesHint.style.display=''; }
   restoreDraft();
   boot();
 }

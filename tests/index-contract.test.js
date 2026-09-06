@@ -411,8 +411,9 @@ assert.match(index, /Math\.sqrt\(12000000/);
 assert.match(index, /\.history-tip\[hidden\]\{display:none\}/);
 /* 回到当前:重渲染后必须重新触发滚动显现,否则整卡空白 */
 assert.match(index, /if\(card\) revealWithin\(card\);/);
-/* 报告卡关闭钮:悬于分段导航之上且垂直居中于导航条内 */
-assert.match(index, /#reportModal \.rc-close\{z-index:7;top:7px\}/);
+/* 报告卡关闭钮:悬于分段导航之上且垂直居中于导航条内(桌面 6px / 手机 4px) */
+assert.match(index, /#reportModal \.rc-close\{z-index:7;top:6px\}/);
+assert.match(index, /#reportModal \.rc-close\{top:4px\}/);
 /* 星图轮:前置回应定稿一次(回应末尾不再少一截);阶段标签单写者防秒数闪烁 */
 assert.match(index, /let prefixFlushed = false, lastStage = '';/);
 assert.match(index, /if\(stage !== lastStage\)\{ lastStage = stage; setTypingLabel\(stage\); \}/);
@@ -441,9 +442,12 @@ assert.doesNotMatch(index, /'我还想补充'/);
 assert.doesNotMatch(index, /onclick="copyReport\(\)"/);
 assert.match(index, /repeat\(4,minmax\(0,1fr\)\)/);
 
-/* v2.8.2 导出所见即所得:克隆不强制宽度/轴宽,画布透明保留圆角 */
-assert.doesNotMatch(index, /clonedAxis.style.width/);
+/* v2.8.2 导出所见即所得:克隆不强制宽度/轴宽;导出图回矩形卡片(主题底色) */
+assert.doesNotMatch(index, /clonedAxis\.style\.width/);
 assert.doesNotMatch(index, /width:680px!important/);
-assert.match(index, /backgroundColor: null/);
+assert.match(index, /getPropertyValue\('--card'\)/);
+
+assert.match(index, /if\(MODE === 'open'\)\{ choicesWrap\.classList\.add\('hide'\)/);
+assert.match(index, /margin:12px 20px 2px/);
 
 console.log('index contract tests passed');
