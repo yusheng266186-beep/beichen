@@ -490,7 +490,7 @@ button.mj{font-family:inherit;background:transparent;cursor:default}
 .rc-time{text-align:center;font-size:10px;color:var(--mut);letter-spacing:0.2em;padding:14px 0 6px;font-family:var(--serif)}
 .report-quota{text-align:center;font-size:10.5px;color:var(--mut);letter-spacing:.06em;padding:0 20px 16px;line-height:1.7}
 .report-actions{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;
   padding:0 30px 26px;
 }
 .report-actions .tbtn{width:100%;min-width:0;white-space:nowrap}
@@ -1555,6 +1555,7 @@ let guidedAutoTried = false;   /* 领航满十轮的自动星图机会:无论成
 let reportOffered = false;     /* 夜航：辰评估后给出的点亮提示，随会话保存 */
 let turnCount = 0;
 let lastReport = null;
+let shownReport = null;   /* v3:报告卡当前正在展示的星图(实时或历史),轴星/导出/复制以它为准 */
 let quotaSyncPending = false;
 let activeStreamAbort = null;
 const SESSION_KEY = 'beichen_session_v1';
@@ -2396,11 +2397,15 @@ async function processResponse(rawInput, expectingReport, bubble, epoch){
     const marker = text.indexOf('【北辰星图】');
     const keep = (marker >= 0 ? text.slice(0, marker) : text).trim() || '…';
     bub.innerHTML = mdLite(keep) + '<br><br><span style="color:var(--mut);font-size:12px">▲ 星图部分字段不完整，本次未计入额度；点下方按钮可重新点亮补全</span>';
+    /* 原始星图标记不进历史:刷新恢复时不得把【北辰星图】等版式记号当正文渲染 */
+    const last = history[history.length - 1];
+    if(last?.role === 'assistant') last.content = keep || '（本次星图未完整生成，不计入额度）';
     renderChoices(['重新点亮星图'], true);
     const btns = choicesEl.querySelectorAll('.choc');
     btns.forEach(b=>{ b.onclick = ()=>{ choicesEl.innerHTML=''; reportRequested = true; respond(buildGuidance(99)); }; });
     renderRail();
     saveSession();
+    setTimeout(()=>{ if(epoch === undefined || epoch === talkEpoch) openOverlay('reportModal'); }, 800);
     return;
   }
   if(rep){
@@ -2724,6 +2729,9 @@ function updateQuotaNote(runs){
 
 function renderReport(r){
   const dirNames = { wen:'文科方位 · 历史类', li:'理科方位 · 物理类', bal:'文理之间 · 尚待深挖' };
+  shownReport = r;   /* v3:轴星滑动/导出/复制跟随当前展示的星图(实时或历史) */
+  const tipEl = document.getElementById('rp-history-tip');
+  if(tipEl) tipEl.hidden = true;   /* 重新渲染即回到实时态,历史横幅不再残留 */
   document.getElementById('rp-badge').textContent = r['称号'] || '你的星图';
   const dirEl = document.getElementById('rp-dir');
   dirEl.textContent = dirNames[r._dir];
@@ -3107,7 +3115,7 @@ function openOverlay(id){
     focusTarget.focus({preventScroll:true});
   }
   if(firstOpen && !(history.state && history.state.bcOv)){ try{ history.pushState({bcOv:1},''); }catch(e){} }
-  if(id === 'reportModal' && lastReport){
+  if(id === 'reportModal' && shownReport){
     /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖率条归零；条形由重新武装后的滚动显现触发生长 */
     const star = document.getElementById('axis-star');
     if(star._litTm){ clearTimeout(star._litTm); star._litTm = null; }
@@ -3125,12 +3133,12 @@ function openOverlay(id){
   rearmReveal(card || el);
   revealWithin(card || el);
   setTimeout(()=>{
-    if(id === 'reportModal' && lastReport){
+    if(id === 'reportModal' && shownReport){
       /* 轴星滑向落点:英雄区打开即在视口内,保留打开即播;条形的生长已交给滚动显现 */
       const star = document.getElementById('axis-star');
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         star.style.transition = 'left 1.4s var(--ease-glide)';
-        star.style.left = (lastReport._lean ?? (lastReport._dir==='li' ? 68 : lastReport._dir==='wen' ? 32 : 50)) + '%';
+        star.style.left = (shownReport._lean ?? (shownReport._dir==='li' ? 68 : shownReport._dir==='wen' ? 32 : 50)) + '%';
       }));
       const leanEm = document.querySelector('#axis-lean em');
       if(leanEm) countUp(leanEm, 200, 1400);   /* 星值数字与轴星滑动同步计数 */
@@ -3294,7 +3302,7 @@ function canvasHasReportContent(canvas){
 
 /* 星图保存为 PNG：在 html2canvas 的克隆文档里展开报告，不直接修改滚动弹窗。 */
 async function saveReportImage(){
-  if(!lastReport){ toast('星图尚未生成'); return; }
+  if(!shownReport){ toast('星图尚未生成'); return; }
   if(typeof html2canvas !== 'function'){ toast('截图组件加载失败，请检查网络后重试'); return; }
   const card = document.querySelector('#reportModal .report-card');
   if(!card) return;
@@ -3337,7 +3345,7 @@ async function saveReportImage(){
           if(clonedAxis){ clonedAxis.style.width = '420px'; clonedAxis.style.maxWidth = '420px'; }
           if(clonedTrack){ clonedTrack.style.width = '100%'; }
           if(clonedRightDot){ clonedRightDot.style.right = '0'; clonedRightDot.style.left = 'auto'; }
-          if(clonedStar){ clonedStar.style.left = (lastReport?._lean ?? 50) + '%'; }
+          if(clonedStar){ clonedStar.style.left = (shownReport?._lean ?? 50) + '%'; }
         }
       }
     });
@@ -3346,7 +3354,7 @@ async function saveReportImage(){
     }
     const blob = await new Promise(resolve=>canvas.toBlob(resolve, 'image/png'));
     if(!blob || blob.size < 10000) throw new Error('图片生成不完整，请重试');
-    const name = (lastReport['称号']||'星图').replace(/[\\/:*?"<>|\s]/g,'');
+    const name = (shownReport['称号']||'星图').replace(/[\\/:*?"<>|\s]/g,'');
     const a = document.createElement('a');
     a.download = '北辰星图-' + name + '-' + new Date().toLocaleDateString('zh-CN') + '.png';
     const url = URL.createObjectURL(blob);
@@ -3364,8 +3372,8 @@ async function saveReportImage(){
 }
 
 function copyReport(){
-  if(!lastReport){ toast('星图尚未生成'); return; }
-  const r = lastReport;
+  if(!shownReport){ toast('星图尚未生成'); return; }
+  const r = shownReport;
   const dirNames = { wen:'文科方位（历史类）', li:'理科方位（物理类）', bal:'文理之间' };
   let txt = '《北辰 · 选科星图》\n';
   txt += '称号：' + (r['称号']||'—') + '\n';
