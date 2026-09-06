@@ -156,7 +156,7 @@ assert.match(index, /t\.classList\.remove\('revealed'\);/);
 assert.doesNotMatch(index, /#reportModal\.show \.rc-body > \*/);   /* 打开即播的正文 stagger 必须移除 */
 assert.doesNotMatch(index, /#modeModal\.show \.mode-card\{/);
 /* data-reveal 布点:报告卡分区/收尾区/按钮,设置与数据与选聊法正文,JS 构建项 */
-assert.match(index, /class="rc-sec-lb" data-reveal/);
+assert.match(index, /class="rc-sec-lb rp-target"[^>]*data-reveal/);
 assert.match(index, /class="bless" data-reveal/);
 assert.match(index, /data-reveal id="rp-time"/);
 assert.match(index, /data-reveal id="rp-quota"/);
@@ -370,5 +370,31 @@ assert.match(index, /pointerdown/, '长按复制走 pointer 事件');
 assert.match(index, /jump-latest/);
 assert.match(index, /let jumpBtn = null;/);
 assert.match(index, /↓ 新回复/);
+
+/* ═══════════════ v3.0 体验并版 L3:星图体验 ═══════════════ */
+/* 星图等待分段进度 */
+assert.match(index, /辰在描出你的多维星图 · ' \+ done \+ '\/' \+ total/);
+/* 移动端报告全屏 sheet + 分段导航 */
+assert.match(index, /#reportModal \.report-card\{width:100%;max-height:100dvh;height:100dvh;border-radius:0;border:none\}/);
+assert.match(index, /function buildReportNav/);
+assert.match(index, /id="rp-nav"/);
+assert.match(index, /class="rc-sec-lb rp-target" id="rp-lb-cards" data-reveal/);
+/* 星图历史(IndexedDB 本地存档) */
+assert.match(index, /beichen_reports_v1/);
+assert.match(index, /function saveReportHistory/);
+assert.match(index, /function openReportHistory/);
+assert.match(index, /function backToLiveReport/);
+assert.match(index, /id="historyModal"/);
+assert.match(index, /#historyModal\{z-index:85\}/);
+assert.match(index, /indexedDB\.deleteDatabase\('beichen_reports_v1'\)/, '清除本机记录须连历史存档一起清');
+/* 内容层:专业事实库 + 门槛锚点 + 多省抽象 */
+assert.match(index, /const MAJOR_DB = \[/);
+assert.match(index, /function majorDbMatch/);
+assert.match(index, /选科门槛 · 多校常见口径/);
+assert.match(index, /请以目标院校当年公布为准/);
+assert.match(index, /const PROVINCES = \{/);
+assert.match(index, /id="provLabel"/);
+/* 截图不含新增 UI */
+assert.match(index, /\.report-card\.capture-clone \.rp-nav,/);
 
 console.log('index contract tests passed');

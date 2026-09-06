@@ -337,6 +337,9 @@ button:focus-visible{outline:2px solid var(--ink-2);outline-offset:3px}
 .report-card.capture-clone .rc-close,
 .report-card.capture-clone .rc-time,
 .report-card.capture-clone .report-quota,
+.report-card.capture-clone .rp-nav,
+.report-card.capture-clone .report-note,
+.report-card.capture-clone .history-tip,
 .report-card.capture-clone .mj-pop,
 .report-card.capture-clone .report-actions{display:none!important}
 @keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -1024,22 +1027,26 @@ html.js [data-reveal]:not(.revealed){opacity:0}
         <div class="axis-confidence" id="axis-confidence" aria-live="polite"></div>
       </div>
     </div>
+    <nav class="rp-nav" id="rp-nav" aria-label="星图分段导航"></nav>
+    <div class="history-tip" id="rp-history-tip" hidden>正在回看历史星图<button type="button" onclick="backToLiveReport()">回到当前</button></div>
     <div class="rc-body">
-      <div class="rc-sec-lb" data-reveal>星 卡 · 你 的 多 维 画 像</div>
+      <div class="rc-sec-lb rp-target" id="rp-lb-cards" data-reveal>星 卡 · 你 的 多 维 画 像</div>
       <div id="rp-cards" style="display:flex;flex-direction:column;gap:18px"></div>
-      <div class="rc-sec-lb" data-reveal>3 + 1 + 2 · 组 合 推 荐</div>
+      <div class="rc-sec-lb rp-target" id="rp-lb-combos" data-reveal>3 + 1 + 2 · 组 合 推 荐</div>
       <div class="combo-row" id="rp-combos"></div>
-      <div class="rc-sec-lb" data-reveal>专 业 方 向 · 参 考</div>
+      <div class="rc-sec-lb rp-target" id="rp-lb-majors" data-reveal>专 业 方 向 · 参 考</div>
       <div class="major-wrap" id="rp-majors"></div>
-      <div class="rc-sec-lb" data-reveal>写 给 你</div>
+      <div class="rc-sec-lb rp-target" id="rp-lb-bless" data-reveal>写 给 你</div>
       <div class="bless" data-reveal><p id="rp-bless">—</p><div class="bless-sign">—— 北 辰</div></div>
     </div>
     <div class="rc-time" data-reveal id="rp-time">—</div>
     <div class="report-quota" data-reveal id="rp-quota"></div>
+    <div class="report-note" id="rp-note" data-reveal hidden>本次画像部分字段以宽容模式呈现 · 想要完整版可点「重新点亮星图」重新生成</div>
     <div class="report-actions">
       <button class="tbtn pri" id="saveReportBtn" data-reveal onclick="saveReportImage()">保存为图片</button>
       <button class="tbtn" data-reveal onclick="copyReport()">复制星图</button>
       <button class="tbtn" data-reveal onclick="continueAsk('为什么是这个方位？讲讲你判断的核心依据。')">追问依据</button>
+      <button class="tbtn" data-reveal onclick="openReportHistory()">历次星图</button>
       <button class="tbtn danger" data-reveal onclick="confirmRestart()">重新测试</button>
     </div>
   </div>
@@ -1077,11 +1084,11 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     <button class="rc-close" onclick="closeOverlay('dataModal')" title="关闭">✕</button>
     <div class="data-head">
       <h2>数据参考</h2>
-      <p>选科决策的底层数据与理论工具 · 公开测算值，各省各年有差异</p>
+      <p>选科决策的底层数据与理论工具 · <span id="provLabel">四川</span>口径 · 公开测算值，各省各年有差异</p>
     </div>
 
     <div class="dsec" data-reveal>
-      <div class="dsec-t">核心数据 <small>四川 2025–2026 · 深度研究测算</small></div>
+      <div class="dsec-t">核心数据 <small id="provTag">四川 2025–2026 · 深度研究测算</small></div>
       <div class="stats">
         <div class="stat"><b>74%</b><span>首届新高考考生选择物化生 / 政史地两大经典组合</span></div>
         <div class="stat li"><b>96.22%</b><span>物化生专业覆盖率</span></div>
@@ -1254,6 +1261,20 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- ══════════ 历次星图（v3 · IndexedDB 本地存档） ══════════ -->
+<div class="overlay" id="historyModal" role="dialog" aria-modal="true" aria-label="历次星图" onclick="if(event.target===this) closeOverlay('historyModal')">
+  <div class="modal-card">
+    <div class="modal-top">
+      <h3>历次星图</h3>
+      <p>HISTORY</p>
+    </div>
+    <div class="modal-body">
+      <div class="history-list" id="historyList"></div>
+      <p class="stat-sub" style="margin-top:2px">只保存在本机浏览器，不上传；清除本机记录会一并清空。</p>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════ 配置 ═══════════════════════════ */
 /* 模型名与思考档位全部由云端固定（qianfan-code-latest · max），页面请求不携带 model 字段 */
@@ -1305,6 +1326,70 @@ const COMBOS = [
   {id:'历史+地理+化学', cat:'wen', cov:41.6, note:'历史类覆盖偏低 · 需要有明确的专业目标'},
   {id:'历史+生物+化学', cat:'wen', cov:41.0, note:'覆盖最低档 · 除非强对口目标，不建议'}
 ];
+
+/* v3 多省数据层抽象:当前仅收录四川测算;扩省时在此登记数据源与年份,
+   数据面板与星图知识库统一从这里取标签(模型侧知识库随省份另行扩充) */
+const PROVINCE = 'sichuan';
+const PROVINCES = {
+  sichuan: { label:'四川', years:'2025–2026', tag:'四川 2025–2026 · 深度研究测算' }
+};
+
+/* v3 高频专业事实库(2025 教育部选考科目要求指引口径):给星图专业解析加"硬门槛"参考锚点。
+   req 为多数院校常见口径,展示时注明"以目标院校当年公布为准";匹配不到就不加注,绝不编造 */
+const MAJOR_DB = [
+  ['计算机科学与技术','多数院校要求 物理+化学','软件研发 · 人工智能 · 系统架构'],
+  ['软件工程','多数院校要求 物理+化学','软件研发 · 云计算 · 测试与运维'],
+  ['人工智能','绝大多数要求 物理+化学','算法 · 机器学习 · 智能系统'],
+  ['数据科学与大数据技术','多数院校要求 物理+化学','数据分析 · 数据工程 · 商业智能'],
+  ['电子信息工程','绝大多数要求 物理+化学','硬件 · 通信 · 嵌入式开发'],
+  ['通信工程','绝大多数要求 物理+化学','通信设备 · 运营商 · 网络研发'],
+  ['自动化','绝大多数要求 物理+化学','工业控制 · 机器人 · 智能制造'],
+  ['机械设计制造及其自动化','绝大多数要求 物理+化学','机械设计 · 装备制造 · 汽车工程'],
+  ['车辆工程','绝大多数要求 物理+化学','整车研发 · 零部件设计 · 测试'],
+  ['电气工程及其自动化','绝大多数要求 物理+化学','电力系统 · 电气设计 · 新能源装备'],
+  ['土木工程','绝大多数要求 物理','建筑设计 · 施工 · 市政工程'],
+  ['建筑学','多数不限或仅要求物理','建筑设计 · 城市规划(多为五年制)'],
+  ['临床医学','绝大多数要求 物理+化学,顶尖院校多要求物化生','临床医师 · 规培 · 医学研究'],
+  ['口腔医学','绝大多数要求 物理+化学','口腔医师 · 口腔专科'],
+  ['护理学','多数要求化学或生物,部分不限','临床护理 · 老年与社区健康'],
+  ['药学','绝大多数要求 物理+化学','药企研发 · 医院药剂 · 药品监管'],
+  ['中医学','多数要求物化,部分历史类可报','中医师 · 针灸推拿 · 康复'],
+  ['法学','绝大多数不限选科','律师 · 法务 · 公检法(需过法考)'],
+  ['公安学类','多数要求 政治','公安 · 国安 · 司法警察'],
+  ['汉语言文学','绝大多数不限选科','教师 · 编辑 · 文案 · 公务员'],
+  ['英语','绝大多数不限选科','翻译 · 外贸 · 教育 · 涉外岗位'],
+  ['新闻传播学','绝大多数不限选科','媒体 · 新媒体运营 · 公关广告'],
+  ['历史学','绝大多数不限(部分要求历史)','教师 · 文博 · 学术研究'],
+  ['教育学','多数不限(学科师范看对应学科)','中小学教师 · 教育管理'],
+  ['经济学','绝大多数不限选科','银行 · 证券 · 分析(数学要求高)'],
+  ['金融学','绝大多数不限选科','银行证券 · 投行 · 风控'],
+  ['会计学','绝大多数不限选科','会计 · 审计 · 财务(考证路线)'],
+  ['工商管理','绝大多数不限选科','管理 · 人力 · 咨询(建议深造)'],
+  ['国际经济与贸易','绝大多数不限选科','外贸 · 跨境 · 商务'],
+  ['心理学','多数不限,部分要求生物或物理','心理咨询 · 用户研究 · 人力资源'],
+  ['数学与应用数学','绝大多数要求 物理','研究 · 精算 · 数据 · 教育'],
+  ['物理学','绝大多数要求 物理','科研 · 半导体 · 教育'],
+  ['化学','绝大多数要求 物理+化学','研发 · 检测 · 化工 · 材料'],
+  ['生物科学','多数要求 物理+化学(部分加生物)','科研 · 生物技术 · 医药'],
+  ['地理科学','多数要求 地理(部分物理)','规划 · 遥感GIS · 环境'],
+  ['政治学类','多数要求 政治','公务员 · 教师 · 党务'],
+  ['社会学','绝大多数不限选科','研究 · 社工 · 市场调研'],
+  ['行政管理','绝大多数不限选科','公务员 · 企事业行政'],
+  ['旅游管理','绝大多数不限选科','文旅 · 酒店 · 策划'],
+  ['工业设计','多数不限或要求物理','产品设计 · 用户体验 · 造型'],
+  ['数字媒体技术','多数不限(技术方向部分要物理)','游戏 · 影视 · 交互设计'],
+  ['小语种','绝大多数不限选科','翻译 · 外事 · 涉外企业']
+];
+function majorDbMatch(name){
+  const norm = s => String(s||'').replace(/\s+/g,'').replace(/（[^）]*）|\([^)]*\)/g,'');
+  const t = norm(name);
+  if(!t) return null;
+  for(const row of MAJOR_DB){
+    const k = norm(row[0]);
+    if(t.includes(k) || k.includes(t)) return { name: row[0], req: row[1], jobs: row[2] };
+  }
+  return null;
+}
 
 const SYSTEM = `你是「北辰」，一位温柔、敏锐、真正走过这段路的学长，正和一个高一学生深夜谈心，帮 TA 想清楚选文还是选理（新高考下文科=历史类，理科=物理类）。你不是冷冰冰的测评工具。
 【思考语言】你的全部内部思考一律用中文进行，不使用英文。
@@ -2137,9 +2222,13 @@ async function respond(guidance){
             return;
           }
           clearThink();   /* 骨架阶段:低语收起,只留分段进度 */
-          let stage = '辰在描出你的多维星图';
-          if(all.includes('【组合】')) stage = '辰在核对选科组合';
-          if(all.includes('【专业】')) stage = '辰在收拢专业方向';
+          /* v3 分段进度:按已到达字段计数(星卡按张数),等待可见可感 */
+          const FIELDS = ['【称号】','【方位】','【星值】','【一句话】','【组合】','【专业】','【寄语】'];
+          const done = FIELDS.filter(f=>all.includes(f)).length + Math.min(5,(all.match(/【星卡】/g)||[]).length);
+          const total = FIELDS.length + 5;
+          let stage = '辰在描出你的多维星图 · ' + done + '/' + total;
+          if(all.includes('【组合】')) stage = '辰在核对选科组合 · ' + done + '/' + total;
+          if(all.includes('【专业】')) stage = '辰在收拢专业方向 · ' + done + '/' + total;
           setTypingLabel(stage);
           return;
         }
@@ -2312,6 +2401,7 @@ async function processResponse(rawInput, expectingReport, bubble, epoch){
     reportDone = true;
     reportRequested = false;   /* 本次点亮完成，后续问答回到普通轮 */
     renderReport(rep);
+    saveReportHistory(rep);   /* v3:每张星图本地存档,「历次星图」可回看 */
     /* 完整对话计数：一张星图 = 一次；3 次后需重新验证 */
     let runs = Number(cloudQuota?.runs);
     if(!Number.isFinite(runs)) runs = gateRuns();
@@ -2705,6 +2795,107 @@ function renderReport(r){
   document.getElementById('rp-bless').textContent = r['寄语'] || '愿你在自己的方位上，慢慢亮起来。';
   document.getElementById('rp-time').textContent = 'POLARIS · ' + new Date().toLocaleString('zh-CN',{hour12:false});
   updateQuotaNote(gateRuns());
+  /* v3:宽容档如实提示 + 分段导航 */
+  const noteEl = document.getElementById('rp-note');
+  if(noteEl) noteEl.hidden = r._complete !== false;
+  buildReportNav();
+}
+
+/* v3:星图分段导航(报告卡较长,给快捷跳读;移动端全屏 sheet 下尤其有用) */
+function buildReportNav(){
+  const nav = document.getElementById('rp-nav');
+  if(!nav) return;
+  nav.innerHTML = '';
+  [['rp-lb-cards','星卡'],['rp-lb-combos','组合'],['rp-lb-majors','专业'],['rp-lb-bless','寄语']].forEach(([id,lb])=>{
+    const t = document.getElementById(id);
+    if(!t) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = lb;
+    b.onclick = ()=>{ t.scrollIntoView({behavior:'smooth', block:'start'}); };
+    nav.appendChild(b);
+  });
+}
+
+/* ═══════════════════════════ v3 星图历史(IndexedDB 本地存档) ═══════════════════════════
+   一次验证可生成 3 张星图,但 lastReport 只留最后一张;本地把每张都存档,可回看。 */
+const REPORT_DB = 'beichen_reports_v1';
+let currentReportKey = null;   /* 当前"live"星图在历史库中的主键 */
+function idbOpen(){
+  return new Promise(resolve=>{
+    try{
+      if(!('indexedDB' in window)) return resolve(null);
+      const rq = indexedDB.open(REPORT_DB, 1);
+      rq.onupgradeneeded = ()=>{ rq.result.createObjectStore('charts', {keyPath:'id', autoIncrement:true}); };
+      rq.onsuccess = ()=>resolve(rq.result);
+      rq.onerror = ()=>resolve(null);
+    }catch(_){ resolve(null); }
+  });
+}
+function saveReportHistory(rep){
+  if(!rep) return;
+  idbOpen().then(db=>{
+    if(!db) return;
+    try{
+      const tx = db.transaction('charts', 'readwrite');
+      const rq = tx.objectStore('charts').add({
+        savedAt: Date.now(), title: rep['称号'] || '星图', dir: rep._dir || 'bal', lean: rep._lean ?? 50, report: rep
+      });
+      rq.onsuccess = ()=>{ currentReportKey = rq.result; };
+    }catch(_){ }
+  });
+}
+function listReportHistory(){
+  return idbOpen().then(db=>{
+    if(!db) return [];
+    return new Promise(resolve=>{
+      try{
+        const rq = db.transaction('charts', 'readonly').objectStore('charts').getAll();
+        rq.onsuccess = ()=>resolve((rq.result || []).sort((a,b)=>b.savedAt - a.savedAt));
+        rq.onerror = ()=>resolve([]);
+      }catch(_){ resolve([]); }
+    });
+  }).catch(()=>[]);
+}
+function dirLabelOf(rep){
+  return rep && rep._dir === 'li' ? '偏理' : rep && rep._dir === 'wen' ? '偏文' : '居中';
+}
+async function openReportHistory(){
+  const list = document.getElementById('historyList');
+  if(!list) return;
+  list.innerHTML = '<div class="history-empty">正在读取…</div>';
+  openOverlay('historyModal');
+  const items = await listReportHistory();
+  list.innerHTML = '';
+  if(!items.length){
+    list.innerHTML = '<div class="history-empty">还没有存档的星图</div>';
+    return;
+  }
+  items.forEach(entry=>{
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'history-item';
+    b.innerHTML = '<b>' + esc(entry.title || '星图') + '</b><span>' + dirLabelOf(entry.report) +
+      ' · 星值 ' + (entry.lean ?? 50) + ' · ' + new Date(entry.savedAt).toLocaleDateString('zh-CN') + '</span>';
+    b.onclick = ()=>{
+      closeOverlay('historyModal');
+      viewHistoryReport(entry);
+    };
+    list.appendChild(b);
+  });
+}
+function viewHistoryReport(entry){
+  if(!entry || !entry.report) return;
+  renderReport(entry.report);
+  if(currentReportKey !== null && entry.id === currentReportKey){
+    document.getElementById('rp-history-tip').hidden = true;   // 看的就是当前这张
+  }else{
+    document.getElementById('rp-history-tip').hidden = false;
+  }
+  openOverlay('reportModal');
+}
+function backToLiveReport(){
+  if(lastReport) renderReport(lastReport);
+  const tip = document.getElementById('rp-history-tip');
+  if(tip) tip.hidden = true;
 }
 
 /* ── 专业解析悬浮卡:锚住所点 pill 的弹出卡片(内容坐标定位,随滚动保持锚定;
@@ -2729,12 +2920,15 @@ function openMajorPop(m, btn){
   pop.className = 'mj-pop';
   pop.setAttribute('role','dialog');
   pop.setAttribute('aria-label','专业解析 · ' + m.name);
+  const dbRow = majorDbMatch(m.name);
   pop.innerHTML =
     '<button type="button" class="mp-x" aria-label="关闭">✕</button>'+
     '<div class="mp-tag">专业解析 · MAJOR</div>'+
     '<h6>'+esc(m.name)+'</h6>'+
     (m.reason ? '<p class="mp-why">'+esc(m.reason)+'</p>' : '')+
-    (m.career ? '<div class="mp-career"><div class="mp-lb">就业方向</div><p>'+esc(m.career)+'</p></div>' : '');
+    (m.career ? '<div class="mp-career"><div class="mp-lb">就业方向</div><p>'+esc(m.career)+'</p></div>' : '')+
+    /* v3:高频专业匹配到事实库时,给出官方口径的选科门槛锚点;匹配不到不加注,绝不编造 */
+    (dbRow ? '<div class="mp-db"><div class="mp-lb">选科门槛 · 多校常见口径</div><p>'+esc(dbRow.req)+'</p><div class="mp-lb">代表方向</div><p>'+esc(dbRow.jobs)+'</p></div><div class="mp-note">门槛为多校常见口径，请以目标院校当年公布为准</div>' : '');
   card.appendChild(pop);
   mjPopState = {pop, pill:btn};
   btn.classList.add('on'); btn.setAttribute('aria-expanded','true');
@@ -2783,7 +2977,7 @@ function buildComboTable(){
 
 /* ═══════════════════════════ 弹窗控制 ═══════════════════════════ */
 /* 可关闭弹窗按 z 序排列：Esc / 返回键只关最上层。选聊法与星门、序章是必经流程，不在其列 */
-const DISMISSIBLE = ['restartModal','settingsModal','dataModal','reportModal','reportAskModal'];
+const DISMISSIBLE = ['restartModal','settingsModal','dataModal','reportModal','historyModal','reportAskModal'];
 function topDismissible(){
   for(const id of DISMISSIBLE){
     const el = document.getElementById(id);
@@ -3047,6 +3241,8 @@ function wipeLocalData(btn){
     if(GATE_STORE !== window.sessionStorage) sessionStorage.removeItem(GATE_TOKEN_KEY);
     localStorage.removeItem('beichen_cfg');
     clearSession();
+    /* v3:历次星图存档一并清空(与弹窗内承诺一致) */
+    if('indexedDB' in window) indexedDB.deleteDatabase('beichen_reports_v1');
   }catch(_){ }
   closeOverlay('settingsModal');
   toast('已清除本机的验证与谈心记录');
@@ -3517,6 +3713,13 @@ document.querySelectorAll('.theme-acts button').forEach(b=>{
   });
 });
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); }catch(_){ }
+
+/* 数据面板省份标签(多省抽象,当前仅四川) */
+(function(){
+  const p = PROVINCES[PROVINCE]; if(!p) return;
+  const a = document.getElementById('provLabel'); if(a) a.textContent = p.label;
+  const t = document.getElementById('provTag'); if(t) t.textContent = p.tag;
+})();
 window.addEventListener('orientationchange', ()=>{
   document.documentElement.style.setProperty('--vvh', (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 'px');
   setTimeout(()=>scrollBottom(true), 350);
