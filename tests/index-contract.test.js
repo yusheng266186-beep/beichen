@@ -329,4 +329,28 @@ assert.doesNotMatch(index, /media="print" onload="this\.media='all'"/);   /* 旧
 assert.match(index, /\.report-card::-webkit-scrollbar,\.data-card::-webkit-scrollbar,\.modal-card::-webkit-scrollbar\{display:none\}/);
 assert.equal((index.match(/scrollbar-width:none;-ms-overflow-style:none/g)||[]).length, 4);   /* 输入框 + 三种圆角卡 */
 
+/* ═══════════════ v3.0 体验并版 L1:夜航暗色主题与内容杂项 ═══════════════ */
+assert.match(index, /:root\[data-theme="dark"\]\{/);
+assert.match(index, /const THEME_KEY = 'bc_theme';/);
+assert.match(index, /function applyTheme\(\)/);
+assert.match(index, /function markThemeButtons\(\)/);
+assert.match(index, /data-t="dark"/);
+assert.match(index, /var\(--top-bg\)/);
+assert.match(index, /var\(--pulse-rgb\)/);
+assert.match(index, /prefers-color-scheme: dark/);
+/* 内容保真:星卡换行转义 + 寄语 pre-line */
+assert.match(index, /function escLines/);
+assert.match(index, /escLines\(c\.body\)/);
+assert.match(index, /white-space:pre-line/);
+/* 会话恢复不连播动画 */
+assert.match(index, /msgsEl\.classList\.add\('no-anim'\)/);
+assert.match(index, /\.no-anim \.row,\.no-anim \.row \*,\.no-anim \.picker\{animation:none!important\}/);
+/* 模式标签真实落地 + 分享摘要 + FAQ 扩容 */
+assert.match(index, /id="chatModeTag"/);
+assert.match(index, /name="description"/);
+assert.match(index, /property="og:title"/);
+assert.match(index, /大学里转专业难吗？/);
+assert.match(index, /艺考、体育、职教这些路径呢？/);
+assert.match(index, /家里人意见不一样，怎么办？/);
+
 console.log('index contract tests passed');
