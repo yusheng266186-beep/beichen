@@ -714,7 +714,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 /* 会话恢复:重建历史气泡不逐条连播进场动画 */
 .no-anim .row,.no-anim .row *,.no-anim .picker{animation:none!important}
 /* 星图分段导航 */
-.rp-nav{position:sticky;top:0;z-index:6;display:flex;gap:8px;padding:10px 20px 8px;background:linear-gradient(180deg,var(--card) 72%,transparent);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.rp-nav{position:sticky;top:0;z-index:6;display:flex;gap:8px;padding:10px 20px 8px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .rp-nav button{border:1px solid var(--line-2);background:transparent;color:var(--ink-2);border-radius:99px;padding:5px 13px;font-size:11px;letter-spacing:.1em;cursor:pointer;transition:all .16s;font-family:var(--kai)}
 .rp-nav button:hover{border-color:var(--ink-2);color:var(--ink)}
 .rp-nav button:active{transform:scale(.97)}
@@ -723,10 +723,13 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 #reportModal .rc-close{z-index:7;top:7px}   /* 下滑时垂直居中于分段导航条内,不再压住底部分隔线 */
 /* 宽容档提示与历史回看横幅 */
 .report-note{text-align:center;font-size:10.5px;color:var(--mut);letter-spacing:.06em;padding:6px 20px 0;line-height:1.7}
-.history-tip{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 20px 10px;padding:8px 12px;border:1px dashed var(--line-2);border-radius:var(--radius-m);font-size:11px;color:var(--mut);letter-spacing:.06em}
+.history-tip{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 20px 10px;padding:7px 8px 7px 14px;border:1px solid var(--line);border-radius:var(--radius-m);background:var(--paper-2);font-size:11px;color:var(--ink-2);letter-spacing:.06em}
+/* v2.8.2:实底提示条,文字居左、回到当前收进右侧胶囊按钮,不再挤成一团 */
+.history-tip button{border:1px solid var(--line-2);background:var(--card);color:var(--ink);border-radius:99px;padding:4px 12px;font-size:10.5px;cursor:pointer;transition:all .16s;font-family:var(--sans)}
+.history-tip button:hover{border-color:var(--ink-2)}
+.history-tip button:active{transform:scale(.96)}
 /* display:flex 会压过 hidden 属性的默认 display:none,必须显式收回 */
 .history-tip[hidden]{display:none}
-.history-tip button{border:0;background:transparent;color:var(--li);font:inherit;cursor:pointer;border-bottom:1px solid currentColor;padding:0 0 1px;letter-spacing:.06em}
 /* 历次星图弹窗(压在报告卡之上) */
 #historyModal{z-index:85}
 .history-list{display:flex;flex-direction:column;gap:8px}
@@ -1033,7 +1036,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
       </div>
     </div>
     <nav class="rp-nav" id="rp-nav" aria-label="星图分段导航"></nav>
-    <div class="history-tip" id="rp-history-tip" hidden>正在回看历史星图<button type="button" onclick="backToLiveReport()">回到当前</button></div>
+    <div class="history-tip" id="rp-history-tip" hidden><span>正在回看历史星图</span><button type="button" onclick="backToLiveReport()">回到当前</button></div>
     <div class="rc-body">
       <div class="rc-sec-lb rp-target" id="rp-lb-cards" data-reveal>星 卡 · 你 的 多 维 画 像</div>
       <div id="rp-cards" style="display:flex;flex-direction:column;gap:18px"></div>
@@ -1263,14 +1266,14 @@ html.js [data-reveal]:not(.revealed){opacity:0}
         <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
         <div class="stat-sub">反馈问题时，请把这个版本号一并告诉开发者</div>
       </div>
-      <div class="stat-sub" style="margin-top:2px">每次输入新验证码会开始全新谈心，旧对话存档自动覆盖；历次星图仍保留在本机。</div>
+      <div class="stat-sub" style="margin-top:2px"><b>注意：</b>每次输入新验证码会开始全新谈心，旧对话存档自动覆盖；历次星图仍保留在本机。</div>
       </div>
       <div class="dev-note" data-reveal>
         <p><b>写给你</b></p>
         <p class="dev-quote">愿每一个站在分科路口、抬头寻找方向的你，<br>都能在自己的星光里，听见内心的回答。</p>
         <p>北辰只陪你把心里的声音理清，不替你决定要走向的远方。</p>
         <hr class="dev-hr">
-        <p><b>开发缘由</b>　本网页专为荣县一中高一正处于分科阶段、仍在摇摆与寻找方向的同学而设计开发制作，也欢迎每一位正在经历类似困惑的学生使用。</p>
+        <p><b>开发缘由</b>　本网页为荣县一中高一正处于分科阶段、仍在摇摆与寻找方向的同学而设计开发制作，也欢迎每一位正在经历类似困惑的学生使用。</p>
         <p><b>开发者</b>　予笙　<span class="dev-qq">QQ 2661864056</span></p>
         <p>欢迎联系我获取动态验证码、分享使用感受或提出建议</p>
       </div>
