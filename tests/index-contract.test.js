@@ -376,8 +376,7 @@ assert.match(index, /↓ 新回复/);
 /* ═══════════════ v3.0 体验并版 L3:星图体验 ═══════════════ */
 /* 星图等待分段进度 */
 assert.match(index, /辰在描出你的多维星图 · ' \+ done \+ '\/' \+ total/);
-/* 移动端报告全屏 sheet + 分段导航 */
-assert.match(index, /#reportModal \.report-card\{width:100%;max-height:100dvh;height:100dvh;border-radius:0;border:none\}/);
+/* 星图分段导航(移动端卡片式报告内同样吸顶) */
 assert.match(index, /function buildReportNav/);
 assert.match(index, /id="rp-nav"/);
 assert.match(index, /class="rc-sec-lb rp-target" id="rp-lb-cards" data-reveal/);
@@ -438,5 +437,9 @@ assert.match(index, /data-e="deep"/);
 assert.match(index, /星图生成预估：省时 1~1\.5 分钟 · 标准 1\.5~2\.5 分钟 · 深思 2~4 分钟/);
 /* 本机保存说明 */
 assert.match(index, /旧对话存档自动覆盖；历次星图仍保留在本机/);
+
+assert.doesNotMatch(index, /'我还想补充'/);
+assert.doesNotMatch(index, /onclick="copyReport\(\)"/);
+assert.match(index, /repeat\(4,minmax\(0,1fr\)\)/);
 
 console.log('index contract tests passed');

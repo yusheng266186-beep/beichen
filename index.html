@@ -491,7 +491,7 @@ button.mj{font-family:inherit;background:transparent;cursor:default}
 .rc-time{text-align:center;font-size:10px;color:var(--mut);letter-spacing:0.2em;padding:14px 0 6px;font-family:var(--serif)}
 .report-quota{text-align:center;font-size:10.5px;color:var(--mut);letter-spacing:.06em;padding:0 20px 16px;line-height:1.7}
 .report-actions{
-  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
   padding:0 30px 26px;
 }
 .report-actions .tbtn{width:100%;min-width:0;white-space:nowrap}
@@ -744,10 +744,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 .mp-note{margin-top:9px;font-size:9.5px;color:var(--mut);letter-spacing:.04em}
 @media (max-width:640px){
   .jump-latest{bottom:150px;right:12px}
-  /* 报告在手机端升级为全屏 sheet */
-  #reportModal.show{padding:0}
-  #reportModal .report-card{width:100%;max-height:100dvh;height:100dvh;border-radius:0;border:none}
-  #reportModal .rc-close{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;margin:0;z-index:9}
+  /* v2.8.2:移动端恢复卡片式报告(撤全屏 sheet);分段导航在卡内照常吸顶 */
   .rp-nav{padding:10px 14px 8px}
 }
 
@@ -1052,7 +1049,6 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     <div class="report-note" id="rp-note" data-reveal hidden>本次画像部分字段以宽容模式呈现 · 想要完整版可点「重新点亮星图」重新生成</div>
     <div class="report-actions">
       <button class="tbtn pri" id="saveReportBtn" data-reveal onclick="saveReportImage()">保存为图片</button>
-      <button class="tbtn" data-reveal onclick="copyReport()">复制星图</button>
       <button class="tbtn" data-reveal onclick="continueAsk('为什么是这个方位？讲讲你判断的核心依据。')">追问依据</button>
       <button class="tbtn" data-reveal onclick="openReportHistory()">历次星图</button>
       <button class="tbtn danger" data-reveal onclick="confirmRestart()">重新测试</button>
@@ -2583,8 +2579,8 @@ function renderChoices(arr, hideHint){
 
 function renderPostReportChoices(){
     const choices = quotaSyncPending
-    ? ['同步本次额度','点亮星图','我还想补充','重新测试']
-    : ['点亮星图','为什么是这个方位','组合帮我对比下','我还想补充','重新测试'];
+    ? ['同步本次额度','点亮星图','重新测试']
+    : ['点亮星图','为什么是这个方位','组合帮我对比下','重新测试'];
   renderChips(choices);
 }
 
@@ -2604,7 +2600,6 @@ function renderChips(arr){
       if(opt === '点亮星图'){ if(reportDone) openOverlay('reportModal'); else openReportAsk(); return; }
       if(opt === '为什么是这个方位') return continueAsk('为什么是这个方位？讲讲你判断的核心依据。');
       if(opt === '组合帮我对比下') return continueAsk('帮我把首选组合和备选组合对比分析一下。');
-      if(opt === '我还想补充'){ inp.value='我想补充：'; inp.focus(); return; }
       send(opt);
     };
     choicesEl.appendChild(b);
