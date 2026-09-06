@@ -62,6 +62,17 @@ function boundedInt(raw, fallback, min, max) {
   return Number.isInteger(n) && n >= min && n <= max ? n : fallback;
 }
 
+/* 结构化事件日志:JSON 行,只记事件名与数字指标/错误码;
+   绝不记录验证码、令牌、聊天正文或任何密钥(契约测试反向锁定)。 */
+function logEvent(ev, fields) {
+  try { console.log(JSON.stringify(Object.assign({ t: Date.now(), ev }, fields || {}))); } catch (_) { /* 日志永不影响请求 */ }
+}
+
+/* IP 等敏感值入日志前只保留 SHA1 前 12 位指纹。 */
+function hashTag(value) {
+  return crypto.createHash('sha1').update(String(value || '')).digest('hex').slice(0, 12);
+}
+
 /* ── 小工具 ─────────────────────────────────────────────────────── */
 function httpError(status, code) {
   const error = new Error(code);
@@ -334,20 +345,34 @@ async function handleVerify(req, res) {
   }
   const clientIp = pickClientIp(req.headers['x-forwarded-for'], req.socket && req.socket.remoteAddress);
   if (!await allowRate('verify:' + clientIp, 8, 60000)) {
+    logEvent('verify_rate_limited', { ip: hashTag(clientIp) });
     return json(req, res, 429, { error: { message: 'BEICHEN_AUTH_RATE_LIMIT' } });
   }
   const body = await readJson(req, 8 * 1024);
   if (!onlyKeys(body, ['code']) || typeof body.code !== 'string') {
+    logEvent('verify_denied', {});
     return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
   }
   const counter = matchingTotpCounter(body.code);
-  if (counter === null) return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
+  if (counter === null) { logEvent('verify_denied', {}); return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } }); }
   /* Redis SET NX/PX 让多实例只能消费同一组 counter+验证码一次。 */
-  const consumed = await stateStore.consumeTotp(counter + ':' + crypto.createHash('sha256').update(body.code).digest('hex'), 120000);
-  if (!consumed) return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } });
+  let consumed;
+  try {
+    consumed = await stateStore.consumeTotp(counter + ':' + crypto.createHash('sha256').update(body.code).digest('hex'), 120000);
+  } catch (error) {
+    logEvent('store_error', { where: 'verify_totp', code: String(error && error.code || 'STORE_ERROR') });
+    throw error;
+  }
+  if (!consumed) { logEvent('verify_denied', {}); return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } }); }
 
   const state = newSession();
-  await stateStore.createSession(state);
+  try {
+    await stateStore.createSession(state);
+  } catch (error) {
+    logEvent('store_error', { where: 'verify_create', code: String(error && error.code || 'STORE_ERROR') });
+    throw error;
+  }
+  logEvent('verify_ok', {});
   return json(req, res, 200, { ok: true, token: tokenForState(state), runs: 0, maxRuns: MAX_RUNS, expiresIn: TOKEN_TTL_MS });
 }
 
@@ -399,6 +424,7 @@ async function handleRunComplete(req, res) {
     receiptTtlMs: Math.max(1000, auth.state.exp - Date.now())
   });
   if (!result.ok) return json(req, res, errorStatus(result.code, 409), { error: { message: result.code } });
+  logEvent('run_complete', { runs: result.response.runs, replayed: !!result.replayed });
   return json(req, res, 200, result.response);
 }
 
@@ -582,6 +608,13 @@ function mapStoreResult(req, res, result) {
   return json(req, res, errorStatus(result.code, 409), { error: { message: result.code } });
 }
 
+const QUOTA_REFUSED_CODES = new Set([
+  'BEICHEN_QUOTA_EXHAUSTED',
+  'BEICHEN_SESSION_TURNS_EXHAUSTED',
+  'BEICHEN_REPORT_ATTEMPTS_EXHAUSTED',
+  'BEICHEN_REPORT_IN_PROGRESS'
+]);
+
 async function handleChat(req, res) {
   const auth = await authenticate(req);
   if (auth.error) return json(req, res, errorStatus(auth.error, 401), { error: { message: auth.error } });
@@ -593,18 +626,27 @@ async function handleChat(req, res) {
   const input = await readJson(req, MAX_BODY_BYTES);
   const body = validateChatBody(input);
   const kind = requestKind(body);
-  const reservation = await stateStore.startChat(auth.payload.sid, {
-    report: kind === 'report',
-    maxRuns: MAX_RUNS,
-    maxTurns: MAX_SESSION_TURNS,
-    maxReportAttempts: REPORT_ATTEMPTS,
-    maxReportRetries: REPORT_REPAIR_ATTEMPTS,
-    leaseMs: kind === 'report' ? REPORT_LEASE_MS : TURN_LEASE_MS,
-    expected: { jti: auth.payload.jti, seq: auth.payload.seq, runs: auth.payload.runs }
-  });
-  const storeError = mapStoreResult(req, res, reservation);
-  if (storeError) return storeError;
+  let reservation;
+  try {
+    reservation = await stateStore.startChat(auth.payload.sid, {
+      report: kind === 'report',
+      maxRuns: MAX_RUNS,
+      maxTurns: MAX_SESSION_TURNS,
+      maxReportAttempts: REPORT_ATTEMPTS,
+      maxReportRetries: REPORT_REPAIR_ATTEMPTS,
+      leaseMs: kind === 'report' ? REPORT_LEASE_MS : TURN_LEASE_MS,
+      expected: { jti: auth.payload.jti, seq: auth.payload.seq, runs: auth.payload.runs }
+    });
+  } catch (error) {
+    logEvent('store_error', { where: 'start_chat', code: String(error && error.code || 'STORE_ERROR') });
+    throw error;
+  }
+  if (!reservation.ok) {
+    if (QUOTA_REFUSED_CODES.has(reservation.code)) logEvent('quota_refused', { kind, code: reservation.code });
+    return mapStoreResult(req, res, reservation);
+  }
 
+  const started = Date.now();
   let upstreamError = null;
   let upstreamSucceeded = false;
   try {
@@ -618,8 +660,11 @@ async function handleChat(req, res) {
     await stateStore.finishChat(auth.payload.sid, reservation.reservationId, upstreamSucceeded, kind === 'report');
   } catch (error) {
     /* 状态层短暂故障时不把故障细节/请求内容写日志；租约会负责回收。 */
+    logEvent('store_error', { where: 'finish_chat', code: String(error && error.code || 'STORE_ERROR') });
     if (!upstreamSucceeded) upstreamError = upstreamError || error;
   }
+  if (upstreamSucceeded) logEvent('chat_ok', { kind, ms: Date.now() - started });
+  else logEvent('upstream_error', { kind, ms: Date.now() - started, code: String(upstreamError && upstreamError.code || 'UNKNOWN') });
   if (upstreamError) throw upstreamError;
 }
 

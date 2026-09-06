@@ -86,6 +86,13 @@ const fs = require('fs');
 const src = fs.readFileSync(path.join(__dirname, '..', 'scf-relay.js'), 'utf8');
 assert.doesNotMatch(src, /OPENCODE/i, 'unused opencode provider must stay deleted');
 
+/* 结构化日志纪律:logEvent 存在,且密钥/令牌/验证码绝不进日志 */
+assert.match(src, /function logEvent\(/, 'structured event logging must exist');
+assert.doesNotMatch(src, /logEvent\([^)]*config\.key/, 'log must never take the provider key');
+assert.doesNotMatch(src, /logEvent\([^)]*process\.env\.QIANFAN_API_KEY/, 'log must never take env secrets');
+assert.doesNotMatch(src, /logEvent\([^)]*payload\.token/, 'log must never take session tokens');
+assert.doesNotMatch(src, /logEvent\([^)]*body\.code/, 'log must never take the TOTP code');
+
 /* 客户端真实 IP:CLB 把真实 IP 追加在 XFF 末尾,取最后一个合法条目;解析不出回退 TCP 对端 */
 assert.equal(relay.pickClientIp('203.0.113.7', '10.0.0.1'), '203.0.113.7', 'single entry wins');
 assert.equal(relay.pickClientIp('203.0.113.7, 198.51.100.9', '10.0.0.1'), '198.51.100.9',
