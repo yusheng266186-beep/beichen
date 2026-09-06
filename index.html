@@ -1226,9 +1226,9 @@ html.js [data-reveal]:not(.revealed){opacity:0}
           <div class="stat-row"><span class="t-lb">本机验证有效期</span><b id="statExp">未验证</b></div>
           <div class="stat-sub" id="statExpSub">输入动态码验证后即可开始谈心</div>
         </div>
-        <div>
-          <div class="stat-row"><span class="t-lb">对话模型</span><b>qianfan-code-latest · 深度思考 max</b></div>
-        <div class="stat-sub" id="statModeRow">思考档位由云端固定为最高（max）· 对话模式：<span id="statMode">领航</span></div>
+      <div>
+        <div class="stat-row"><span class="t-lb">对话模型</span><b>qianfan-code-latest</b></div>
+        <div class="stat-sub" id="statModeRow">深度思考已开启，强度随下方档位由云端换算 · 对话模式：<span id="statMode">领航</span></div>
       </div>
       <div>
         <div class="stat-row"><span class="t-lb">思考强度</span><b id="statEffort">标准</b></div>
@@ -1238,10 +1238,6 @@ html.js [data-reveal]:not(.revealed){opacity:0}
           <button type="button" data-e="deep">深思</button>
         </div>
         <div class="stat-sub">星图生成预估：省时 1~1.5 分钟 · 标准 1.5~2.5 分钟 · 深思 2~4 分钟（受网络与当期负载影响）</div>
-      </div>
-      <div>
-        <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
-        <div class="stat-sub">反馈问题时，请把这个版本号一并告诉开发者</div>
       </div>
       <div>
         <div class="stat-row"><span class="t-lb">界面主题</span><b id="statTheme">跟随系统</b></div>
@@ -1257,12 +1253,17 @@ html.js [data-reveal]:not(.revealed){opacity:0}
           <button type="button" data-k="on">开</button>
           <button type="button" data-k="off">关</button>
         </div>
+        <div class="stat-sub">开：等待时同步显示模型思考的尾部内容（仅显示，不保存、不上传）；关：等待期只显示阶段进度与轮播文案。</div>
       </div>
-      <div class="stat-sub" style="margin-top:2px">每次输入新验证码会开始全新谈心，旧对话存档自动覆盖；历次星图仍保留在本机。</div>
       <div>
         <div class="stat-row"><span class="t-lb">中转服务</span><b id="statRelay">未检查</b></div>
-        <div class="stat-sub" id="statRelaySub">点击“检查连接”确认后端和共享次数记录是否就绪</div>
+        <div class="stat-sub" id="statRelaySub">点击"检查连接"确认后端和共享次数记录是否就绪</div>
       </div>
+      <div>
+        <div class="stat-row"><span class="t-lb">页面版本</span><b id="statVer">–</b></div>
+        <div class="stat-sub">反馈问题时，请把这个版本号一并告诉开发者</div>
+      </div>
+      <div class="stat-sub" style="margin-top:2px">每次输入新验证码会开始全新谈心，旧对话存档自动覆盖；历次星图仍保留在本机。</div>
       </div>
       <div class="dev-note" data-reveal>
         <p><b>写给你</b></p>
@@ -1309,8 +1310,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.8.0';
-const EXPECTED_BACKEND_VERSION = 'v2.8.0';
+const APP_VERSION = 'v2.8.1';
+const EXPECTED_BACKEND_VERSION = 'v2.8.1';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */

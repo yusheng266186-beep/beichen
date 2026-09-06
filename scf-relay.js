@@ -24,8 +24,8 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.8.0';
-const FRONTEND_VERSION = 'v2.8.0';
+const BACKEND_VERSION = 'v2.8.1';
+const FRONTEND_VERSION = 'v2.8.1';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
@@ -364,7 +364,11 @@ async function handleVerify(req, res) {
     logEvent('store_error', { where: 'verify_totp', code: String(error && error.code || 'STORE_ERROR') });
     throw error;
   }
-  if (!consumed) { logEvent('verify_denied', {}); return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_INVALID_CODE' } }); }
+  if (!consumed) {
+    /* v2.8.1:码正确但已被本窗口消费过 = 重放,与"码错误"区分,前端据此给出准确提示 */
+    logEvent('verify_replay', {});
+    return json(req, res, 401, { error: { message: 'BEICHEN_AUTH_REPLAY' } });
+  }
 
   const state = newSession();
   try {

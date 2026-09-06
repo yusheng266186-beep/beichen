@@ -137,6 +137,11 @@ test('现有页面协议下，普通轮回退、星图结算和重复提交都�
   let token = verified.body.token;
   const initial = tokenPayload(token);
 
+  /* v2.8.1:同窗口重放与"码错误"区分——重放返回 BEICHEN_AUTH_REPLAY */
+  const replay = await request(port, '/verify', {body: {code: totp(Math.floor(Date.now() / 30000), process.env.GATE_TOTP_SECRET)}});
+  assert.equal(replay.status, 401);
+  assert.equal(replay.body.error.message, 'BEICHEN_AUTH_REPLAY');
+
   const normal = await request(port, '/chat/completions', {
     headers: {authorization: 'Bearer ' + token},
     body: {messages: [{role: 'user', content: 'hello'}], max_tokens: 3500, stream: true}
