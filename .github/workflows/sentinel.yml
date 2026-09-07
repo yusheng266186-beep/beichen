@@ -18,6 +18,11 @@ jobs:
     steps:
       - name: 拨测 /readyz
         run: |
+          MODE="${{ vars.SENTINEL_MODE }}"
+          if [ "$MODE" = "off" ]; then
+            echo "::notice::Redis 处于关闭状态(redis_switch off),本轮跳过拨测"
+            exit 0
+          fi
           URL="${{ vars.RELAY_URL }}"
           if [ -z "$URL" ]; then
             echo "::warning::仓库变量 RELAY_URL 未配置,跳过本次拨测"
