@@ -1,0 +1,21 @@
+name: Redis switch checks
+on:
+  push:
+    branches: [main]
+    paths: ['tools/redis-switch/**', '.github/workflows/redis-switch.yml']
+  pull_request:
+    paths: ['tools/redis-switch/**', '.github/workflows/redis-switch.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: python -m pip install -r tools/redis-switch/requirements-redis-switch.txt
+      - name: Regression tests (no cloud credentials)
+        run: python tools/redis-switch/test_redis_switch.py
+        env:
+          PYTHONIOENCODING: utf-8

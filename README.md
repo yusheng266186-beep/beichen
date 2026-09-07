@@ -11,6 +11,8 @@
 
 ## Redis 开关与本次同步
 
+维护工具已更新为 [Redis 开关 1.0.1](https://github.com/yusheng266186-beep/beichen/releases/tag/redis-switch-v1.0.1)，修复关闭失败时的处理并增加桌面操作日志；[修复与验证记录](docs/Redis开关1.0.1修复记录.md)。
+
 2026-09-07 已完成真实开关循环及哨兵联动验收。维护者可下载工具包，Windows 双击 `Redis-Switch.cmd` 操作。见 [工具说明](tools/redis-switch/README-Redis开关.md) 和 [验收与同步记录](docs/验收与同步记录-2026-09-07.md)。运行版本仍为 v2.8.1，本次同步标签为 `v2.8.1-sync.20260907`。
 
 ## 本次迭代先看这里
