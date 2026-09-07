@@ -5,8 +5,8 @@ $env:PYTHONIOENCODING='utf-8'
 function Invoke-RedisAction([string]$SelectedAction) {
     $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
     if (-not $pythonCommand) { throw '未找到 Python，请先安装 Python 3.10 或以上版本。' }
-    & $pythonCommand.Source (Join-Path $PSScriptRoot 'redis_switch.py') $SelectedAction | Out-Host
-    return $LASTEXITCODE
+    & $pythonCommand.Source (Join-Path $PSScriptRoot 'redis_switch.py') $SelectedAction
+    $script:resultCode=$LASTEXITCODE
 }
 try {
     if ($Action -eq 'menu') {
@@ -22,7 +22,7 @@ try {
             default {throw '请输入 0、1、2 或 3。'}
         }
     }
-    $resultCode=Invoke-RedisAction $Action
+    Invoke-RedisAction $Action
 } catch {
     Write-Host $_.Exception.Message -ForegroundColor Red
     $resultCode=1
