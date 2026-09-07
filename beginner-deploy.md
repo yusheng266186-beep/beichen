@@ -188,3 +188,9 @@ npm run verify
 ```
 
 测试通过后再打包。`.env.example` 只有空值和占位符，不能直接作为生产 Secret；仓库内也不应该出现 `.env` 或任何真实密钥。
+
+## Redis 日常开关（2026-09-07 已验收）
+
+维护者使用 [Redis 开关工具](tools/redis-switch/README-Redis开关.md)。off 保存无密码配置快照、销毁按量实例并暂停哨兵；on 使用云函数规范网络配置自动创建、接回函数，readyz 通过才恢复哨兵。关闭会清空云端会话状态；快照不是数据备份；开启需要账户余额，操作必须串行。
+
+真实 redis-switch.config.json、redis-snapshot.json 已加入 Git 忽略。下载附件需自行配置，桌面版已配置。

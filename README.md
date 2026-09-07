@@ -9,6 +9,10 @@
 - **发布页**：<https://github.com/yusheng266186-beep/beichen/releases>
 
 
+## Redis 开关与本次同步
+
+2026-09-07 已完成真实开关循环及哨兵联动验收。维护者可下载工具包，Windows 双击 `Redis-Switch.cmd` 操作。见 [工具说明](tools/redis-switch/README-Redis开关.md) 和 [验收与同步记录](docs/验收与同步记录-2026-09-07.md)。运行版本仍为 v2.8.1，本次同步标签为 `v2.8.1-sync.20260907`。
+
 ## 本次迭代先看这里
 
 本次是前后端统一版本迭代：后端和页面版本均为 **v2.8.1**。围绕等待体验与学生自主调节：

@@ -8,3 +8,8 @@ node_modules/
 
 # 唯一交棒文档含密钥,绝不入仓库
 操作执行清单.md
+
+# Redis 运维本机配置与快照
+**/redis-switch.config.json
+**/redis-snapshot.json
+**/__pycache__/
