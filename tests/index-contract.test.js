@@ -235,7 +235,7 @@ assert.match(index, /\.gate-in\.enter\{animation:land-up/);   /* 星门入场可
 assert.match(index, /class="gate-in enter"/);
 assert.match(index, /gi\.classList\.remove\('enter'\); void gi\.offsetWidth; gi\.classList\.add\('enter'\);/);   /* 重新上锁重演 */
 assert.match(index, /#reportBtn\{animation:msg-in \.45s var\(--ease-stagger\) both\}/);   /* 星图按钮就绪弹出 */
-assert.match(index, /details\.faq summary:active\{opacity:\.7\}/);   /* FAQ 按压反馈 */
+assert.match(index, /details\.faq summary:active\{transform:scale\(\.98\)\}/);   /* FAQ 按压反馈与全站一致 */
 assert.doesNotMatch(index, /[^.]\.gate-in > \*:nth-child/);   /* 星门子动画必须收编到 .enter 作用域 */
 
 /* 确认小卡整卡在首屏,保留打开即微递进 */

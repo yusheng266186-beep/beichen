@@ -562,10 +562,11 @@ details.faq:first-of-type{border-top:1px solid var(--line)}
 details.faq summary{
   cursor:pointer;padding:13px 0;font-size:12.5px;list-style:none;
   display:flex;align-items:center;gap:10px;letter-spacing:0.03em;
+  transition:transform .18s;
 }
 details.faq summary::before{transition:color .18s,border-color .18s}
 details.faq summary:hover::before{color:var(--ink);border-color:var(--ink-2)}
-details.faq summary:active{opacity:.7}
+details.faq summary:active{transform:scale(.98)}
 details.faq summary::-webkit-details-marker{display:none}
 details.faq summary::before{
   content:'问';font-family:var(--serif);font-size:10px;color:var(--mut);
@@ -621,7 +622,7 @@ details.faq[open] .faq-a{animation:msg-in .35s var(--ease-stagger) both}
   .rail-step.ready:hover .rail-lb{color:var(--ink)}
   .rail-step.ready:hover .rail-dot{border-color:var(--ink)}
 }
-button,.pk-chip{-webkit-tap-highlight-color:transparent}
+button,.pk-chip,details.faq summary{-webkit-tap-highlight-color:transparent}
 /* 触摸设备不保留 hover 残影，点击只执行交互本身 */
 @media (hover:none), (pointer:coarse){
   button:focus-visible{outline:none}
