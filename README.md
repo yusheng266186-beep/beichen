@@ -8,6 +8,24 @@
 - **旧版（v1）存档**：<https://yusheng266186-beep.github.io/beichen/legacy/index-v1.html>（代码原样保留于 `legacy/`，仍可访问）
 - **发布页**：<https://github.com/yusheng266186-beep/beichen/releases>
 
+<!-- project-navigation:start -->
+## 项目概览
+
+| 项目 | 说明 |
+| --- | --- |
+| 分类 | 选科与升学探索 |
+| 平台 | 浏览器 / AI 中转 |
+| 当前定位 | 现行主线 |
+
+面向高中生的 AI 选科陪伴网页，通过谈心整理学科体验、兴趣与组合参考。
+
+[在线体验](https://yusheng266186-beep.github.io/beichen/) · [版本与下载](https://github.com/yusheng266186-beep/beichen/releases) · [使用与开发](#本地开发) · [项目总导航](https://github.com/yusheng266186-beep/yusheng266186-beep)
+
+本库是北辰的现行主线；[北辰 v3](https://github.com/yusheng266186-beep/beichen-codex) 是独立发布线，[历史调试库](https://github.com/yusheng266186-beep/beichen-v3-debug) 已归档。各自的页面、云函数和版本记录分开维护。
+
+**阅读导航：** [本地开发](#本地开发) · [版本与历史](#版本与历史) · [架构与安全模型](#架构与安全模型) · [目录结构](#目录结构)
+
+<!-- project-navigation:end -->
 
 ## Redis 开关与本次同步
 
