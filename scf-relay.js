@@ -25,8 +25,8 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.9.3';
-const FRONTEND_VERSION = 'v2.9.3';
+const BACKEND_VERSION = 'v2.9.4';
+const FRONTEND_VERSION = 'v2.9.4';
 const MAX_BODY_BYTES = 512 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;

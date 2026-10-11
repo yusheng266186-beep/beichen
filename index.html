@@ -795,8 +795,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 .gate-btn:hover{background:var(--paper-2);color:var(--ink)}
 .gate-btn:disabled{opacity:.4;cursor:not-allowed}
 .gate-err{font-size:11.5px;color:var(--wen);margin-top:16px;min-height:1.4em;letter-spacing:0.08em;font-family:var(--kai)}
-.gate-validity{font-family:var(--kai);font-size:11px;color:var(--mut);margin:24px auto 0;letter-spacing:0.04em;line-height:1.7}
-.gate-contact{font-family:var(--kai);font-size:11px;color:var(--mut);margin-top:12px;letter-spacing:0.08em}
+.gate-contact{font-family:var(--kai);font-size:11px;color:var(--mut);margin-top:22px;letter-spacing:0.08em}
 .gate-contact button{border:0;border-bottom:1px solid var(--line-2);padding:0 0 2px;background:transparent;color:var(--ink-2);font:inherit;cursor:pointer}
 .gate-contact button:hover{color:var(--ink);border-bottom-color:var(--ink)}
 .gate-contact small{display:block;margin-top:5px;font-size:10.5px;color:var(--mut);letter-spacing:.04em}
@@ -867,6 +866,73 @@ html.js [data-reveal]:not(.revealed){opacity:0}
   .intro-sec p{font-size:12.5px;line-height:2.15}
 }
 
+
+/* ══════════ 北辰 · 藏在星形图标里的全屏星图 ══════════ */
+.star-trigger{border:0;background:transparent;color:var(--ink);cursor:pointer;position:relative;flex-shrink:0;padding:0;line-height:0;-webkit-tap-highlight-color:transparent}
+.star-trigger svg{transition:transform .7s var(--ease-glide),color .3s}
+.star-trigger:hover svg{transform:rotate(12deg);color:var(--li)}
+.star-trigger:focus-visible{outline-offset:7px;border-radius:50%}
+.brand-star-trigger{width:26px;height:26px;display:grid;place-items:center}
+.brand-star-trigger::before{content:'';position:absolute;inset:-9px}
+.gate-star-trigger{display:block;width:44px;height:44px;margin:0 auto 16px}
+.gate-star-trigger .gate-star{display:block;width:34px;height:34px;margin:auto}
+#polarisModal{padding:0;z-index:260;background:var(--paper);backdrop-filter:none}
+.polaris-card{position:relative;width:100%;height:100%;overflow:hidden;isolation:isolate;background:var(--paper)}
+.polaris-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,var(--li-bg),transparent 62%);opacity:.55}
+.polaris-head{position:absolute;z-index:2;top:calc(28px + env(safe-area-inset-top,0px));left:max(32px,env(safe-area-inset-left,0px));color:var(--mut);font-family:var(--serif);font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+.polaris-head b{display:block;margin-bottom:6px;color:var(--ink-2);font-family:var(--kai);font-size:13px;font-weight:400;letter-spacing:.32em}
+.polaris-card .rc-close{position:absolute;z-index:3;top:calc(24px + env(safe-area-inset-top,0px));right:max(28px,env(safe-area-inset-right,0px));width:44px;height:44px;background:var(--paper);border:1px solid var(--line-2);color:var(--ink-2);border-radius:50%}
+.polaris-scene{position:absolute;inset:80px 0 130px}
+.polaris-map{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible;color:var(--ink-2)}
+.sky-dust{fill:var(--ink-2);opacity:var(--star-opacity,.35)}
+.sky-dust.twinkle{animation:skyTwinkle var(--star-time,6s) ease-in-out var(--star-delay,0s) infinite alternate}
+.sky-orbit{fill:none;stroke:var(--ink-2);stroke-width:.65;opacity:.19}
+.sky-orbit.dashed{stroke-dasharray:1 10;opacity:.26}
+.sky-ticks{stroke:var(--ink-2);stroke-width:.7;opacity:.25}
+.sky-route{fill:none;stroke:var(--li);stroke-width:1;opacity:.52;stroke-linecap:round;stroke-linejoin:round}
+.sky-route.warm{stroke:var(--wen);opacity:.4}
+.sky-anchor{fill:var(--paper);stroke:var(--li);stroke-width:1.1}
+.sky-anchor.warm{stroke:var(--wen)}
+.sky-label{fill:var(--mut);font-family:var(--kai);font-size:15px;letter-spacing:4px}
+.sky-coordinate{fill:var(--mut);font-family:var(--serif);font-size:12px;letter-spacing:2px}
+.sky-core{color:var(--ink);filter:drop-shadow(0 0 12px var(--li-bg))}
+.sky-core-star{fill:var(--paper);stroke:currentColor;stroke-width:1.35;transform-box:fill-box;transform-origin:center}
+.sky-core-point{fill:var(--li)}
+.sky-core-title{fill:var(--ink);font-family:var(--kai);font-size:24px;letter-spacing:9px}
+.sky-core-en{fill:var(--mut);font-family:var(--serif);font-size:11px;letter-spacing:5px}
+.polaris-foot{position:absolute;left:24px;right:24px;bottom:calc(35px + env(safe-area-inset-bottom,0px));text-align:center}
+.polaris-foot .polaris-quote{font-family:var(--kai);font-size:23px;font-weight:400;letter-spacing:.34em;text-indent:.34em;color:var(--ink)}
+.polaris-foot p{font-size:11px;letter-spacing:.14em;color:var(--mut);margin-top:13px}
+.polaris-foot .sky-rule{width:28px;height:1px;margin:0 auto 17px;background:var(--line-2)}
+#polarisModal.show .sky-core-star{animation:polarisBreathe 7s ease-in-out infinite}
+#polarisModal.show .sky-reveal{animation:skyReveal 1.8s var(--ease-glide) both}
+#polarisModal.show .sky-reveal.late{animation-delay:.2s}
+@keyframes skyTwinkle{to{opacity:.1}}
+@keyframes polarisBreathe{50%{filter:drop-shadow(0 0 9px var(--li));opacity:.7}}
+@keyframes skyReveal{from{opacity:0}to{opacity:1}}
+@media(max-width:640px){
+  .polaris-head{top:calc(22px + env(safe-area-inset-top,0px));left:22px;font-size:9px;letter-spacing:.22em}
+  .polaris-head b{font-size:12px}
+  .polaris-card .rc-close{top:calc(20px + env(safe-area-inset-top,0px));right:20px}
+  .polaris-scene{inset:95px 0 145px}
+  .polaris-map .sky-label{font-size:19px;letter-spacing:3px}
+  .polaris-map .sky-route{stroke-width:1.3}
+  .polaris-foot{left:18px;right:18px;bottom:calc(36px + env(safe-area-inset-bottom,0px))}
+  .polaris-foot .polaris-quote{font-size:20px;letter-spacing:.24em;text-indent:.24em}
+  .polaris-foot p{font-size:10.5px;letter-spacing:.08em}
+}
+@media(max-height:520px) and (min-width:641px){
+  .polaris-scene{inset:50px 0 85px}
+  .polaris-foot{bottom:16px}
+  .polaris-foot .polaris-quote{font-size:18px}
+  .polaris-foot p{margin-top:5px}
+  .polaris-foot .sky-rule{margin-bottom:7px}
+}
+@media(prefers-reduced-motion:reduce){
+  .sky-dust.twinkle,.sky-core-star,.sky-reveal{animation:none!important}
+  .star-trigger:hover svg{transform:none}
+}
+
 /* ══════════ 响应式 ══════════ */
 @media (max-width:860px){
   .rail-line{width:12px}
@@ -932,10 +998,12 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 <!-- ══════════ 2FA 星门 ══════════ -->
 <div class="gate" id="gate">
   <div class="gate-in enter">
-    <svg class="gate-star" viewBox="0 0 40 40" fill="none">
+    <button type="button" class="star-trigger gate-star-trigger" aria-label="打开北辰星图" onclick="openPolaris()">
+    <svg class="gate-star" viewBox="0 0 40 40" fill="none" aria-hidden="true">
       <path d="M20 2 L23 17 L38 20 L23 23 L20 38 L17 23 L2 20 L17 17 Z" stroke="currentColor" stroke-width="1.2" fill="none"/>
       <circle cx="20" cy="20" r="2" fill="currentColor"/>
     </svg>
+    </button>
     <div class="gate-eyebrow">Polaris · Gate</div>
     <h2 class="gate-title">北辰</h2>
     <p class="gate-sub" id="gateHint">此星图仅向持有钥匙的人开放<br>请输入提供的 6 位动态验证码</p>
@@ -943,8 +1011,64 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     <br>
     <button class="gate-btn" id="gateBtn">进 入</button>
     <div class="gate-err" id="gateErr"></div>
-    <p class="gate-validity" id="gateValidity">新码生成后 100 秒内有效 · 每组仅可验证一次</p>
     <div class="gate-contact">获取动态验证码 · QQ <button type="button" onclick="copyAuthorQQ(event)" title="点击复制 QQ 号">2661864056</button></div>
+  </div>
+</div>
+
+<!-- ══════════ 北辰 · 星图彩蛋（纯 SVG，独立于谈心） ══════════ -->
+<div class="overlay" id="polarisModal" role="dialog" aria-modal="true" aria-labelledby="polarisTitle" aria-describedby="polarisCaption">
+  <div class="polaris-card">
+    <div class="polaris-head"><b id="polarisTitle">北辰 · 星图</b>Polaris · A Quiet Compass</div>
+    <button type="button" class="rc-close" aria-label="关闭北辰星图" onclick="closeOverlay('polarisModal')">✕</button>
+    <div class="polaris-scene">
+      <svg class="polaris-map" id="polarisMap" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="polarisMapTitle polarisMapDesc">
+        <title id="polarisMapTitle">众星环绕北辰的艺术星图</title>
+        <desc id="polarisMapDesc">中央四芒北辰，环绕着细线星轨与星群，初见、底色、热爱和远方散落其间。</desc>
+        <defs>
+          <radialGradient id="polarisHalo"><stop offset="0" stop-color="currentColor" stop-opacity=".09"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
+        </defs>
+        <g id="polarisDust" aria-hidden="true"></g>
+        <g class="sky-reveal" aria-hidden="true">
+          <circle cx="600" cy="380" r="258" fill="url(#polarisHalo)" style="color:var(--li)"/>
+          <circle class="sky-orbit" cx="600" cy="380" r="300"/>
+          <circle class="sky-orbit dashed" cx="600" cy="380" r="283"/>
+          <circle class="sky-orbit" cx="600" cy="380" r="212"/>
+          <circle class="sky-orbit" cx="600" cy="380" r="126"/>
+          <path class="sky-orbit" d="M265 380H935 M600 46V714" stroke-dasharray="2 9"/>
+          <g id="polarisTicks" class="sky-ticks"></g>
+          <text class="sky-coordinate" x="600" y="61" text-anchor="middle">N</text>
+          <text class="sky-coordinate" x="600" y="715" text-anchor="middle">S</text>
+          <text class="sky-coordinate" x="271" y="384" text-anchor="middle">W</text>
+          <text class="sky-coordinate" x="929" y="384" text-anchor="middle">E</text>
+        </g>
+        <g class="sky-reveal late" aria-hidden="true">
+          <path class="sky-route" d="M340 252L403 238L446 288L495 268L551 314L600 380"/>
+          <path class="sky-route" d="M670 118L710 161L758 158L784 217L739 263L695 246L664 302L600 380"/>
+          <path class="sky-route warm" d="M891 413L839 443L817 501L749 499L716 552L662 558"/>
+          <path class="sky-route warm" d="M320 454L371 495L415 478L449 531L495 514L522 573"/>
+          <g class="sky-anchor">
+            <circle cx="340" cy="252" r="3"/><circle cx="403" cy="238" r="4"/><circle cx="446" cy="288" r="2.5"/><circle cx="495" cy="268" r="3.5"/><circle cx="551" cy="314" r="2.5"/>
+            <circle cx="670" cy="118" r="2.5"/><circle cx="710" cy="161" r="3.5"/><circle cx="758" cy="158" r="2.5"/><circle cx="784" cy="217" r="4"/><circle cx="739" cy="263" r="2.5"/><circle cx="695" cy="246" r="3"/><circle cx="664" cy="302" r="2.5"/>
+          </g>
+          <g class="sky-anchor warm">
+            <circle cx="891" cy="413" r="2.5"/><circle cx="839" cy="443" r="4"/><circle cx="817" cy="501" r="2.5"/><circle cx="749" cy="499" r="3"/><circle cx="716" cy="552" r="2.5"/><circle cx="662" cy="558" r="2"/>
+            <circle cx="320" cy="454" r="3"/><circle cx="371" cy="495" r="2.5"/><circle cx="415" cy="478" r="3.5"/><circle cx="449" cy="531" r="2"/><circle cx="495" cy="514" r="3"/><circle cx="522" cy="573" r="2.5"/>
+          </g>
+          <text class="sky-label" x="365" y="220">初见</text>
+          <text class="sky-label" x="794" y="202">底色</text>
+          <text class="sky-label" x="845" y="478">热爱</text>
+          <text class="sky-label" x="365" y="551">远方</text>
+        </g>
+        <g class="sky-core">
+          <circle class="sky-orbit" cx="600" cy="380" r="50"/>
+          <path class="sky-core-star" d="M600 347L605 374L633 380L605 386L600 413L595 386L567 380L595 374Z"/>
+          <circle class="sky-core-point" cx="600" cy="380" r="2.6"/>
+          <text class="sky-core-title" x="605" y="452" text-anchor="middle">北辰</text>
+          <text class="sky-core-en" x="602" y="477" text-anchor="middle">POLARIS</text>
+        </g>
+      </svg>
+    </div>
+    <div class="polaris-foot"><div class="sky-rule" aria-hidden="true"></div><h2 class="polaris-quote">居其所 · 众星共之</h2><p id="polarisCaption">愿你抬头时，找到属于自己的方位。</p></div>
   </div>
 </div>
 
@@ -979,10 +1103,12 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+      <button type="button" class="star-trigger brand-star-trigger" aria-label="打开北辰星图" onclick="openPolaris()">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <path d="M20 4 L22.6 17.4 L36 20 L22.6 22.6 L20 36 L17.4 22.6 L4 20 L17.4 17.4 Z" stroke="currentColor" stroke-width="1.4" fill="none"/>
         <circle cx="20" cy="20" r="1.8" fill="currentColor"/>
       </svg>
+      </button>
       <div>
         <h1>北辰</h1>
         <small>高一选科 · 找到你的方位</small>
@@ -1312,8 +1438,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.9.3';
-const EXPECTED_BACKEND_VERSION = 'v2.9.3';
+const APP_VERSION = 'v2.9.4';
+const EXPECTED_BACKEND_VERSION = 'v2.9.4';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */
@@ -3043,9 +3169,50 @@ function buildComboTable(){
   });
 }
 
+/* 原生 SVG 彩蛋：只在首次打开时画背景，不读取学生信息或调用模型。 */
+let polarisDrawn = false;
+function fitPolarisMap(){
+  const map = document.getElementById('polarisMap');
+  map.setAttribute('viewBox', window.innerWidth <= 640 ? '240 -70 720 960' : '0 0 1200 800');
+}
+function openPolaris(){
+  if(!polarisDrawn){
+    const ns = 'http://www.w3.org/2000/svg';
+    const dust = document.getElementById('polarisDust');
+    let seed = 20261011;
+    const random = ()=>{ seed = (Math.imul(seed,1664525)+1013904223)>>>0; return seed/4294967296; };
+    for(let i=0;i<155;i++){
+      const x=random()*1200, y=random()*800;
+      if(Math.hypot(x-600,y-380)<80) continue;
+      const star=document.createElementNS(ns,'circle');
+      star.setAttribute('cx',x.toFixed(1)); star.setAttribute('cy',y.toFixed(1));
+      star.setAttribute('r',(0.65+random()*1.3).toFixed(2));
+      star.setAttribute('class','sky-dust'+(i%11===0?' twinkle':''));
+      star.style.setProperty('--star-opacity',(0.2+random()*0.35).toFixed(2));
+      star.style.setProperty('--star-time',(5+random()*5).toFixed(1)+'s');
+      star.style.setProperty('--star-delay',(-random()*8).toFixed(1)+'s');
+      dust.appendChild(star);
+    }
+    const ticks=document.getElementById('polarisTicks');
+    for(let i=0;i<72;i++){
+      const a=i*Math.PI/36, r=i%6===0?308:304;
+      const tick=document.createElementNS(ns,'line');
+      tick.setAttribute('x1',(600+Math.sin(a)*300).toFixed(2)); tick.setAttribute('y1',(380-Math.cos(a)*300).toFixed(2));
+      tick.setAttribute('x2',(600+Math.sin(a)*r).toFixed(2)); tick.setAttribute('y2',(380-Math.cos(a)*r).toFixed(2));
+      ticks.appendChild(tick);
+    }
+    polarisDrawn=true;
+  }
+  fitPolarisMap();
+  openOverlay('polarisModal');
+}
+window.addEventListener('resize', ()=>{
+  if(document.getElementById('polarisModal').classList.contains('show')) fitPolarisMap();
+});
+
 /* ═══════════════════════════ 弹窗控制 ═══════════════════════════ */
 /* 可关闭弹窗按 z 序排列：Esc / 返回键只关最上层。选聊法与星门、序章是必经流程，不在其列 */
-const DISMISSIBLE = ['restartModal','settingsModal','dataModal','reportModal','historyModal','reportAskModal'];
+const DISMISSIBLE = ['polarisModal','restartModal','settingsModal','dataModal','reportModal','historyModal','reportAskModal'];
 function topDismissible(){
   const opened = overlayNavigation.top();
   const newest = opened && document.getElementById(opened);
@@ -3063,12 +3230,12 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape' && top){
     e.preventDefault();
     /* 解析悬浮卡开着时,Esc 先收卡,不关整个报告 */
-    if(mjPopState){ mjPopClose(); return; }
+    if(top === 'reportModal' && mjPopState){ mjPopClose(); return; }
     closeOverlay(top); return;
   }
   /* Tab 圈定在最上层弹窗内，键盘焦点不漏进被遮住的对话区 */
   if(e.key === 'Tab' && top){
-    const card = document.getElementById(top).querySelector('.report-card, .data-card, .modal-card, .restart-card');
+    const card = document.getElementById(top).querySelector('.polaris-card, .report-card, .data-card, .modal-card, .restart-card');
     if(!card) return;
     const focusables = [...card.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
       .filter(x => !x.disabled && x.offsetParent !== null);
@@ -3148,7 +3315,7 @@ function openOverlay(id){
   el.classList.remove('closing'); delete el.dataset.closing;
   el.classList.add('show');
   el._prevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  const card = el.querySelector('.report-card, .data-card, .modal-card, .restart-card');
+  const card = el.querySelector('.polaris-card, .report-card, .data-card, .modal-card, .restart-card');
   if(card) card.scrollTop = 0;
   /* 焦点移入弹窗（优先关闭钮），关闭时归还给触发者 */
   const focusTarget = el.querySelector('.rc-close') || card;
@@ -3752,7 +3919,7 @@ function setupGate(){
   const input = document.getElementById('gateInput');
   /* v3:桌面端自动聚焦(触屏设备不自动弹键盘骚扰) */
   if(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches){
-    setTimeout(()=>{ if(!gateOk()) input.focus({preventScroll:true}); }, 700);
+    setTimeout(()=>{ if(!gateOk() && !topDismissible()) input.focus({preventScroll:true}); }, 700);
   }
   /* 手机验证器仍每 30 秒换码；不显示与所收到验证码无关的换码倒计时。 */
 }

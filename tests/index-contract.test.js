@@ -198,7 +198,7 @@ assert.match(index, /【专业】5-8个专业方向，每个依次输出三段�
 assert.match(index, /function openMajorPop/);
 assert.match(index, /function mjPopClose\(immediate\)/);
 assert.match(index, /mjPopClose\(true\)/);   /* 重开报告/重新渲染时直接收起悬浮卡 */
-assert.match(index, /if\(mjPopState\)\{ mjPopClose\(\); return; \}/);   /* Esc 先收悬浮卡,不关报告 */
+assert.match(index, /if\(top === 'reportModal' && mjPopState\)\{ mjPopClose\(\); return; \}/);   /* 报告内 Esc 先收悬浮卡，其他顶层弹窗独立关闭 */
 assert.match(index, /\.mj-pop\{[\s\S]*?position:absolute;/);
 assert.match(index, /animation:msg-in \.34s var\(--ease-spring\) both/);   /* 悬浮卡入场复用全站 msg-in */
 assert.doesNotMatch(index, /@keyframes popIn/);   /* 不再私有 keyframes,与全站动效一致 */
@@ -300,8 +300,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.9\.3';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.3';/);
+assert.match(index, /const APP_VERSION = 'v2\.9\.4';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.4';/);
 assert.match(index, /id="statModel"/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);

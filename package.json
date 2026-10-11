@@ -1,6 +1,6 @@
 {
   "name": "beichen-qianfan-relay",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "private": true,
   "description": "北辰选科谈心的腾讯云 SCF 中转服务",
   "main": "scf-relay.js",
