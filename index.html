@@ -562,19 +562,19 @@ details.faq:first-of-type{border-top:1px solid var(--line)}
 details.faq summary{
   cursor:pointer;padding:13px 0;font-size:12.5px;list-style:none;
   display:flex;align-items:center;gap:10px;letter-spacing:0.03em;
-  transition:transform .18s;
+  transition:color .18s;
 }
 details.faq summary::before{transition:color .18s,border-color .18s}
 details.faq summary:hover::before{color:var(--ink);border-color:var(--ink-2)}
-details.faq summary:active{transform:scale(.98)}
+details.faq summary:active{color:var(--li)}
 details.faq summary::-webkit-details-marker{display:none}
 details.faq summary::before{
   content:'问';font-family:var(--serif);font-size:10px;color:var(--mut);
   border:1px solid var(--line-2);border-radius:3px;padding:1px 7px;flex-shrink:0;
 }
+details.faq .faq-panel{overflow:hidden}
 details.faq .faq-a{padding:0 0 14px;font-size:11.5px;color:var(--ink-2);line-height:1.9}
-/* FAQ 展开内容轻浮现(收起保持即时,不做拖沓动画) */
-details.faq[open] .faq-a{animation:msg-in .35s var(--ease-stagger) both}
+/* 答案高度统一展开／收起，文字不再独立位移，也不缩放问题整行。 */
 
 .books{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}
 .book{display:flex;gap:14px;padding:13px 2px;border-bottom:1px solid var(--line);align-items:baseline}
@@ -1263,16 +1263,16 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 
     <div class="dsec">
       <div class="dsec-t" data-reveal>常见疑问 <small>FAQ</small></div>
-      <details class="faq" data-reveal><summary>物化生覆盖率那么高，是不是应该无脑选它？</summary><div class="faq-a">不是。覆盖率只有在你能考到对应位次时才有价值。理科基础薄弱却硬选，大概率分数撑不住目标专业，进了大学也难跟上——覆盖率高不等于适合你。</div></details>
-      <details class="faq" data-reveal><summary>选历史类就和好工作无缘了吗？</summary><div class="faq-a">误解。历史类的优势在稳定性：公务员、教师、法务等赛道需求长期持续，通过编制考试后的稳定性和保障未必逊色。只是高薪岗位更集中在法学、财会等少数专业。</div></details>
-      <details class="faq" data-reveal><summary>再选科目要赋分，赋分是怎么算的？</summary><div class="faq-a">语文、数学、外语和首选科目（物理/历史）按卷面原始分计入总分；化学、生物、政治、地理四门再选科目按你在全省选考该科考生中的排名划档——A/B/C/D/E 约占 15%/35%/35%/13%/2%，再等比换算为 30~100 分计入。要点有二：赋分看排名不看卷面分，试题难易对最终分数影响有限；同一科的竞争对手越强，同一名次换算出的分数越低，所以"选的人多"与"对手强"要分开看。</div></details>
-      <details class="faq" data-reveal><summary>我理科中等，听说物化生太卷，转政史地是不是更划算？</summary><div class="faq-a">风险很高。理科中等的位次换到历史类赛道未必有优势，而政史地的记忆、材料分析、书面表达同样是硬功夫。历史类本科计划只有物理类的约三分之一，"逃避式转文"常常两头落空。</div></details>
-      <details class="faq" data-reveal><summary>想报军警类院校，该怎么选？</summary><div class="faq-a">分开看：技术类（计算机、电子信息等）基本要求物理+化学；指挥类和公安学类多数必选政治。另外军警院校还有体检、政审等附加要求，先确认自身条件。</div></details>
-      <details class="faq" data-reveal><summary>新高考下还有必要选纯文 / 纯理吗？</summary><div class="faq-a">对多数人仍是稳妥解：教学资源最成熟、对应赛道覆盖最完整、职业路径最清晰。但若目标专业有明确偏科要求，其他组合可能更优——先查清目标专业门槛再定。</div></details>
-      <details class="faq" data-reveal><summary>选科定了以后还能改吗？</summary><div class="faq-a">没有"一选定终身"的锁死时点——政策上不存在全省统一的改科禁令，选考科目最终以高考报名时为准；但实际的调整窗口集中在高一学年末到高二开学初，越往后，落下新课、走班重排、二次适应的代价越大，且需学校同意。真想调整：先找班主任和教务处确认本校规则，再用一次完整大考的排名验证决心，不要凭一两张卷子的挫败感就换赛道。</div></details>
-      <details class="faq" data-reveal><summary>大学里转专业难吗？选科时怎么留余地？</summary><div class="faq-a">多数高校都有转专业通道，通常看大一年级成绩和目标院系名额，热门专业竞争激烈、不保证成功。选科层面能做的是留宽口径：物理+化学能同时覆盖理工农医与多数经管的大门，转专业的余地最大；最终以目标高校教务规定为准。</div></details>
-      <details class="faq" data-reveal><summary>艺考、体育、职教这些路径呢？</summary><div class="faq-a">艺术类/体育类需要专业统考或校考，文化课要求相对低但路径单一、退出成本高；职教高考与高职单招主要面向中职学生，普高生一般走统一高考。先确认自己的赛道，再回来看组合——赛道不同，"覆盖率"的意义完全不同。</div></details>
-      <details class="faq" data-reveal><summary>家里人意见不一样，怎么办？</summary><div class="faq-a">把"谁的担心"和"你的手感"分开列：家里的现实考量往往有信息量，但替代不了你的课堂体验。用一次完整大考的成绩和真实的课堂感受去验证，而不是靠争吵定输赢。北辰的立场不变：数据与门槛是参考，决定权在你。</div></details>
+      <details class="faq" data-reveal><summary>物化生覆盖率那么高，是不是应该无脑选它？</summary><div class="faq-panel"><div class="faq-a">不是。覆盖率只有在你能考到对应位次时才有价值。理科基础薄弱却硬选，大概率分数撑不住目标专业，进了大学也难跟上——覆盖率高不等于适合你。</div></div></details>
+      <details class="faq" data-reveal><summary>选历史类就和好工作无缘了吗？</summary><div class="faq-panel"><div class="faq-a">误解。历史类的优势在稳定性：公务员、教师、法务等赛道需求长期持续，通过编制考试后的稳定性和保障未必逊色。只是高薪岗位更集中在法学、财会等少数专业。</div></div></details>
+      <details class="faq" data-reveal><summary>再选科目要赋分，赋分是怎么算的？</summary><div class="faq-panel"><div class="faq-a">语文、数学、外语和首选科目（物理/历史）按卷面原始分计入总分；化学、生物、政治、地理四门再选科目按你在全省选考该科考生中的排名划档——A/B/C/D/E 约占 15%/35%/35%/13%/2%，再等比换算为 30~100 分计入。要点有二：赋分看排名不看卷面分，试题难易对最终分数影响有限；同一科的竞争对手越强，同一名次换算出的分数越低，所以"选的人多"与"对手强"要分开看。</div></div></details>
+      <details class="faq" data-reveal><summary>我理科中等，听说物化生太卷，转政史地是不是更划算？</summary><div class="faq-panel"><div class="faq-a">风险很高。理科中等的位次换到历史类赛道未必有优势，而政史地的记忆、材料分析、书面表达同样是硬功夫。历史类本科计划只有物理类的约三分之一，"逃避式转文"常常两头落空。</div></div></details>
+      <details class="faq" data-reveal><summary>想报军警类院校，该怎么选？</summary><div class="faq-panel"><div class="faq-a">分开看：技术类（计算机、电子信息等）基本要求物理+化学；指挥类和公安学类多数必选政治。另外军警院校还有体检、政审等附加要求，先确认自身条件。</div></div></details>
+      <details class="faq" data-reveal><summary>新高考下还有必要选纯文 / 纯理吗？</summary><div class="faq-panel"><div class="faq-a">对多数人仍是稳妥解：教学资源最成熟、对应赛道覆盖最完整、职业路径最清晰。但若目标专业有明确偏科要求，其他组合可能更优——先查清目标专业门槛再定。</div></div></details>
+      <details class="faq" data-reveal><summary>选科定了以后还能改吗？</summary><div class="faq-panel"><div class="faq-a">没有"一选定终身"的锁死时点——政策上不存在全省统一的改科禁令，选考科目最终以高考报名时为准；但实际的调整窗口集中在高一学年末到高二开学初，越往后，落下新课、走班重排、二次适应的代价越大，且需学校同意。真想调整：先找班主任和教务处确认本校规则，再用一次完整大考的排名验证决心，不要凭一两张卷子的挫败感就换赛道。</div></div></details>
+      <details class="faq" data-reveal><summary>大学里转专业难吗？选科时怎么留余地？</summary><div class="faq-panel"><div class="faq-a">多数高校都有转专业通道，通常看大一年级成绩和目标院系名额，热门专业竞争激烈、不保证成功。选科层面能做的是留宽口径：物理+化学能同时覆盖理工农医与多数经管的大门，转专业的余地最大；最终以目标高校教务规定为准。</div></div></details>
+      <details class="faq" data-reveal><summary>艺考、体育、职教这些路径呢？</summary><div class="faq-panel"><div class="faq-a">艺术类/体育类需要专业统考或校考，文化课要求相对低但路径单一、退出成本高；职教高考与高职单招主要面向中职学生，普高生一般走统一高考。先确认自己的赛道，再回来看组合——赛道不同，"覆盖率"的意义完全不同。</div></div></details>
+      <details class="faq" data-reveal><summary>家里人意见不一样，怎么办？</summary><div class="faq-panel"><div class="faq-a">把"谁的担心"和"你的手感"分开列：家里的现实考量往往有信息量，但替代不了你的课堂体验。用一次完整大考的成绩和真实的课堂感受去验证，而不是靠争吵定输赢。北辰的立场不变：数据与门槛是参考，决定权在你。</div></div></details>
     </div>
 
     <div class="dsec">
@@ -1439,8 +1439,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.9.5';
-const EXPECTED_BACKEND_VERSION = 'v2.9.5';
+const APP_VERSION = 'v2.9.6';
+const EXPECTED_BACKEND_VERSION = 'v2.9.6';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */
@@ -3305,6 +3305,64 @@ document.addEventListener('keydown', (e)=>{
     else if(!e.shiftKey && (document.activeElement === last || !card.contains(document.activeElement))){ e.preventDefault(); first.focus(); }
   }
 });
+/* FAQ：保留 details 原生键盘语义，无脚本／动画 API 时仍可正常开合。 */
+const faqMotion = new WeakMap();
+function settleFaqMotion(details,state){
+  const animation=state.animation;
+  state.animation=null;
+  state.panel.style.height='';
+  details.open=state.expanded;
+  if(animation) animation.cancel();
+}
+function toggleFaqMotion(details,expanded){
+  const state=faqMotion.get(details);
+  if(!state) return;
+  /* 反向点击从当前画面高度接续，不跳到上一段动画的起点或终点。 */
+  const start=details.open ? state.panel.getBoundingClientRect().height : 0;
+  const previous=state.animation;
+  state.animation=null;
+  if(previous) previous.cancel();
+  state.expanded=expanded;
+  state.panel.style.height=start+'px';
+  details.open=true;
+  const end=expanded ? state.panel.scrollHeight : 0;
+  const reduced=window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced || typeof state.panel.animate!=='function' || Math.abs(end-start)<1){
+    settleFaqMotion(details,state); return;
+  }
+  const animation=state.panel.animate([{height:start+'px'},{height:end+'px'}],{
+    duration:expanded?240:190,easing:'cubic-bezier(.25,.1,.25,1)',fill:'both'
+  });
+  state.animation=animation;
+  animation.onfinish=()=>{
+    if(state.animation===animation) settleFaqMotion(details,state);
+  };
+}
+function settleAllFaqMotion(){
+  document.querySelectorAll('details.faq').forEach(details=>{
+    const state=faqMotion.get(details);
+    if(state?.animation) settleFaqMotion(details,state);
+  });
+}
+function setupFaqMotion(){
+  document.querySelectorAll('details.faq').forEach(details=>{
+    if(faqMotion.has(details)) return;
+    const summary=details.querySelector('summary'),panel=details.querySelector('.faq-panel');
+    if(!summary || !panel) return;
+    const state={panel,expanded:details.open,animation:null};
+    faqMotion.set(details,state);
+    summary.addEventListener('click',event=>{
+      event.preventDefault();
+      toggleFaqMotion(details,!state.expanded);
+    });
+    /* 浏览器查找等原生行为也可能打开 details，随后点击仍按实际状态切换。 */
+    details.addEventListener('toggle',()=>{ if(!state.animation) state.expanded=details.open; });
+  });
+  window.addEventListener('resize',settleAllFaqMotion);
+  const reduced=window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)');
+  if(reduced?.addEventListener) reduced.addEventListener('change',settleAllFaqMotion);
+}
+
 /* ── 滚动显现:元素进入视口才进场,不滑动就不播 ── */
 function growFills(scope){
   scope.querySelectorAll('.cov-fill, .hl-f').forEach((f,i)=>{
@@ -3420,6 +3478,7 @@ function closeOverlay(id, opts){
   if(!el || !el.classList.contains('show') || el.dataset.closing) return;
   el.dataset.closing = '1';
   el.classList.add('closing');
+  if(id === 'dataModal') settleAllFaqMotion();
   if(!(opts && opts.fromPop)) overlayNavigation.close(id);
   el._closeTm = setTimeout(()=>{
     el.classList.remove('show','closing'); delete el.dataset.closing;
@@ -4012,6 +4071,7 @@ function chooseMode(mode){
 
 renderRail();
 buildComboTable();
+setupFaqMotion();
 setupViewport();
 setupGate();
 

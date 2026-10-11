@@ -218,7 +218,7 @@ assert.match(index, /matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches
 assert.match(index, /querySelectorAll\('\.cov-fill, \.hl-f'\)/);   /* 霍兰德六条与覆盖率条同款弹簧 */
 assert.match(index, /#dataModal \.cov-fill, #dataModal \.hl-f/);   /* 重置覆盖霍兰德条 */
 assert.match(index, /\.hl-f\{height:100%;border-radius:99px;transform:scaleX\(0\);transform-origin:0 50%;transition:transform 1\.1s var\(--ease-spring\)\}/);
-assert.match(index, /details\.faq\[open\] \.faq-a\{animation:msg-in/);   /* FAQ 展开轻浮现 */
+assert.match(index, /details\.faq \.faq-panel\{overflow:hidden\}/);   /* FAQ 统一高度开合 */
 assert.match(index, /class="model-card" data-reveal/);
 assert.match(index, /class="faq" data-reveal/);
 assert.match(index, /class="book" data-reveal/);
@@ -237,7 +237,7 @@ assert.match(index, /\.gate-in\.enter\{animation:land-up/);   /* 星门入场可
 assert.match(index, /class="gate-in enter"/);
 assert.match(index, /gi\.classList\.remove\('enter'\); void gi\.offsetWidth; gi\.classList\.add\('enter'\);/);   /* 重新上锁重演 */
 assert.match(index, /#reportBtn\{animation:msg-in \.45s var\(--ease-stagger\) both\}/);   /* 星图按钮就绪弹出 */
-assert.match(index, /details\.faq summary:active\{transform:scale\(\.98\)\}/);   /* FAQ 按压反馈与全站一致 */
+assert.match(index, /details\.faq summary:active\{color:var\(--li\)\}/);   /* FAQ 按压不缩放整行 */
 assert.doesNotMatch(index, /[^.]\.gate-in > \*:nth-child/);   /* 星门子动画必须收编到 .enter 作用域 */
 
 /* 确认小卡整卡在首屏,保留打开即微递进 */
@@ -300,8 +300,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.9\.5';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.5';/);
+assert.match(index, /const APP_VERSION = 'v2\.9\.6';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.6';/);
 assert.match(index, /id="statModel"/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);
