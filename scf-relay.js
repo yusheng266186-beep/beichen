@@ -18,21 +18,22 @@
 const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
+const { modelProfile, adaptModelBody, profileVersion } = require('./model-adapter');
 const {
   MemoryStateStore,
   createStateStoreFromEnv
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.9.0';
-const FRONTEND_VERSION = 'v2.9.0';
+const BACKEND_VERSION = 'v2.9.1';
+const FRONTEND_VERSION = 'v2.9.1';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
 /* 默认 4 万字符：中文按 3 字节/字约 120KB，先于正文上限触发 */
 const MAX_PROMPT_CHARS = boundedInt(process.env.MAX_PROMPT_CHARS, 40000, 2000, 200000);
 const MAX_COMPLETION_TOKENS = 16384;
-const MAX_UPSTREAM_BYTES = 2 * 1024 * 1024;
+const MAX_UPSTREAM_BYTES = 8 * 1024 * 1024;
 const CLOCK_SKEW_MS = 60 * 1000;
 const DEFAULT_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -538,21 +539,7 @@ function buildUpstreamBody(body, config) {
       : base;
     upstreamBody.thinking_budget = budget;
   }
-  if (config.name === 'deepseek' || config.name === 'wefucke') {
-    const effort = body.effort === 'eco' ? 'low' : body.effort === 'deep' ? 'max' : 'high';
-    if (config.name === 'deepseek') {
-      upstreamBody.thinking = { type: 'enabled' };
-      upstreamBody.reasoning_effort = effort;
-      delete upstreamBody.temperature;
-    } else {
-      // 与 Harness 的 Wefucke / OpenRouter 兼容格式一致。
-      upstreamBody.reasoning = { enabled: true, effort };
-    }
-  }
-  if (config.name === 'wefucke-gpt') {
-    upstreamBody.reasoning_effort = body.effort === 'eco' ? 'low' : body.effort === 'deep' ? 'max' : 'high';
-    delete upstreamBody.temperature;
-  }
+  if (config.name !== 'qianfan') return adaptModelBody(body, config, process.env.AI_DEFAULT_EFFORT);
   delete upstreamBody.mode;
   delete upstreamBody.effort;
   return upstreamBody;
@@ -602,7 +589,10 @@ function proxyChat(req, res, body, config) {
       settled = true;
       stopHeartbeat();
       if (upstream && !upstream.destroyed) upstream.destroy();
-      if (res.headersSent && !res.writableEnded) res.destroy();
+      if (res.headersSent && !res.writableEnded && !res.destroyed) {
+        try { res.end('data: '+JSON.stringify({error:{message:error.code || 'BEICHEN_UPSTREAM_ERROR'}})+'\n\n'); }
+        catch (_) { res.destroy(); }
+      }
       reject(error);
     };
     const success = () => {
@@ -640,7 +630,7 @@ function proxyChat(req, res, body, config) {
           return;
         }
         const contentType = String(response.headers['content-type'] || '').toLowerCase();
-        if (!contentType.startsWith('text/event-stream') && !contentType.startsWith('application/json')) {
+        if (!contentType.startsWith('text/event-stream') && (config.name !== 'qianfan' || !contentType.startsWith('application/json'))) {
           if (response.resume) response.resume();
           if (response.destroy) response.destroy();
           return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
@@ -657,13 +647,43 @@ function proxyChat(req, res, body, config) {
           }
         }, SSE_HEARTBEAT_MS);
         if (heartbeat.unref) heartbeat.unref();
+        let streamBuffer = '', hasContent = false, streamDone = false, streamError = false;
+        const streamDecoder = new (require('string_decoder').StringDecoder)('utf8');
+        const inspectLine = line => {
+          if (!line.trim().startsWith('data:')) return;
+          const payload = line.trim().slice(5).trim();
+          if (payload === '[DONE]') { streamDone = true; return; }
+          if (!payload) return;
+          try {
+            const event = JSON.parse(payload);
+            if (event.error) streamError = true;
+            for (const choice of event.choices || []) {
+              if (choice.delta?.content?.trim() || choice.message?.content?.trim()) hasContent = true;
+              if (choice.finish_reason && !['stop','length'].includes(choice.finish_reason)) streamError = true;
+            }
+          } catch (_) { streamError = true; }
+        };
         res.on('drain', () => response.resume());
         response.on('data', chunk => {
           bytes += chunk.length;
           if (bytes > MAX_UPSTREAM_BYTES) return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
+          if (contentType.startsWith('text/event-stream')) {
+            streamBuffer += streamDecoder.write(chunk);
+            let newline;
+            while ((newline = streamBuffer.indexOf('\n')) >= 0) {
+              inspectLine(streamBuffer.slice(0, newline));
+              streamBuffer = streamBuffer.slice(newline + 1);
+            }
+            if (streamBuffer.length > 256 * 1024) return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
+          }
           if (!res.write(chunk)) response.pause();
         });
         response.on('end', () => {
+          if (contentType.startsWith('text/event-stream')) {
+            streamBuffer += streamDecoder.end();
+            if (streamBuffer.trim()) inspectLine(streamBuffer);
+            if (!streamDone || !hasContent || streamError) return fail(httpError(502, 'BEICHEN_UPSTREAM_INCOMPLETE'));
+          }
           responseEnded = true;
           if (!res.writableEnded) res.end();
           success();
@@ -771,7 +791,7 @@ async function handleHealth(req, res, ready) {
   finally { clearTimeout(pingTimeout); }
   const config = providerConfig();
   let providerReady = false;
-  try { providerReady = Boolean(config && upstreamUrl(config)); } catch (_) {}
+  try { providerReady = Boolean(config && upstreamUrl(config) && (config.name === 'qianfan' || modelProfile(config))); } catch (_) {}
   const configured = Boolean(providerReady && sessionSecretReady() && process.env.GATE_TOTP_SECRET);
   const ok = configured && storeReachable;
   return json(req, res, ready && !ok ? 503 : 200, {
@@ -782,6 +802,10 @@ async function handleHealth(req, res, ready) {
     providerConfigured: providerReady,
     provider: config ? config.name : null,
     model: config ? config.model : null,
+    profileVersion,
+    effortLevels: modelProfile(config)?.efforts || null,
+    defaultEffort: ['eco','standard','deep'].includes(process.env.AI_DEFAULT_EFFORT) ? process.env.AI_DEFAULT_EFFORT : 'standard',
+    effortNote: modelProfile(config)?.note || '',
     stateStore: stateStore.name,
     stateStoreReachable: storeReachable,
     maxRuns: MAX_RUNS

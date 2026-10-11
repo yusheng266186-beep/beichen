@@ -1228,7 +1228,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
         </div>
       <div>
         <div class="stat-row"><span class="t-lb">对话模型</span><b id="statModel">云端配置</b></div>
-        <div class="stat-sub" id="statModeRow">深度思考已开启，强度随下方档位由云端换算 · 对话模式：<span id="statMode">领航</span></div>
+        <div class="stat-sub" id="statModeRow">思考已开启，实际强度以下方模型档位为准 · 对话模式：<span id="statMode">领航</span></div>
       </div>
       <div>
         <div class="stat-row"><span class="t-lb">思考强度</span><b id="statEffort">标准</b></div>
@@ -1237,7 +1237,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
           <button type="button" data-e="standard">标准</button>
           <button type="button" data-e="deep">深思</button>
         </div>
-        <div class="stat-sub">星图生成预估：省时 1~1.5 分钟 · 标准 1.5~2.5 分钟 · 深思 2~4 分钟（受网络与当期负载影响）</div>
+        <div class="stat-sub"><span id="effortHelp">正在核验模型强度。深思档会增加思考时间，星图最多等待 9 分钟。</span></div>
       </div>
       <div>
         <div class="stat-row"><span class="t-lb">界面主题</span><b id="statTheme">跟随系统</b></div>
@@ -1310,8 +1310,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.9.0';
-const EXPECTED_BACKEND_VERSION = 'v2.9.0';
+const APP_VERSION = 'v2.9.1';
+const EXPECTED_BACKEND_VERSION = 'v2.9.1';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */
@@ -1337,14 +1337,18 @@ function markThemeButtons(){
 /* ═══════════════════════════ v2.8 思考强度三档 ═══════════════════════════ */
 /* 枚举由服务端换算成思考预算,客户端不传数值;预估时间见设置面板文案 */
 const EFFORT_KEY = 'bc_effort';
+let modelEffortLevels = null, cloudDefaultEffort = 'standard';
 function effortPref(){
-  try{ const v = localStorage.getItem(EFFORT_KEY); return ['eco','standard','deep'].includes(v) ? v : 'standard'; }catch(_){ return 'standard'; }
+  try{ const v = localStorage.getItem(EFFORT_KEY); return ['eco','standard','deep'].includes(v) ? v : cloudDefaultEffort; }catch(_){ return cloudDefaultEffort; }
 }
 function markEffortButtons(){
   const pref = effortPref();
-  document.querySelectorAll('.effort-acts button').forEach(b=>b.classList.toggle('on', b.dataset.e === pref));
+  document.querySelectorAll('.effort-acts button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.e === pref);
+    b.textContent = ({eco:'省时',standard:'标准',deep:'深思'})[b.dataset.e] + (modelEffortLevels ? ' · '+modelEffortLevels[b.dataset.e] : '');
+  });
   const st = document.getElementById('statEffort');
-  if(st) st.textContent = pref === 'eco' ? '省时' : pref === 'deep' ? '深思' : '标准';
+  if(st) st.textContent = ({eco:'省时',standard:'标准',deep:'深思'})[pref] + (modelEffortLevels ? ' · '+modelEffortLevels[pref] : '');
 }
 function markThinkSwitch(){
   const on = thinkSwitchOn();
@@ -1550,8 +1554,8 @@ function buildReportInstructions(){
   '4. 决策工具透视——用黄金三角（兴趣×能力×前景，点明TA哪一角最薄弱）、霍兰德RIASEC（TA的类型落点）、SWOT（TA当前最大的机会与威胁）三个框架逐一对照TA的对话内容给判断，要下结论而非背定义；\n'+
   '5. 盲区与叮嘱——TA最容易被忽略的一点，与一句只属于TA的提醒。\n'+
   '每张正文都要把对话里的具体细节自然融入叙述。多用“你提到……”“当你说起……”“从你的回答里……”一类温柔表达，让文字像一位真诚的学长在回望这段谈心；要有情怀、有理想，也要克制真实。严禁出现“第几问”“第1问”“判断依据”“证据表明”等测评腔表达，禁止只写泛泛的性格形容词\n'+
-  '【组合】首选组合||首选理由（80字内）||备选组合||备选理由（80字内）。组合必须是十二种3+1+2组合之一，首选备选不得相同\n'+
-  '【专业】5-8个专业方向，每个依次输出三段：专业名||推荐分析||就业方向。推荐分析80字内且要分析到位：结合TA对话里的具体线索（学科手感、忘记时间的事、职业向往、家庭现实取舍）说明为什么适合TA，并点明它与首选组合的选科衔接；就业方向50字内，给出对应行业、典型职业或升学路径（如需读研、考公对口、行业趋势），写实不夸大。格式严格：专业A||分析A||就业A||专业B||分析B||就业B…\n'+
+  '【组合】首选组合||首选理由（80字内）||备选组合||备选理由（80字内）。组合必须是十二种3+1+2组合之一，首选备选不得相同。首选须优先尊重学生明确兴趣与排斥，不得仅为满足家长期待而把明确不喜欢的科目放进首选；若职业硬门槛与偏好冲突，要说明代价并保留不同备选，不能假装冲突已解决\n'+
+  '【专业】5-8个专业方向，每个依次输出三段：专业名||推荐分析||就业方向。专业之间可以换行，所有字段仍须用||分隔。不得把学生明确排斥的职业当成主推荐，仅讨论折中可能时须说明学生仍需确认。推荐分析80字内且要分析到位：结合TA对话里的具体线索（学科手感、忘记时间的事、职业向往、家庭现实取舍）说明为什么适合TA，并点明它与首选组合的选科衔接；就业方向50字内，给出对应行业、典型职业或升学路径（如需读研、考公对口、行业趋势），写实不夸大。格式严格：专业A||分析A||就业A||专业B||分析B||就业B…\n'+
   '【寄语】100-160字，像学长在信末写给你的话：有具体回忆（引用对话细节）、有真诚叮嘱，禁止空话套话、口号和具体行动清单；只给能帮助TA理解自己方向的概括性提示】';
 }
 
@@ -2026,13 +2030,15 @@ function friendlyError(err){
   if(status === 400 || status === 413) return /TOO_LARGE/.test(msg) ? '这段内容太长了，请删减一些再发送。' : '这条内容云端没能接受，请调整一下再发送。';
   if(status >= 500) return '模型服务暂时繁忙，请稍后重试。';
   if(err?.name === 'AbortError') return userAborted ? '已取消，可重新发送。' : '等待超时已自动取消，请重试。';
+  if(err?.code === 'INCOMPLETE') return '本轮内容没有完整生成，请重试；未完整生成的星图不会计入额度。';
   if(err?.code === 'EMPTY') return '模型本轮没有返回内容，请重试。';
+  if(/BEICHEN_UPSTREAM_INCOMPLETE/.test(msg)) return '本轮内容没有完整生成，请重试；未完整生成的星图不会计入额度。';
   if(/model/i.test(msg)) return '模型暂不可用，请联系维护者在工作台更换。';
   return '网络连接失败，请检查网络后重试。';
 }
 
 async function askStream(messages, opt){
-  const { maxTokens=3000, temperature=1.0, timeoutMs=150000, onDelta, onReasoning, onReasoningDelta } = opt;
+  const { maxTokens=3000, temperature=1.0, timeoutMs=150000, onDelta, onReasoning, onReasoningDelta, effort=effortPref() } = opt;
   let lastErr = null;
   for(let attempt=0; attempt<3; attempt++){
     const ctrl = new AbortController();
@@ -2045,11 +2051,8 @@ async function askStream(messages, opt){
         body: JSON.stringify({
           messages, max_tokens:maxTokens,
           temperature, stream:true,
-          /* All turns, including report and continuation turns, use the
-             server-pinned qianfan-code-latest max reasoning contract.
-             v2.8: effort 为三档枚举(eco/standard/deep),预算由服务端换算。 */
-          thinking: {type:'enabled'},
-          effort: effortPref()
+          /* Cloud adapter selects native parameters and output budget per model. */
+          effort
         })
       });
       if(!res.ok){
@@ -2063,14 +2066,15 @@ async function askStream(messages, opt){
       }
       const reader = res.body.getReader();
       const dec = new TextDecoder();
-      let buf = '', content = '', reasoning = '', finish = '', reasonStart = false;
+      let buf = '', content = '', reasoning = '', finish = '', reasonStart = false, streamDone = false;
       const consumeLine = lineValue => {
         const line = String(lineValue || '').trim();
         if(!line.startsWith('data:')) return;
         const payload = line.slice(5).trim();
-        if(!payload || payload === '[DONE]') return;
+        if(payload === '[DONE]'){ streamDone = true; return; }
+        if(!payload) return;
         let j;
-        try{ j = JSON.parse(payload); }catch(_){ return; }
+        try{ j = JSON.parse(payload); }catch(_){ const err = new Error('stream malformed'); err.code='INCOMPLETE'; throw err; }
         if(j.error){
           const err = new Error(j.error.message || 'stream error');
           if(Number.isFinite(Number(j.error.code))) err.status = Number(j.error.code);
@@ -2080,7 +2084,7 @@ async function askStream(messages, opt){
         const delta = choice.delta || {};
         /* Qianfan normally streams these fields under delta; accepting the
            sibling forms keeps the client tolerant of compatible gateways. */
-        const reasonChunk = typeof delta.reasoning_content === 'string'
+        const reasonChunk = typeof delta.reasoning === 'string' ? delta.reasoning : typeof delta.reasoning_content === 'string'
           ? delta.reasoning_content
           : (typeof choice.reasoning_content === 'string'
             ? choice.reasoning_content
@@ -2119,15 +2123,13 @@ async function askStream(messages, opt){
           consumeLine(line);
         }
       }
+      if(!streamDone || (finish && !['stop','length'].includes(finish))){ const err = new Error('stream incomplete'); err.code='INCOMPLETE'; throw err; }
       if(!content.trim()){
         const err = new Error('empty'); err.code='EMPTY';
         if(attempt < 2){ await sleep(800); continue; }
         throw err;
       }
-      /* Keep reasoning ephemeral. Qianfan's normal user-turn flow does not
-         require replaying prior chain-of-thought; only visible assistant text
-         is stored in history, preventing hidden reasoning leakage and context
-         bloat on rounds 2–10. */
+      /* Only visible assistant text enters history; reasoning stays ephemeral. */
       return { content, reasoning, finish };
     }catch(err){
       lastErr = err;
@@ -2148,6 +2150,7 @@ async function askStream(messages, opt){
 
 /* 截断续写 */
 async function ask(messages, opt){
+  opt = {...opt, effort: opt?.effort || effortPref()};
   let result = await askStream(messages, opt);
   let full = result.content;
   let reasoning = result.reasoning || '';
@@ -2159,6 +2162,7 @@ async function ask(messages, opt){
     full += '\n' + result.content;
     reasoning += result.reasoning || '';
   }
+  if(result.finish === 'length'){ const err = new Error('output truncated'); err.code='INCOMPLETE'; throw err; }
   return {content:full, reasoning, finish:result.finish};
 }
 
@@ -2308,11 +2312,8 @@ async function respond(guidance){
       });
     };
     const result = await ask(messages, {
-      /* qianfan-code-latest max reasoning contributes to completion_tokens. Give normal
-         rounds and the structured report enough room to finish cleanly. */
-      /* qianfan-code-latest counts hidden reasoning and visible text together. Give the
-         structured report the provider's full supported completion window so
-         max reasoning cannot consume the budget before the chart is emitted. */
+      /* These sizes preserve the cloud quota protocol. The model adapter
+         allocates separate upstream limits for reasoning plus visible output. */
       maxTokens: expectingReport ? 16384 : 5000,
       temperature: expectingReport ? 0.25 : 0.85,
       /* The Tencent function allows 600s; keep 60s for cleanup and gateway
@@ -2387,7 +2388,7 @@ function uniqueChoices(values){
 }
 
 /* A malformed report should not consume a run or render half a star chart.
-   One bounded repair pass lets qianfan-code-latest re-emit the same content under the
+   One bounded repair pass lets the selected model re-emit the same content under the
    exact label contract; it still uses the pinned max-thinking request path. */
 async function repairReportText(source){
   const raw = String(source || '');
@@ -2408,6 +2409,10 @@ async function repairReportText(source){
   }
 }
 
+function reportQualityComplete(rep){
+  return Boolean(rep?._complete && rep.cards.length === 5 && rep._majors.length >= 5 && rep._majors.length <= 8
+    && rep._majors.every(m=>m.name && m.reason && m.career));
+}
 /* 解析【选项】与报告 */
 async function processResponse(rawInput, expectingReport, bubble, epoch){
   /* 对话已被重开：旧一轮的星图渲染与提示一律作废（respond 传入的 epoch 不再匹配） */
@@ -2435,7 +2440,7 @@ async function processResponse(rawInput, expectingReport, bubble, epoch){
   }
 
   let rep = parseReport(text);
-  if(!rep && expectingReport){
+  if((!rep || !reportQualityComplete(rep)) && expectingReport){
     const repaired = await repairReportText(text);
     if(epoch !== undefined && epoch !== talkEpoch) return;   /* await 期间对话可能已被重开 */
     if(repaired){
@@ -2448,7 +2453,7 @@ async function processResponse(rawInput, expectingReport, bubble, epoch){
       }
     }
   }
-  if(rep && rep._complete === false){
+  if(rep && !reportQualityComplete(rep)){
     /* 手册 7.1 完整性门:宽容档星图如实呈现但不扣额度;点「重新点亮星图」补全,完整才计费 */
     lastReport = rep;
     renderReport(rep);
@@ -2702,7 +2707,9 @@ function parseReport(text){
   /* 专业:新格式"名||分析||就业方向"三段成组;名字段必须短且不含列举分隔符,否则逐级降级——
      两段组(仅理由)与旧顿号名单都能渲染,绝不卡死 */
   map._majors = [];
-  const mjParts = String(map['专业'] || '').split(/\|\||[|｜]/).map(s=>s.trim()).filter(Boolean);
+  const repeatedMajors = [...src.matchAll(/【\s*专业\s*】([\s\S]*?)(?=【[^】]*】|$)/g)];
+  if(repeatedMajors.length > 1) map['专业'] = repeatedMajors.map(m=>cleanText(m[1])).join('||');
+  const mjParts = String(map['专业'] || '').split(/\|\||[|｜\r\n]+/).map(s=>s.trim()).filter(Boolean);
   const mjOk = (name) => name && name.length <= 40 && !/[、，,;；]/.test(name);
   if(mjParts.length >= 6){
     const triples = [];
@@ -3234,6 +3241,13 @@ function openSettings(){
   refreshModelName();
   openOverlay('settingsModal');   /* 走统一入口：焦点管理、返回键拦截与其他弹窗一致 */
 }
+function applyModelCapabilities(data){
+  modelEffortLevels = data.effortLevels || null;
+  cloudDefaultEffort = ['eco','standard','deep'].includes(data.defaultEffort) ? data.defaultEffort : 'standard';
+  markEffortButtons();
+  const help = document.getElementById('effortHelp');
+  if(help) help.textContent = (data.effortNote || '三档使用当前模型的原生思考强度。') + ' 深思档会增加等待时间，星图最多等待 9 分钟。';
+}
 async function refreshModelName(){
   const el = document.getElementById('statModel');
   if(!el) return;
@@ -3242,6 +3256,7 @@ async function refreshModelName(){
   try{
     const res = await fetch(RELAY + '/healthz', {cache:'no-store', signal:ctl.signal});
     const data = await res.json();
+    if(res.ok) applyModelCapabilities(data);
     el.textContent = res.ok && typeof data.model === 'string' ? data.model.slice(0,200) : '暂未核验';
   }catch(_){ el.textContent = '暂未核验'; }
   finally{ clearTimeout(timeout); }
@@ -3304,6 +3319,7 @@ async function checkRelay(){
     const backendVersion = String(data?.version || '未知');
     const frontendVersion = String(data?.frontendVersion || '未知');
     const versionText = '后端 ' + backendVersion + ' · 页面 ' + frontendVersion;
+    applyModelCapabilities(data);
     const modelEl = document.getElementById('statModel');
     if(modelEl && typeof data.model === 'string') modelEl.textContent = data.model.slice(0,200);
     const ready = res.ok && data?.ready === true && data?.stateStoreReachable === true && data?.providerConfigured === true;
@@ -3829,8 +3845,9 @@ document.querySelectorAll('.theme-acts[aria-label="界面主题"] button').forEa
   });
 });
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); }catch(_){ }
-/* 思考强度三档 */
+/* 思考强度三档；加载云端能力与未设置过时的默认档。 */
 markEffortButtons();
+refreshModelName();
 document.querySelectorAll('.effort-acts button').forEach(b=>{
   b.addEventListener('click', ()=>{
     try{ localStorage.setItem(EFFORT_KEY, b.dataset.e); }catch(_){ }

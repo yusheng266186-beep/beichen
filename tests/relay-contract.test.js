@@ -127,7 +127,7 @@ assert.doesNotMatch(src, /logEvent\([^)]*body\.code/, 'log must never take the T
 /* SSE 心跳与上游内容类型校验就位 */
 assert.match(src, /const SSE_HEARTBEAT_MS = /, 'SSE heartbeat interval must be configurable');
 assert.match(src, /: ping\\n\\n/, 'heartbeat must emit SSE comment lines');
-assert.match(src, /!contentType\.startsWith\('text\/event-stream'\) && !contentType\.startsWith\('application\/json'\)/,
+assert.match(src, /!contentType\.startsWith\('text\/event-stream'\) && \(config.name !== 'qianfan' \|\| !contentType\.startsWith\('application\/json'\)\)/,
   'upstream content-type must be enforced');
 
 /* 客户端真实 IP:CLB 把真实 IP 追加在 XFF 末尾,取最后一个合法条目;解析不出回退 TCP 对端 */

@@ -176,7 +176,7 @@ assert.match(index, /row\.className = 'crow'; row\.setAttribute\('data-reveal','
 assert.doesNotMatch(index, /animationDelay = \(i\*90\)/);   /* 旧的内联延迟已被 IO 批次错拍取代 */
 
 /* ── v2.6.9 星图轮等待:思考低语(真实 reasoning 增量上屏)+叙述轮播兜底 ── */
-assert.match(index, /onReasoning, onReasoningDelta \} = opt/);   /* askStream 暴露思考增量回调 */
+assert.match(index, /onReasoning, onReasoningDelta, effort=effortPref\(\) \} = opt/);   /* askStream 暴露思考增量回调 */
 assert.match(index, /if\(onReasoningDelta\) onReasoningDelta\(reasoning\)/);
 assert.match(index, /onReasoningDelta: onThink/);   /* respond 接线 */
 assert.match(index, /function showThink/);
@@ -297,8 +297,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.9\.0';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.0';/);
+assert.match(index, /const APP_VERSION = 'v2\.9\.1';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.1';/);
 assert.match(index, /id="statModel"/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);
@@ -401,7 +401,7 @@ assert.match(index, /\.report-card\.capture-clone \.rp-nav,/);
 
 /* ═══════════════ v3.0 体验并版 L4:完整性门与导出 ═══════════════ */
 /* 宽容档(_complete!==true)不结算额度,可重新点亮;_complete 跨刷新保留 */
-assert.match(index, /if\(rep && rep\._complete === false\)\{/);
+assert.match(index, /if\(rep && !reportQualityComplete\(rep\)\)\{/);
 assert.match(index, /本次未计入额度/);
 assert.match(index, /out\._complete = typeof value\._complete === 'boolean' \? value\._complete : true;/);
 /* PNG 导出:1200 万像素自适应 + 背景随主题 */
@@ -433,9 +433,9 @@ assert.match(index, /id="thinkActs"/);
 /* 思考强度三档:设置面板 + 请求透传 + 预估时间文案 */
 assert.match(index, /const EFFORT_KEY = 'bc_effort';/);
 assert.match(index, /function effortPref\(\)/);
-assert.match(index, /effort: effortPref\(\)/);
+assert.match(index, /effort=effortPref\(\)/);
 assert.match(index, /data-e="deep"/);
-assert.match(index, /星图生成预估：省时 1~1\.5 分钟 · 标准 1\.5~2\.5 分钟 · 深思 2~4 分钟/);
+assert.match(index, /星图最多等待 9 分钟/);
 /* 本机保存说明 */
 assert.match(index, /旧对话存档自动覆盖；历次星图仍保留在本机/);
 

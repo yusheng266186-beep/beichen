@@ -1,0 +1,225 @@
+{
+  "version": "v2.9.1",
+  "models": {
+    "deepseek-flash": {
+      "family": "deepseek",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "deepseek-v4-pro": {
+      "family": "deepseek",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "glm-5.3": {
+      "family": "glm",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "glm-5.3-flash": {
+      "family": "glm",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "glm-5.2": {
+      "family": "glm",
+      "efforts": {
+        "eco": "high",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": "GLM 5.2 的 low 会被上游映射为 high；省时档仅缩小输出预算。"
+    },
+    "glm-5.1": {
+      "family": "glm",
+      "efforts": {
+        "eco": "auto",
+        "standard": "auto",
+        "deep": "auto"
+      },
+      "tokenField": "max_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": "GLM 5.1 仅支持自动思考，不能调节原生强度，也不支持 max；三档仅调整输出预算。"
+    },
+    "gpt-5.5": {
+      "family": "gpt",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "xhigh"
+      },
+      "tokenField": "max_completion_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": "GPT 5.5 的最高强度是 xhigh，不支持 max。"
+    },
+    "gpt-5.6": {
+      "family": "gpt",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_completion_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "gpt-5.6-sol": {
+      "family": "gpt",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_completion_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "gpt-5.6-terra": {
+      "family": "gpt",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_completion_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    },
+    "gpt-6-sol": {
+      "family": "gpt",
+      "efforts": {
+        "eco": "low",
+        "standard": "high",
+        "deep": "max"
+      },
+      "tokenField": "max_completion_tokens",
+      "chatBudgets": {
+        "eco": 8192,
+        "standard": 16384,
+        "deep": 32768
+      },
+      "reportBudgets": {
+        "eco": 32768,
+        "standard": 49152,
+        "deep": 65536
+      },
+      "note": ""
+    }
+  }
+}

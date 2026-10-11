@@ -326,3 +326,32 @@ test('新 API 使用对应密钥和模型转发 SSE，并保留会话额度纪�
     } finally { await close(); }
   }
 });
+
+
+test('200 SSE 内嵌错误、空答案和缺完成标记都释放额度',async t=>{
+  const store=freshStore();const {port,close}=await listen();t.after(close);
+  const v=await request(port,'/verify',{body:{code:totp(Math.floor(Date.now()/30000),process.env.GATE_TOTP_SECRET)}});
+  const token=v.body.token,sid=tokenPayload(token).sid;
+  for(const payload of [
+    'data: {"choices":[{"delta":{"content":"半张星图"}}]}\n\n',
+    'data: {"error":{"message":"model error"}}\n\ndata: [DONE]\n\n',
+    'data: {"choices":[{"delta":{"reasoning_content":"thinking"}}]}\n\ndata: [DONE]\n\n'
+  ]){
+    relay.setUpstreamRequester(makeUpstreamRequester({payload}));
+    const r=await request(port,'/chat/completions',{headers:{authorization:'Bearer '+token},body:{messages:[{role:'user',content:'星图'}],max_tokens:16384,stream:true}});
+    assert.match(r.raw,/BEICHEN_UPSTREAM_INCOMPLETE/);
+    const state=await store.getSession(sid);assert.equal(state.runs,0);assert.notEqual(state.report?.status,'ready');
+    const complete=await request(port,'/run/complete',{headers:{authorization:'Bearer '+token,'x-request-id':'incomplete-test'},body:{}});
+    assert.equal(complete.status,409);
+  }
+});
+
+
+test('新模型拒绝 200 JSON 回落并保留轮次',async t=>{
+ const saved={...process.env};t.after(()=>{for(const key of Object.keys(process.env))if(!(key in saved))delete process.env[key];Object.assign(process.env,saved)});
+ process.env.AI_PROVIDER='deepseek';process.env.DEEPSEEK_API_KEY='test-only-provider';process.env.DEEPSEEK_MODEL='deepseek-flash';
+ const store=freshStore();relay.setUpstreamRequester(makeUpstreamRequester({contentType:'application/json',payload:'{"choices":[{"message":{"content":"ok"}}]}'}));
+ const {port,close}=await listen();t.after(close);const v=await request(port,'/verify',{body:{code:totp(Math.floor(Date.now()/30000),process.env.GATE_TOTP_SECRET)}});
+ const r=await request(port,'/chat/completions',{headers:{authorization:'Bearer '+v.body.token},body:{messages:[{role:'user',content:'test'}],max_tokens:5000,effort:'deep',stream:true}});
+ assert.equal(r.status,502);assert.equal((await store.getSession(tokenPayload(v.body.token).sid)).turns,0);
+});

@@ -74,3 +74,8 @@ assert.ok(Array.isArray(rp._majors) && rp._majors.length >= 3 && rp._majors.ever
 const rl = parseReport(buildReport());
 assert.ok(Array.isArray(rl._majors) && rl._majors.length >= 3 && rl._majors.every(m=>m.name && !m.reason && !m.career), '旧顿号格式 → 降级为纯名字');
 console.log('parse tests passed');
+
+const rn=parseReport(buildReport({majorsTriple:true}).replace('||车辆工程||','\n车辆工程||').replace('||自动化||','\n自动化||'));
+assert.ok(rn._majors.length===3 && rn._majors.every(m=>m.reason && m.career),'模型以换行分隔专业时完整解析分析和就业');
+const rr=parseReport(buildReport({majorsTriple:true}).replace('||车辆工程||','\n【专业】车辆工程||').replace('||自动化||','\n【专业】自动化||'));
+assert.ok(rr._majors.length===3 && rr._majors.every(m=>m.reason && m.career),'每专业重复标签时也完整解析');

@@ -47,16 +47,18 @@ test('各 API 的密钥与模型独立读取，错误配置不回退到过期千
   assert.throws(() => relay.upstreamAuthHeaders({name: 'wefucke', auth: 'account', key: 'test'}));
 });
 
-test('沿用页面的思考强度，分别生成官方与 Harness 中转格式', () => {
+test('沿用页面的思考强度，分别生成官方、GLM 与 GPT 原生格式', () => {
   for (const [effort, expected] of [['eco', 'low'], ['standard', 'high'], ['deep', 'max']]) {
-    const body = {messages: [{role: 'user', content: 'test'}], stream: true, max_tokens: 12000, temperature: 0.8, mode: 'open', effort};
+    const body = {messages: [{role: 'user', content: 'test'}], stream: true, max_tokens: 12000, temperature: 0.8, thinking:{type:'enabled'}, mode: 'open', effort};
     const official = relay.buildUpstreamBody(body, {name: 'deepseek', model: 'deepseek-flash'});
     assert.equal(official.model, 'deepseek-flash');
     assert.equal(official.reasoning_effort, expected);
     assert.deepEqual(official.thinking, {type: 'enabled'});
     assert.equal(official.temperature, undefined);
     const proxy = relay.buildUpstreamBody(body, {name: 'wefucke', model: 'glm-5.3-flash'});
-    assert.deepEqual(proxy.reasoning, {enabled: true, effort: expected});
+    assert.equal(proxy.reasoning_effort, expected);
+    assert.deepEqual(proxy.thinking, {type:'enabled',clear_thinking:true});
+    assert.equal(proxy.reasoning, undefined);
     for (const output of [official, proxy]) {
       assert.equal(output.mode, undefined);
       assert.equal(output.effort, undefined);
@@ -68,4 +70,17 @@ test('沿用页面的思考强度，分别生成官方与 Harness 中转格式',
     assert.equal(gpt.reasoning, undefined);
     assert.equal(gpt.thinking, undefined);
   }
+});
+
+// Guard the report/quota intent while assigning reasoning + visible output budgets.
+test('max预算、外国协议字段及模型能力边界',()=>{
+  const report={messages:[{role:'user',content:'test'}],max_tokens:16384,effort:'deep',stream:true,temperature:0.8,thinking:{type:'enabled'},reasoning:{enabled:true}};
+  const gpt=relay.buildUpstreamBody(report,{name:'wefucke-gpt',model:'gpt-6-sol'});
+  assert.equal(gpt.max_completion_tokens,65536);assert.equal(gpt.max_tokens,undefined);
+  assert.equal(gpt.thinking,undefined);assert.equal(gpt.reasoning,undefined);assert.equal(gpt.temperature,undefined);
+  const daily=relay.buildUpstreamBody({...report,max_tokens:5000},{name:'deepseek',model:'deepseek-flash'});
+  assert.equal(daily.max_tokens,32768);assert.equal(relay.REPORT_SCALE_TOKENS,10000);
+  assert.equal(relay.buildUpstreamBody(report,{name:'wefucke-gpt',model:'gpt-5.5'}).reasoning_effort,'xhigh');
+  assert.equal(relay.buildUpstreamBody(report,{name:'wefucke',model:'glm-5.1'}).reasoning_effort,undefined);
+  assert.throws(()=>relay.buildUpstreamBody(report,{name:'wefucke',model:'muse-spark-1.3-contributor'}),/BEICHEN_MODEL_NOT_ADAPTED/);
 });
