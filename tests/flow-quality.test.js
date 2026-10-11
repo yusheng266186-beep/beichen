@@ -94,6 +94,10 @@ test('新存档优先、清除排在旧保存之后，不会复活旧谈话；�
   a.save({history:['older'],savedAt:1}); const clear=a.clear(); await clear; assert.equal(await a.load(),null);
   await a.save({history:['newer'],savedAt:3}); local.setItem('session',JSON.stringify({history:['stale'],savedAt:2}));
   assert.deepEqual((await a.load()).history,['newer']);
+  const partialLocal=localStorageFixture();let writes=0;
+  const rapid=storeLib.create({localStorage:{...partialLocal,setItem(k,v){if(++writes>1)throw Error('quota');partialLocal.setItem(k,v)}},indexedDB:indexedDBFixture(),key:'session'});
+  await rapid.save({history:['first'],savedAt:10});await rapid.save({history:['same millisecond, newer'],savedAt:10});
+  assert.deepEqual((await rapid.load()).history,['same millisecond, newer'],'a quota failure during two saves in one millisecond must not resurrect the older copy');
   let warnings=0;
   const b=storeLib.create({localStorage:localStorageFixture(true),key:'session',onFailure:()=>warnings++});
   assert.equal(await b.save({savedAt:4}),false); assert.equal(warnings,1);

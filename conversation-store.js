@@ -6,7 +6,7 @@
   'use strict';
   function create(options){
     const {localStorage, indexedDB, key, onFailure=()=>{}} = options;
-    let queue = Promise.resolve(), opening;
+    let queue = Promise.resolve(), opening, savedClock=0;
     function open(){
       if(!indexedDB) return Promise.resolve(null);
       if(opening) return opening;
@@ -45,7 +45,8 @@
     }
     function save(snapshot){
       // Snapshot now; subsequent turns must not mutate an in-flight local write.
-      const encoded=JSON.stringify(snapshot), frozen=JSON.parse(encoded);
+      savedClock=Math.max(savedClock+1,Number(snapshot.savedAt)||Date.now());
+      const encoded=JSON.stringify({...snapshot,savedAt:savedClock}), frozen=JSON.parse(encoded);
       let localOk=false;
       try{ localStorage.setItem(key,encoded); localOk=true; }catch(_){ }
       return schedule(async()=>{
@@ -62,6 +63,7 @@
       let local=null, stored=null;
       try{ local=JSON.parse(localStorage.getItem(key)||'null'); }catch(_){ }
       try{ stored=await operate('get'); }catch(_){ }
+      savedClock=Math.max(savedClock,Number(local?.savedAt||0),Number(stored?.savedAt||0));
       return Number(stored?.savedAt||0) > Number(local?.savedAt||0) ? stored : local || stored || null;
     }
     return {save, clear, load};
