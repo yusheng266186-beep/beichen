@@ -3,7 +3,7 @@
    ------------------------------------------------------------------
    1. 星门：TOTP 动态码验证 → HMAC 会话票据
    2. 额度：星图生成成功后由服务端原子结算；失败释放预占
-   3. 对话：严格校验请求 → 百度千帆 → SSE 原样回流
+   3. 对话：严格校验请求 → 服务端选定 API / 模型 → SSE 原样回流
    4. 边界：固定 CORS、请求/响应上限、超时、共享状态、防重放
 
    前端请求格式保持兼容：现有页面用 max_tokens≥10000 表示星图档，用
@@ -24,7 +24,7 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.8.1';
+const BACKEND_VERSION = 'v2.9.0';
 const FRONTEND_VERSION = 'v2.8.1';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
@@ -49,6 +49,11 @@ const QIANFAN_BASE_URL = 'https://qianfan.baidubce.com/v2/tokenplan/personal';
 const QIANFAN_ALLOWED_HOSTS = new Set(['qianfan.baidubce.com']);
 const QIANFAN_ENDPOINT_BASES = ['/v2/tokenplan/personal'];
 const DEFAULT_QIANFAN_MODEL = 'qianfan-code-latest';
+const API_PROVIDERS = {
+  deepseek: { prefix: 'DEEPSEEK', model: 'deepseek-flash', url: 'https://api.deepseek.com' },
+  wefucke: { prefix: 'WEFUCKE', model: 'glm-5.3-flash', url: 'https://www.wefucke.top/v1' },
+  'wefucke-gpt': { prefix: 'WEFUCKE_GPT', model: 'gpt-6-sol', url: 'https://www.wefucke.top/v1' }
+};
 
 const TOKEN_TTL_MS = boundedInt(process.env.GATE_TOKEN_TTL_MS, DEFAULT_TOKEN_TTL_MS, 60 * 1000, MAX_TOKEN_TTL_MS);
 const UPSTREAM_TIMEOUT_MS = boundedInt(process.env.UPSTREAM_TIMEOUT_MS, DEFAULT_UPSTREAM_TIMEOUT_MS, 30 * 1000, 570 * 1000);
@@ -466,6 +471,19 @@ function validateChatBody(input) {
 }
 
 function providerConfig() {
+  const name = String(process.env.AI_PROVIDER || 'qianfan').trim();
+  const provider = Object.hasOwn(API_PROVIDERS, name) ? API_PROVIDERS[name] : null;
+  if (provider) {
+    const official = name === 'deepseek';
+    const apiKey = String(process.env[provider.prefix + '_API_KEY'] || '').trim();
+    const accountToken = official ? String(process.env.DEEPSEEK_ACCOUNT_TOKEN || '').trim() : '';
+    const key = apiKey || accountToken;
+    const model = String(process.env[provider.prefix + '_MODEL'] || provider.model).trim();
+    if (!key || !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,199}$/.test(model)) return null;
+    return { name, key, model, auth: apiKey ? 'bearer' : 'account',
+      url: String(process.env[provider.prefix + '_BASE_URL'] || provider.url).trim() };
+  }
+  if (name !== 'qianfan') return null;
   const key = String(process.env.QIANFAN_API_KEY || '').trim();
   const model = String(process.env.QIANFAN_MODEL || DEFAULT_QIANFAN_MODEL).trim();
   if (!key || !model) return null;
@@ -478,6 +496,18 @@ function upstreamUrl(config) {
   try { url = new URL(config.url); }
   catch (_) { throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED'); }
   if (url.protocol !== 'https:' || url.search || url.hash || url.username || url.password) throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
+  if (Object.hasOwn(API_PROVIDERS, config.name)) {
+    const host = config.name === 'deepseek' ? 'api.deepseek.com' : 'www.wefucke.top';
+    const path = url.pathname.replace(/\/+$/, '');
+    const bases = config.name === 'deepseek' ? ['', '/v1'] : ['/v1'];
+    if (url.hostname.toLowerCase() !== host || (url.port && url.port !== '443') ||
+        !bases.some(base => path === base || path === base + '/chat/completions')) {
+      throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
+    }
+    url.pathname = path.endsWith('/chat/completions') ? path : path + '/chat/completions';
+    return url;
+  }
+  if (config.name !== 'qianfan') throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
   if (!QIANFAN_ALLOWED_HOSTS.has(url.hostname.toLowerCase()) || (url.port && url.port !== '443')) throw httpError(503, 'BEICHEN_QIANFAN_HOST_NOT_ALLOWED');
   let path = url.pathname.replace(/\/+$/, '');
   if (/coding/i.test(path)) throw httpError(503, 'BEICHEN_QIANFAN_STANDARD_ENDPOINT_REQUIRED');
@@ -508,9 +538,32 @@ function buildUpstreamBody(body, config) {
       : base;
     upstreamBody.thinking_budget = budget;
   }
+  if (config.name === 'deepseek' || config.name === 'wefucke') {
+    const effort = body.effort === 'eco' ? 'low' : body.effort === 'deep' ? 'max' : 'high';
+    if (config.name === 'deepseek') {
+      upstreamBody.thinking = { type: 'enabled' };
+      upstreamBody.reasoning_effort = effort;
+      delete upstreamBody.temperature;
+    } else {
+      // 与 Harness 的 Wefucke / OpenRouter 兼容格式一致。
+      upstreamBody.reasoning = { enabled: true, effort };
+    }
+  }
+  if (config.name === 'wefucke-gpt') {
+    upstreamBody.reasoning_effort = body.effort === 'eco' ? 'low' : body.effort === 'deep' ? 'max' : 'high';
+    delete upstreamBody.temperature;
+  }
   delete upstreamBody.mode;
   delete upstreamBody.effort;
   return upstreamBody;
+}
+
+function upstreamAuthHeaders(config) {
+  if (config.auth === 'account') {
+    if (config.name !== 'deepseek') throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
+    return { 'x-dsh-auth-token': config.key };
+  }
+  return { Authorization: 'Bearer ' + config.key };
 }
 
 /* 纯函数保留给旧契约测试；线上次数预占/回退走 stateStore，不在 auth.state 上直接加一。 */
@@ -570,7 +623,7 @@ function proxyChat(req, res, body, config) {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream, application/json',
-          'Authorization': 'Bearer ' + config.key,
+          ...upstreamAuthHeaders(config),
           'Content-Length': Buffer.byteLength(payload)
         }
       }, response => {
@@ -707,16 +760,28 @@ async function handleChat(req, res) {
 /* ── 健康检查 ──────────────────────────────────────────────────── */
 async function handleHealth(req, res, ready) {
   let storeReachable = false;
-  try { storeReachable = await stateStore.ping(); }
+  let pingTimeout;
+  try {
+    storeReachable = await Promise.race([
+      stateStore.ping(),
+      new Promise(resolve => { pingTimeout = setTimeout(() => resolve(false), 4000); })
+    ]);
+  }
   catch (_) { storeReachable = false; }
-  const configured = Boolean(process.env.QIANFAN_API_KEY && sessionSecretReady() && process.env.GATE_TOTP_SECRET);
+  finally { clearTimeout(pingTimeout); }
+  const config = providerConfig();
+  let providerReady = false;
+  try { providerReady = Boolean(config && upstreamUrl(config)); } catch (_) {}
+  const configured = Boolean(providerReady && sessionSecretReady() && process.env.GATE_TOTP_SECRET);
   const ok = configured && storeReachable;
   return json(req, res, ready && !ok ? 503 : 200, {
     ok: ready ? ok : true,
     ready: ok,
     version: BACKEND_VERSION,
     frontendVersion: FRONTEND_VERSION,
-    providerConfigured: Boolean(providerConfig()),
+    providerConfigured: providerReady,
+    provider: config ? config.name : null,
+    model: config ? config.model : null,
     stateStore: stateStore.name,
     stateStoreReachable: storeReachable,
     maxRuns: MAX_RUNS
@@ -770,6 +835,8 @@ if (typeof module !== 'undefined') {
     REPORT_SCALE_TOKENS,
     validateChatBody,
     buildUpstreamBody,
+    providerConfig,
+    upstreamAuthHeaders,
     upstreamUrl,
     enforceSessionQuota,
     pickClientIp,

@@ -15,7 +15,7 @@ const suspicious = [
   /https?:\/\/\d{6,}-[a-z0-9]+\.ap-[a-z0-9-]+\.tencentscf\.com/i
 ];
 const publicEndpoint = suspicious[suspicious.length - 1];
-const secretAssignments = /\b(QIANFAN_API_KEY|GATE_TOTP_SECRET|GATE_SESSION_SECRET)[ \t]*=[ \t]*([^\r\n]*)/gim;
+const secretAssignments = /\b(QIANFAN_API_KEY|DEEPSEEK_API_KEY|WEFUCKE_API_KEY|WEFUCKE_GPT_API_KEY|DEEPSEEK_ACCOUNT_TOKEN|GATE_TOTP_SECRET|GATE_SESSION_SECRET)[ \t]*=[ \t]*([^\r\n]*)/gim;
 const safeAssignment = /^(?:$|<[^>]*>$|your(?:[-_ ]|$)|你的|动态验证码使用|随机生成|至少|test[-_]|placeholder|process\.env\.)/i;
 const hits = [];
 

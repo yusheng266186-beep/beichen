@@ -1,8 +1,8 @@
-# 北辰新手部署指南（腾讯云 Web 函数 + Redis + 千帆）
+# 北辰新手部署指南（腾讯云 Web 函数 + Redis + DeepSeek / Wefucke）
 
 这份指南覆盖正式库 `yusheng266186-beep/beichen` 的前后端对齐部署。页面只同步后端变化确实需要的提示、版本和就绪检查，聊天内容与其他无关页面行为不变。
 
-这次后端和页面版本均为 `v2.8.1`。真实的千帆 Key、动态码 seed、会话签名密钥和 Redis 密码只填写在腾讯云的加密环境变量里，绝不能写回 GitHub。
+后端版本为 `v2.9.0`，页面保持 `v2.8.1`。真实的 API Key、动态码 seed、会话签名密钥和 Redis 密码只填写在腾讯云的加密环境变量里，绝不能写回 GitHub。
 
 ## 1. 准备工作
 
@@ -10,7 +10,7 @@
 
 - 腾讯云 Web 函数权限，运行时选择 Nodejs18 或 Nodejs20；
 - 一个 Redis 实例，建议使用腾讯云同一网络内的托管 Redis；
-- 百度千帆 Token Plan 个人版 Mini 专属 API Key；
+- DeepSeek 官方 API Key，以及 Wefucke 中转站 API Key；
 - 动态验证码应用对应的 TOTP seed；
 - 至少 32 字节的随机 `GATE_SESSION_SECRET`；
 - 本仓库的后端文件和依赖。
@@ -81,7 +81,7 @@ with zipfile.ZipFile("deploy.zip", "w", zipfile.ZIP_DEFLATED) as z:
 2. 运行时选择 **Nodejs20** 或 **Nodejs18**。
 3. 上传 `deploy.zip`，处理程序/Handler 填 `scf_bootstrap`。
 4. 端口填 `9000`，公网访问打开，执行超时设为 **600 秒**。
-5. 确保函数所在网络可以访问 Redis；如果千帆请求需要公网出口，也要配置对应的 NAT/公网出口。
+5. 确保函数所在网络可以访问 Redis；如果上游 API 请求需要公网出口，也要配置对应的 NAT/公网出口。
 
 `scf_bootstrap` 会从 `/var/lang/node20/bin/node` 或 `/var/lang/node18/bin/node` 选择可运行的 Node。它不会读取前端文件。
 
@@ -94,9 +94,16 @@ with zipfile.ZipFile("deploy.zip", "w", zipfile.ZIP_DEFLATED) as z:
 | `STATE_STORE` | 固定填 `redis` |
 | `REDIS_URL` | Redis 连接地址；TLS 通常使用 `rediss://` |
 | `BEICHEN_REDIS_PREFIX` | 建议填 `beichen:v27`；不同环境使用不同前缀 |
-| `QIANFAN_API_KEY` | Token Plan 个人版 Mini 专属 API Key |
-| `QIANFAN_BASE_URL` | `https://qianfan.baidubce.com/v2/tokenplan/personal` |
-| `QIANFAN_MODEL` | `qianfan-code-latest`，或账号已开通的模型 ID |
+| `AI_PROVIDER` | `deepseek`、`wefucke` 或 `wefucke-gpt` |
+| `DEEPSEEK_API_KEY` | DeepSeek 官方 API Key |
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` |
+| `DEEPSEEK_MODEL` | `deepseek-flash` 或 `deepseek-v4-pro` |
+| `WEFUCKE_API_KEY` | Wefucke API Key |
+| `WEFUCKE_BASE_URL` | `https://www.wefucke.top/v1` |
+| `WEFUCKE_MODEL` | API 当前返回的模型 ID，例如 `glm-5.3-flash` |
+| `WEFUCKE_GPT_API_KEY` | Wefucke 后台 GPT 分组的独立密钥 |
+| `WEFUCKE_GPT_BASE_URL` | `https://www.wefucke.top/v1` |
+| `WEFUCKE_GPT_MODEL` | `gpt-6-sol` 或该密钥返回的其他 GPT 模型 |
 | `GATE_TOTP_SECRET` | TOTP 应用的 Base32 seed，不是当前 6 位数字 |
 | `GATE_SESSION_SECRET` | 至少 32 字节的随机字符串 |
 | `CORS_ALLOWED_ORIGINS` | `https://yusheng266186-beep.github.io`，不要带 `/beichen/` 路径 |
@@ -194,3 +201,9 @@ npm run verify
 维护者使用 [Redis 开关工具](tools/redis-switch/README-Redis开关.md)。off 保存无密码配置快照、销毁按量实例并暂停哨兵；on 使用云函数规范网络配置自动创建、接回函数，readyz 通过才恢复哨兵。关闭会清空云端会话状态；快照不是数据备份；开启需要账户余额，操作必须串行。
 
 真实 redis-switch.config.json、redis-snapshot.json 已加入 Git 忽略。下载附件需自行配置，桌面版已配置。
+
+## 工作台切换 API 与模型
+
+打开私有交接库的北辰后台工作台，在“服务管理 → API 与模型”选择服务及模型，再点击“应用 API / 模型”。工作台通过 GitHub Actions 在云端检查目标模型，检查通过后更新函数配置并回读运行结果；失败会保留或恢复原配置。切换会重启函数运行实例，进行中的请求可能中断，建议在没有学生请求时操作。Redis 开关与会话数据不变。
+
+模型列表按 `/models` 返回值更新，不把供应商密钥发送到浏览器。历史千帆配置仅为兼容旧部署保留。

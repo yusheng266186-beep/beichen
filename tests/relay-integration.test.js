@@ -286,3 +286,43 @@ test('验证拒绝与成功都记录脱敏事件日志', async t => {
   assert.ok(okLine, 'verify_ok event must be logged');
   assert.deepEqual(Object.keys(JSON.parse(okLine)).sort(), ['ev', 't']);
 });
+
+
+test('新 API 使用对应密钥和模型转发 SSE，并保留会话额度纪律', async t => {
+  t.after(() => { delete process.env.AI_PROVIDER; delete process.env.DEEPSEEK_API_KEY; delete process.env.WEFUCKE_API_KEY; delete process.env.WEFUCKE_GPT_API_KEY; });
+  for (const [provider, model, keyName, host] of [
+    ['deepseek', 'deepseek-flash', 'DEEPSEEK_API_KEY', 'api.deepseek.com'],
+    ['wefucke', 'glm-5.3-flash', 'WEFUCKE_API_KEY', 'www.wefucke.top'],
+    ['wefucke-gpt', 'gpt-6-sol', 'WEFUCKE_GPT_API_KEY', 'www.wefucke.top']
+  ]) {
+    freshStore();
+    process.env.AI_PROVIDER = provider;
+    process.env[keyName] = 'test-' + provider;
+    let forwarded;
+    const fake = makeUpstreamRequester();
+    relay.setUpstreamRequester((options, callback) => {
+      const upstream = fake(options, callback);
+      const write = upstream.write;
+      upstream.write = chunk => { forwarded = {options, body: JSON.parse(chunk)}; return write(chunk); };
+      return upstream;
+    });
+    const {port, close} = await listen();
+    try {
+      const verify = await request(port, '/verify', {body: {code: totp(Math.floor(Date.now()/30000), process.env.GATE_TOTP_SECRET)}});
+      const chat = await request(port, '/chat/completions', {
+        headers: {authorization: 'Bearer ' + verify.body.token},
+        body: {messages: [{role: 'user', content: 'provider check'}], max_tokens: 3500, stream: true, effort: 'eco'}
+      });
+      assert.equal(chat.status, 200);
+      assert.match(chat.raw, /\[DONE\]/);
+      assert.equal(forwarded.options.hostname, host);
+      assert.equal(forwarded.options.headers.Authorization, 'Bearer test-' + provider);
+      assert.equal(forwarded.body.model, model);
+      assert.equal(forwarded.body.effort, undefined);
+      const health = await request(port, '/healthz', {method: 'GET'});
+      assert.equal(health.body.provider, provider);
+      assert.equal(health.body.model, model);
+      assert.doesNotMatch(health.raw, /test-deepseek|test-wefucke/);
+    } finally { await close(); }
+  }
+});
