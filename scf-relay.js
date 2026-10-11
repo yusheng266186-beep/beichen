@@ -25,8 +25,8 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.9.1';
-const FRONTEND_VERSION = 'v2.9.1';
+const BACKEND_VERSION = 'v2.9.2';
+const FRONTEND_VERSION = 'v2.9.2';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
@@ -38,6 +38,9 @@ const CLOCK_SKEW_MS = 60 * 1000;
 const DEFAULT_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_RUNS = 3;
+// Google Authenticator keeps its standard 30s step. Acceptance expiry is separate.
+const TOTP_STEP_MS = 30000;
+const TOTP_VALIDITY_MS = 100000;
 const REPORT_SCALE_TOKENS = 10000;
 /* 正式页面日常请求为 5000，≥10000 是星图请求；中间档禁止，避免伪装 */
 const NORMAL_MAX_TOKENS = boundedInt(process.env.NORMAL_MAX_TOKENS, 5000, 100, REPORT_SCALE_TOKENS - 1);
@@ -231,7 +234,7 @@ function recordCompletion(map, key, response) {
   pruneMap(map, 8);
 }
 
-/* ── TOTP（RFC 6238，SHA1/30s/6 位，允许 ±1 窗口） ────────────── */
+/* ── TOTP（RFC 6238，SHA1/30s/6 位，按生成窗口起点过期） ──────── */
 function base32Decode(value) {
   const clean = String(value || '').replace(/[\s-]/g, '').toUpperCase();
   if (clean.length < 16 || !/^[A-Z2-7]+$/.test(clean)) return Buffer.alloc(0);
@@ -267,8 +270,10 @@ function matchingTotpCounter(code, now = Date.now()) {
   if (!/^\d{6}$/.test(code) || !process.env.GATE_TOTP_SECRET) return null;
   const secretBytes = base32Decode(process.env.GATE_TOTP_SECRET);
   if (secretBytes.length < 10) return null;
-  const counter = Math.floor(now / 30000);
-  for (const candidate of [counter - 1, counter, counter + 1]) {
+  if (!Number.isSafeInteger(now) || now < 0) return null;
+  const counter = Math.floor(now / TOTP_STEP_MS);
+  // Only current/past codes; a future time step cannot extend the acceptance life.
+  for (let candidate = counter; candidate >= 0 && now < candidate * TOTP_STEP_MS + TOTP_VALIDITY_MS; candidate--) {
     if (constantTimeEqual(code, totpCode(candidate, secretBytes))) return candidate;
   }
   return null;
@@ -365,7 +370,7 @@ async function handleVerify(req, res) {
   /* Redis SET NX/PX 让多实例只能消费同一组 counter+验证码一次。 */
   let consumed;
   try {
-    consumed = await stateStore.consumeTotp(counter + ':' + crypto.createHash('sha256').update(body.code).digest('hex'), 120000);
+    consumed = await stateStore.consumeTotp(counter + ':' + crypto.createHash('sha256').update(body.code).digest('hex'), TOTP_VALIDITY_MS + TOTP_STEP_MS);
   } catch (error) {
     logEvent('store_error', { where: 'verify_totp', code: String(error && error.code || 'STORE_ERROR') });
     throw error;
@@ -808,7 +813,8 @@ async function handleHealth(req, res, ready) {
     effortNote: modelProfile(config)?.note || '',
     stateStore: stateStore.name,
     stateStoreReachable: storeReachable,
-    maxRuns: MAX_RUNS
+    maxRuns: MAX_RUNS,
+    auth: { type: 'totp', stepSeconds: TOTP_STEP_MS / 1000, validitySeconds: TOTP_VALIDITY_MS / 1000, singleUse: true }
   });
 }
 

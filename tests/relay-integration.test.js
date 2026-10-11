@@ -218,6 +218,7 @@ test('健康检查能区分存储可用性，但不返回任何秘钥内容', as
   assert.equal(response.status, 200);
   assert.equal(response.body.version, relay.BACKEND_VERSION);
   assert.equal(response.body.frontendVersion, relay.FRONTEND_VERSION);
+  assert.deepEqual(response.body.auth, {type: 'totp', stepSeconds: 30, validitySeconds: 100, singleUse: true});
   assert.equal(response.body.stateStore, 'memory');
   assert.equal(response.body.providerConfigured, true);
   assert.doesNotMatch(response.raw, /local-test-session-secret/);
