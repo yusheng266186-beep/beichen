@@ -134,7 +134,7 @@ test('从旧弹窗切换至新弹窗后，关闭动画结束不会把键盘焦�
 test('页面保存和成功星图处理不再删除历史；异步恢复不会覆盖重新开始的会话',async()=>{
   const original=Array.from({length:81},(_,i)=>({role:i%2?'user':'assistant',content:'history '+i}));
   let saved;
-  const ctx={history:original,turnCount:40,reportDone:false,MAX_SESSION_MESSAGES:20000,MAX_SESSION_TEXT:200000,MODE:'open',lastReport:null,reportOffered:false,guidedAutoTried:false,quotaSyncPending:false,
+  const ctx={history:original,turnCount:40,reportDone:false,MAX_SESSION_MESSAGES:20000,MAX_SESSION_TEXT:200000,MODE:'open',lastReport:null,reportOffered:false,guidedAutoTried:false,quotaSyncPending:false,currentReportKey:null,currentReportSavedAt:null,
     choicesEl:{querySelectorAll:()=>[]},conversationStore:{save:s=>saved=s,load:()=>new Promise(r=>ctx.finish=r)},sanitizeReport:()=>null,toast(){},talkEpoch:1,gateOk:()=>true};
   vm.createContext(ctx);vm.runInContext(fn('function normalizeHistory')+'\n'+fn('function saveSession')+'\n'+fn('async function restoreSession'),ctx);
   ctx.saveSession();assert.equal(saved.history.length,81);assert.equal(saved.history[0].content,'history 0');

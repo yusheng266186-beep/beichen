@@ -1116,7 +1116,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
     </div>
     <nav class="rail" id="rail"></nav>
     <div class="top-acts">
-      <button class="tbtn" id="reportBtn" style="display:none" onclick="openOverlay('reportModal')">星图报告</button>
+      <button class="tbtn" id="reportBtn" style="display:none" onclick="openLiveReport()">星图报告</button>
       <button class="tbtn" onclick="openOverlay('dataModal')">数据参考</button>
       <button class="tbtn" onclick="openSettings()">设置</button>
     </div>
@@ -1412,6 +1412,7 @@ html.js [data-reveal]:not(.revealed){opacity:0}
 <!-- ══════════ 历次星图（v3 · IndexedDB 本地存档） ══════════ -->
 <div class="overlay" id="historyModal" role="dialog" aria-modal="true" aria-label="历次星图" onclick="if(event.target===this) closeOverlay('historyModal')">
   <div class="modal-card">
+    <button type="button" class="rc-close" aria-label="关闭历次星图" onclick="closeOverlay('historyModal')">✕</button>
     <div class="modal-top">
       <h3>历次星图</h3>
       <p>HISTORY</p>
@@ -1438,8 +1439,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.9.4';
-const EXPECTED_BACKEND_VERSION = 'v2.9.4';
+const APP_VERSION = 'v2.9.5';
+const EXPECTED_BACKEND_VERSION = 'v2.9.5';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */
@@ -1787,7 +1788,7 @@ function saveSession(){
       history: savedHistory, turnCount: Math.max(0, Math.min(5000, Number(turnCount)||0)),
       reportDone: !!reportDone, mode: MODE, lastReport: sanitizeReport(lastReport), reportOffered: !reportDone && !!reportOffered,
       reportAttempted: !reportDone && MODE === 'guided' && guidedAutoTried,   /* 领航自动星图已试过:刷新后不再自动重试,恢复「点亮星图」入口 */
-      quotaPending: !!quotaSyncPending,
+      quotaPending: !!quotaSyncPending, reportKey: currentReportKey, reportSavedAt: currentReportSavedAt,
       choices: [...choicesEl.querySelectorAll('.choc')].map(b=>String(b.textContent||'').slice(0,120)).filter(Boolean).filter(c => c !== '重新点亮星图' && c !== '再试一次').slice(0,4),   /* 瞬时动作按钮不回存，刷新后不得变成发字面文本 */
       savedAt: Date.now()
     });
@@ -1810,6 +1811,8 @@ async function restoreSession(){
     history = restoredHistory;
     turnCount = Math.max(0, Math.min(5000, Number(s.turnCount)||0));
     lastReport = sanitizeReport(s.lastReport);
+    currentReportKey = typeof s.reportKey === 'number' || typeof s.reportKey === 'string' ? s.reportKey : null;
+    currentReportSavedAt = Number(s.reportSavedAt) || Number(s.savedAt) || Date.now();
     reportDone = !!s.reportDone && !!lastReport;
     quotaSyncPending = reportDone && !!s.quotaPending;
     reportOffered = !reportDone && !!s.reportOffered;
@@ -2698,7 +2701,7 @@ function renderChips(arr){
       if(opt === '重新测试'){ confirmRestart(); return; }
       if(opt === '同步本次额度'){ return retryQuotaSync(); }
       /* 点亮星图:星图未生成时=生成(弹额度确认);已生成时=直接查看星图卡片 */
-      if(opt === '点亮星图'){ if(reportDone) openOverlay('reportModal'); else openReportAsk(); return; }
+      if(opt === '点亮星图'){ if(reportDone) openLiveReport(); else openReportAsk(); return; }
       if(opt === '为什么是这个方位') return continueAsk('为什么是这个方位？讲讲你判断的核心依据。');
       if(opt === '组合帮我对比下') return continueAsk('帮我把首选组合和备选组合对比分析一下。');
       send(opt);
@@ -3010,86 +3013,143 @@ function buildReportNav(){
 /* ═══════════════════════════ v3 星图历史(IndexedDB 本地存档) ═══════════════════════════
    一次验证可生成 3 张星图,但 lastReport 只留最后一张;本地把每张都存档,可回看。 */
 const REPORT_DB = 'beichen_reports_v1';
-let currentReportKey = null;   /* 当前"live"星图在历史库中的主键 */
+let currentReportKey = null, currentReportSavedAt = null;
+let reportHistoryQueue = Promise.resolve(), historyReadEpoch = 0;
 function idbOpen(){
-  return new Promise(resolve=>{
+  return new Promise((resolve,reject)=>{
+    let finished=false;
+    const done=(error,db)=>{
+      if(finished){ if(db) db.close(); return; }
+      finished=true; clearTimeout(timer);
+      if(error) reject(error); else resolve(db);
+    };
+    const timer=setTimeout(()=>done(new Error('本机星图数据库读取超时')),3000);
     try{
-      if(!('indexedDB' in window)) return resolve(null);
-      const rq = indexedDB.open(REPORT_DB, 1);
-      rq.onupgradeneeded = ()=>{ rq.result.createObjectStore('charts', {keyPath:'id', autoIncrement:true}); };
-      rq.onsuccess = ()=>resolve(rq.result);
-      rq.onerror = ()=>resolve(null);
-    }catch(_){ resolve(null); }
+      if(!window.indexedDB) return done(new Error('此浏览器未允许本机星图存储'));
+      const rq=indexedDB.open(REPORT_DB,1);
+      rq.onupgradeneeded=()=>{
+        if(!rq.result.objectStoreNames.contains('charts')) rq.result.createObjectStore('charts',{keyPath:'id',autoIncrement:true});
+      };
+      rq.onsuccess=()=>{
+        rq.result.onversionchange=()=>rq.result.close();
+        done(null,rq.result);
+      };
+      rq.onerror=()=>done(new Error('本机星图数据库暂时不可用'));
+      rq.onblocked=()=>done(new Error('请关闭其他北辰页面后重试'));
+    }catch(e){ done(e); }
   });
 }
-function saveReportHistory(rep){
-  if(!rep) return;
-  idbOpen().then(db=>{
-    if(!db) return;
+async function reportDbRequest(mode,entry){
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    let tx,rq,timer,finished=false;
+    const done=error=>{
+      if(finished) return;
+      finished=true; clearTimeout(timer); db.close();
+      if(error) reject(error); else resolve(rq.result);
+    };
     try{
-      const tx = db.transaction('charts', 'readwrite');
-      const rq = tx.objectStore('charts').add({
-        savedAt: Date.now(), title: rep['称号'] || '星图', dir: rep._dir || 'bal', lean: rep._lean ?? 50, report: rep
-      });
-      rq.onsuccess = ()=>{ currentReportKey = rq.result; };
-    }catch(_){ }
+      tx=db.transaction('charts',mode);
+      rq=mode==='readwrite' ? tx.objectStore('charts').add(entry) : tx.objectStore('charts').getAll();
+      /* 请求成功后事务仍可能回滚，只有 oncomplete 才能确认保存完成。 */
+      tx.oncomplete=()=>done();
+      tx.onerror=tx.onabort=()=>done(new Error(mode==='readwrite'?'星图未能保存到本机':'本机星图读取失败'));
+      timer=setTimeout(()=>{ done(new Error('本机星图存储响应超时')); try{tx.abort()}catch(_){ } },5000);
+    }catch(e){ done(e); }
   });
 }
-function listReportHistory(){
-  return idbOpen().then(db=>{
-    if(!db) return [];
-    return new Promise(resolve=>{
-      try{
-        const rq = db.transaction('charts', 'readonly').objectStore('charts').getAll();
-        rq.onsuccess = ()=>resolve((rq.result || []).sort((a,b)=>b.savedAt - a.savedAt));
-        rq.onerror = ()=>resolve([]);
-      }catch(_){ resolve([]); }
-    });
-  }).catch(()=>[]);
+function saveReportHistory(rep,savedAt){
+  if(!rep) return Promise.resolve(null);
+  /* 固定保存时的原文；后续切换或轴动画不能改动排队中的存档。 */
+  let entry;
+  try{ entry={savedAt:Number(savedAt)||Date.now(),title:rep['称号']||'星图',dir:rep._dir||'bal',lean:rep._lean??50,report:JSON.parse(JSON.stringify(rep))}; }
+  catch(_){ toast('这张星图暂未保存，请先保存为图片并保留当前页面。'); return Promise.resolve(null); }
+  const epoch=talkEpoch;
+  currentReportSavedAt=entry.savedAt;
+  const saving=reportHistoryQueue.then(()=>reportDbRequest('readwrite',entry)).then(id=>{
+    if(epoch===talkEpoch && lastReport===rep){ currentReportKey=id; saveSession(); }
+    return id;
+  }).catch(()=>{
+    toast('这张星图暂未保存到本机，请先保存为图片并保留当前页面。');
+    return null;
+  });
+  reportHistoryQueue=saving.then(()=>{});
+  return saving;
+}
+async function listReportHistory(){
+  await reportHistoryQueue;
+  const items=await reportDbRequest('readonly');
+  return (items||[]).filter(entry=>entry && entry.report && typeof entry.report==='object')
+    .sort((a,b)=>Number(b.savedAt)-Number(a.savedAt));
+}
+function reportSignature(rep){
+  if(!rep) return '';
+  return JSON.stringify(['称号','方位','星值','一句话','组合','专业','寄语','cards','_majors','_dir','_lean','_complete'].map(key=>rep[key]??null));
 }
 function dirLabelOf(rep){
   return rep && rep._dir === 'li' ? '偏理' : rep && rep._dir === 'wen' ? '偏文' : '居中';
 }
 async function openReportHistory(){
-  const list = document.getElementById('historyList');
+  const list=document.getElementById('historyList');
   if(!list) return;
-  list.innerHTML = '<div class="history-empty">正在读取…</div>';
+  const request=++historyReadEpoch;
+  list.innerHTML='<div class="history-empty">正在读取…</div>';
   openOverlay('historyModal');
-  const items = await listReportHistory();
-  list.innerHTML = '';
-  if(!items.length){
-    list.innerHTML = '<div class="history-empty">还没有存档的星图</div>';
-    return;
+  try{
+    const items=await listReportHistory();
+    if(request!==historyReadEpoch) return;
+    /* 兼容旧版本：当前星图仍在本机谈话中但漏存到历史时，补回一次。 */
+    if(lastReport){
+      const current=items.find(entry=>entry.id===currentReportKey || reportSignature(entry.report)===reportSignature(lastReport));
+      if(current){
+        const changed=currentReportKey!==current.id || currentReportSavedAt!==current.savedAt;
+        currentReportKey=current.id; currentReportSavedAt=current.savedAt;
+        if(changed) saveSession();
+      }
+      else{
+        const savedAt=currentReportSavedAt||Date.now();
+        const id=await saveReportHistory(lastReport,savedAt);
+        if(request!==historyReadEpoch) return;
+        if(id!==null) items.unshift({id,savedAt,title:lastReport['称号']||'星图',lean:lastReport._lean,report:lastReport});
+      }
+    }
+    list.innerHTML='';
+    if(!items.length){ list.innerHTML='<div class="history-empty">还没有存档的星图</div>'; return; }
+    items.forEach(entry=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='history-item';
+      b.innerHTML='<b>'+esc(entry.title||'星图')+'</b><span>'+dirLabelOf(entry.report)+
+        ' · 星值 '+esc(entry.lean??50)+' · '+new Date(entry.savedAt).toLocaleDateString('zh-CN')+'</span>';
+      b.onclick=()=>{ closeOverlay('historyModal'); viewHistoryReport(entry); };
+      list.appendChild(b);
+    });
+  }catch(_){
+    if(request!==historyReadEpoch) return;
+    list.innerHTML='<div class="history-empty">本机星图暂时读取失败，请重试。<br>存档未被清除；也可关闭其他北辰页面后再试。</div>';
+    const retry=document.createElement('button');
+    retry.type='button'; retry.className='tbtn'; retry.textContent='重新读取'; retry.onclick=openReportHistory;
+    list.appendChild(retry);
   }
-  items.forEach(entry=>{
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'history-item';
-    b.innerHTML = '<b>' + esc(entry.title || '星图') + '</b><span>' + dirLabelOf(entry.report) +
-      ' · 星值 ' + (entry.lean ?? 50) + ' · ' + new Date(entry.savedAt).toLocaleDateString('zh-CN') + '</span>';
-    b.onclick = ()=>{
-      closeOverlay('historyModal');
-      viewHistoryReport(entry);
-    };
-    list.appendChild(b);
-  });
 }
 function viewHistoryReport(entry){
   if(!entry || !entry.report) return;
   renderReport(entry.report);
-  if(currentReportKey !== null && entry.id === currentReportKey){
-    document.getElementById('rp-history-tip').hidden = true;   // 看的就是当前这张
-  }else{
-    document.getElementById('rp-history-tip').hidden = false;
-  }
+  const tip=document.getElementById('rp-history-tip');
+  const isCurrent=lastReport && (entry.id===currentReportKey || reportSignature(entry.report)===reportSignature(lastReport));
+  tip.hidden=!!isCurrent;
+  tip.querySelector('button').hidden=!lastReport;
+  document.getElementById('rp-time').textContent='POLARIS · '+new Date(entry.savedAt).toLocaleString('zh-CN',{hour12:false});
+  /* 报告可能就在历史列表下方打开着，也必须重新滚到顶部并显现新内容。 */
+  openOverlay('reportModal');
+}
+function openLiveReport(){
+  if(!lastReport){ toast('当前谈话尚未生成星图'); return; }
+  renderReport(lastReport);
+  if(currentReportSavedAt) document.getElementById('rp-time').textContent='POLARIS · '+new Date(currentReportSavedAt).toLocaleString('zh-CN',{hour12:false});
   openOverlay('reportModal');
 }
 function backToLiveReport(){
-  if(lastReport) renderReport(lastReport);
-  const tip = document.getElementById('rp-history-tip');
-  if(tip) tip.hidden = true;
-  /* 重渲染出的 data-reveal 元素是未显现态,须重新触发滚动显现,否则整卡空白 */
-  const card = document.querySelector('#reportModal .report-card');
-  if(card) revealWithin(card);
+  openLiveReport();
 }
 
 /* ── 专业解析悬浮卡:锚住所点 pill 的弹出卡片(内容坐标定位,随滚动保持锚定;
@@ -3310,11 +3370,11 @@ function revealWithin(scope){
 function openOverlay(id){
   const el = document.getElementById(id);
   const alreadyOpen = el.classList.contains('show') && !el.dataset.closing;
-  if(alreadyOpen) return;
+  if(alreadyOpen && id !== 'reportModal') return;
   clearTimeout(el._closeTm);
   el.classList.remove('closing'); delete el.dataset.closing;
   el.classList.add('show');
-  el._prevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  if(!alreadyOpen) el._prevFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const card = el.querySelector('.polaris-card, .report-card, .data-card, .modal-card, .restart-card');
   if(card) card.scrollTop = 0;
   /* 焦点移入弹窗（优先关闭钮），关闭时归还给触发者 */
@@ -3323,7 +3383,7 @@ function openOverlay(id){
     if(!focusTarget.hasAttribute('tabindex')) focusTarget.setAttribute('tabindex','-1');
     focusTarget.focus({preventScroll:true});
   }
-  if(DISMISSIBLE.includes(id)) overlayNavigation.open(id);
+  if(!alreadyOpen && DISMISSIBLE.includes(id)) overlayNavigation.open(id);
   if(id === 'reportModal' && shownReport){
     /* 每次打开都重播「点亮」：趁卡片入场动画把星归中、覆盖率条归零；条形由重新武装后的滚动显现触发生长 */
     const star = document.getElementById('axis-star');
@@ -3510,6 +3570,7 @@ async function wipeLocalData(btn){
     localStorage.removeItem('beichen_cfg');
     await clearSession();
     /* v3:历次星图存档一并清空(与弹窗内承诺一致) */
+    await reportHistoryQueue;
     if('indexedDB' in window) indexedDB.deleteDatabase('beichen_reports_v1');
   }catch(_){ }
   closeOverlay('settingsModal');
@@ -3652,11 +3713,12 @@ function resetConversation(){
   if(activeStreamAbort){ try{ activeStreamAbort.abort(); }catch(e){} }
   history = []; turnCount = 0; reportDone = false; reportRequested = false; guidedAutoTried = false; reportOffered = false; lastReport = null; shownReport = null; quotaSyncPending = false; waiting = false;
   clearSession();
+  currentReportKey=null; currentReportSavedAt=null; historyReadEpoch++;
   msgsEl.innerHTML = '';
   choicesEl.innerHTML = ''; choicesWrap.classList.remove('hide','dis');
   choicesHint.style.display = '';
   document.getElementById('reportBtn').style.display = 'none';
-  closeOverlay('reportModal'); closeOverlay('dataModal');
+  closeOverlay('reportModal'); closeOverlay('dataModal'); closeOverlay('historyModal');
   renderRail();
 }
 

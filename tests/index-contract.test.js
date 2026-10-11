@@ -300,8 +300,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.9\.4';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.4';/);
+assert.match(index, /const APP_VERSION = 'v2\.9\.5';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.5';/);
 assert.match(index, /id="statModel"/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);
@@ -414,7 +414,8 @@ assert.match(index, /Math\.sqrt\(12000000/);
 /* 回看横幅:display:flex 会压过 hidden 属性,必须显式收回 */
 assert.match(index, /\.history-tip\[hidden\]\{display:none\}/);
 /* 回到当前:重渲染后必须重新触发滚动显现,否则整卡空白 */
-assert.match(index, /if\(card\) revealWithin\(card\);/);
+assert.match(index, /function backToLiveReport\(\)\{\s*openLiveReport\(\);\s*\}/);
+assert.match(index, /if\(alreadyOpen && id !== 'reportModal'\) return;/);
 /* 报告卡关闭钮:悬于分段导航之上且垂直居中于导航条内(桌面 6px / 手机 4px) */
 assert.match(index, /#reportModal \.rc-close\{z-index:7;top:6px\}/);
 assert.match(index, /#reportModal \.rc-close\{top:4px\}/);
