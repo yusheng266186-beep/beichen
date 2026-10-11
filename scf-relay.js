@@ -25,7 +25,7 @@ const {
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
 const BACKEND_VERSION = 'v2.9.0';
-const FRONTEND_VERSION = 'v2.8.1';
+const FRONTEND_VERSION = 'v2.9.0';
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
