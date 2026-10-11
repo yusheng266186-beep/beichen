@@ -22,3 +22,5 @@ SSE 必须有可见回答和 [DONE]，内嵌错误、畸形事件、意外 EOF �
 工作台首次切换或验证失效时，实测所选档与最高档的完整 SSE；六小时内的有效验证可复用，签名绑定密钥、服务地址、原生参数与适配版本。真实切换仍核验上游连通，失败保留旧配置，生效后回读健康检查能力版本。工作台的默认强度用于未设置过强度的客户端，学生可自行调整。
 
 文档依据：[DeepSeek](https://api-docs.deepseek.com/guides/thinking_mode/)、[GLM](https://docs.z.ai/api-reference/llm/chat-completion)、[GPT-6 Sol](https://developers.openai.com/api/docs/models/gpt-6-sol)、[Chat Completions 参数](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create)。
+
+自 v2.9.3 起，所有聊天、星图、格式修复和续写都在前端统一分段校验，长对话保留有角色标注的完整原文。原生参数、三档预算及模型能力版本继续为 v2.9.1。详见 [对话完整性](docs/对话完整性与流程修复-v2.9.3.md)。

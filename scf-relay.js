@@ -25,13 +25,13 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.9.2';
-const FRONTEND_VERSION = 'v2.9.2';
-const MAX_BODY_BYTES = 128 * 1024;
+const BACKEND_VERSION = 'v2.9.3';
+const FRONTEND_VERSION = 'v2.9.3';
+const MAX_BODY_BYTES = 512 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
-/* 默认 4 万字符：中文按 3 字节/字约 120KB，先于正文上限触发 */
-const MAX_PROMPT_CHARS = boundedInt(process.env.MAX_PROMPT_CHARS, 40000, 2000, 200000);
+/* 完整原话与续写共用 10 万字符预算；正文限额容纳中文和 JSON 转义。 */
+const MAX_PROMPT_CHARS = boundedInt(process.env.MAX_PROMPT_CHARS, 100000, 2000, 200000);
 const MAX_COMPLETION_TOKENS = 16384;
 const MAX_UPSTREAM_BYTES = 8 * 1024 * 1024;
 const CLOCK_SKEW_MS = 60 * 1000;
@@ -814,6 +814,7 @@ async function handleHealth(req, res, ready) {
     stateStore: stateStore.name,
     stateStoreReachable: storeReachable,
     maxRuns: MAX_RUNS,
+    requestLimits: {messages:MAX_MESSAGE_COUNT, messageChars:MAX_MESSAGE_CHARS, promptChars:MAX_PROMPT_CHARS, bodyBytes:MAX_BODY_BYTES},
     auth: { type: 'totp', stepSeconds: TOTP_STEP_MS / 1000, validitySeconds: TOTP_VALIDITY_MS / 1000, singleUse: true }
   });
 }

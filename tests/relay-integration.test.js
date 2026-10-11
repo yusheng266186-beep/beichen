@@ -219,6 +219,7 @@ test('健康检查能区分存储可用性，但不返回任何秘钥内容', as
   assert.equal(response.body.version, relay.BACKEND_VERSION);
   assert.equal(response.body.frontendVersion, relay.FRONTEND_VERSION);
   assert.deepEqual(response.body.auth, {type: 'totp', stepSeconds: 30, validitySeconds: 100, singleUse: true});
+  assert.deepEqual(response.body.requestLimits, require('../conversation-context').LIMITS);
   assert.equal(response.body.stateStore, 'memory');
   assert.equal(response.body.providerConfigured, true);
   assert.doesNotMatch(response.raw, /local-test-session-secret/);
@@ -231,6 +232,21 @@ test('健康检查能区分存储可用性，但不返回任何秘钥内容', as
   assert.equal(ready.body.providerConfigured, true);
   assert.doesNotMatch(ready.raw, /local-test-session-secret/);
   assert.doesNotMatch(ready.raw, /local-test-provider-key/);
+});
+
+test('超过旧 128KiB 的完整学生证据经 HTTP 正文校验后仍逐字送达上游', async t => {
+  freshStore();
+  let captured;
+  relay.setUpstreamRequester(makeUpstreamRequester({failOn:bodyText=>{captured=JSON.parse(bodyText);return false}}));
+  const {port,close}=await listen(); t.after(close);
+  const verified=await request(port,'/verify',{body:{code:totp(Math.floor(Date.now()/30000),process.env.GATE_TOTP_SECRET)}});
+  const evidence='学生原话：'+ '中'.repeat(60000);
+  const messages=require('../conversation-context').pack([{role:'user',content:evidence}]);
+  const body={messages,max_tokens:16384,stream:true};
+  assert.ok(Buffer.byteLength(JSON.stringify(body))>128*1024);
+  const response=await request(port,'/chat/completions',{headers:{authorization:'Bearer '+verified.body.token},body});
+  assert.equal(response.status,200); assert.match(response.raw,/\[DONE\]/);
+  assert.equal(captured.messages.map(m=>m.content).join(''),evidence);
 });
 
 test('安静的长流会发出 SSE 心跳注释行', async t => {

@@ -82,7 +82,8 @@ assert.match(index, /你的角色转为解答者/);
 
 /* 开始任何新谈心前必须自选聊法：重新测试与无会话刷新都进模式选择
    (免验证回访延迟 480ms 弹出,让星门先淡出,模式弹窗进场动画不被遮住) */
-assert.match(index, /if\(!restoreSession\(\)\)\{ setTimeout\(showModeSelect, 480\); \} return; \}/);
+assert.match(index, /restoreSession\(\)\.then\(restored=>/);
+assert.match(index, /if\(!restored && epoch === talkEpoch && gateOk\(\)\)/);
 assert.match(index, /showModeSelect\(\);\s*\n\s*toast\('我们重新开始'\);/);
 
 /* ─── v2.6 正确性与体验修复 ─── */
@@ -115,7 +116,8 @@ assert.match(index, /id="settingsModal" role="dialog" aria-modal="true" aria-lab
 assert.match(index, /const DISMISSIBLE = \[/);
 assert.match(index, /e\.key === 'Escape' && top/);
 assert.match(index, /window\.addEventListener\('popstate'/);
-assert.match(index, /history\.pushState\(\{bcOv:1\},''\)/);
+assert.match(index, /BeichenOverlayNavigation\.create\(window\.history/);
+assert.doesNotMatch(index, /[^.]\bhistory\.(?:pushState|back|state)/);
 assert.match(index, /id="toast" role="status" aria-live="polite"/);
 /* 瞬时动作按钮不回存;刷新后「点亮星图」入口仍恢复为按钮 */
 assert.match(index, /filter\(c => c !== '重新点亮星图' && c !== '再试一次'\)/);
@@ -259,11 +261,12 @@ assert.match(index, /GUIDED_OPTION_FORMAT/);
 /* 去十轮化：自由聊轮数可变后，历史压缩与星图指令不再绑定"十问" */
 assert.doesNotMatch(index, /完成了十问谈心/);
 assert.doesNotMatch(index, /十问已毕——你的星图画好了/);
-assert.match(index, /与一位高一学生的谈心记录，学生说过的话（按时间顺序）/);
+assert.match(index, /BeichenContext\.transcript\(history\)/);
 
-/* 超长对话裁剪：中转上限 24 条消息，上下文最多 22 条 */
-assert.match(index, /const MAX_CONTEXT_MESSAGES = 22;/);
-assert.match(index, /history\.slice\(-\(MAX_CONTEXT_MESSAGES - 1\)\)/);
+/* 长对话和续写共用装箱，不再截取尾部历史 */
+assert.match(index, /BeichenContext\.pack\(messages/);
+assert.match(index, /BeichenContext\.pack\(contMsgs/);
+assert.doesNotMatch(index, /history\.slice\(-/);
 
 /* 引导词扩池行为级验证：从页面源码提取 openGuidance，1-30 轮永不空串且不泄漏【选项】 */
 const poolBlock = /const OPEN_GUIDANCE = \{[\s\S]*?\n\};/.exec(index)[0];
@@ -297,8 +300,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.9\.2';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.2';/);
+assert.match(index, /const APP_VERSION = 'v2\.9\.3';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.3';/);
 assert.match(index, /id="statModel"/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);

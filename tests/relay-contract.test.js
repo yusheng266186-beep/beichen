@@ -145,23 +145,15 @@ assert.equal(relay.pickClientIp('garbage, <script>', '10.0.0.1'), '10.0.0.1', 'a
 assert.equal(relay.pickClientIp('2001:db8::1, ::ffff:203.0.113.7', '10.0.0.1'), '::ffff:203.0.113.7',
   'IPv6 forms accepted');
 
-/* 提示词上限口径:默认 4 万字符,中文 3 字节/字约 120KB,先于 128KiB 正文上限触发 */
-assert.equal(relay.maxPromptChars, 40000, 'prompt char cap default must align with the 128KiB body cap');
+/* 完整原文分段发送；总量仍有明确边界，容量元数据与前端一致 */
+assert.equal(relay.maxPromptChars, require('../conversation-context').LIMITS.promptChars);
 assert.throws(
-  () => relay.validateChatBody({messages: [
-    {role: 'user', content: '中'.repeat(14000)},
-    {role: 'user', content: '中'.repeat(14000)},
-    {role: 'user', content: '中'.repeat(14001)}
-  ]}),
+  () => relay.validateChatBody({messages: Array.from({length:7},(_,i)=>({role:'user',content:'中'.repeat(i===6?10001:15000)}))}),
   /BEICHEN_PROMPT_TOO_LARGE/,
-  'prompt beyond 40000 chars must be refused'
+  'prompt beyond 100000 chars must be refused'
 );
-const atPromptCap = relay.validateChatBody({messages: [
-  {role: 'user', content: '中'.repeat(13333)},
-  {role: 'user', content: '中'.repeat(13333)},
-  {role: 'user', content: '中'.repeat(13334)}
-], stream: true});
-assert.equal(atPromptCap.messages.length, 3, 'exactly 40000 chars stays within the cap');
+const atPromptCap = relay.validateChatBody({messages: Array.from({length:7},(_,i)=>({role:'user',content:'中'.repeat(i===6?10000:15000)})), stream: true});
+assert.equal(atPromptCap.messages.length, 7, 'exactly 100000 chars stays within the cap');
 
 /* 最近完成表有界:超过 8 条按插入序淘汰最旧,最新一条保留供并发双提交幂等重放 */
 const replayMap = new Map();

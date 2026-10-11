@@ -2,7 +2,7 @@
 
 这份指南覆盖正式库 `yusheng266186-beep/beichen` 的前后端对齐部署。页面只同步后端变化确实需要的提示、版本和就绪检查，聊天内容与其他无关页面行为不变。
 
-后端和页面为 `v2.9.2`，模型能力版本为 `v2.9.1`，维护工作台版本为 `v1.5`。真实的 API Key、动态码 seed、会话签名密钥和 Redis 密码只填写在腾讯云的加密环境变量里，绝不能写回公开 GitHub 仓库。
+后端和页面为 `v2.9.3`，模型能力版本为 `v2.9.1`，维护工作台版本为 `v1.5`。真实的 API Key、动态码 seed、会话签名密钥和 Redis 密码只填写在腾讯云的加密环境变量里，绝不能写回公开 GitHub 仓库。
 
 ## 1. 准备工作
 
@@ -29,6 +29,11 @@ npm ci --omit=dev
 
 ```text
 scf-relay.js
+model-adapter.js
+model-profiles.json
+conversation-context.js
+conversation-store.js
+overlay-navigation.js
 state-store.js
 scf_bootstrap
 package.json
@@ -44,7 +49,7 @@ node_modules/
 
 ```bash
 chmod 755 scf_bootstrap
-zip -r deploy.zip scf-relay.js state-store.js scf_bootstrap package.json package-lock.json node_modules
+zip -r deploy.zip scf-relay.js model-adapter.js model-profiles.json conversation-context.js conversation-store.js overlay-navigation.js state-store.js scf_bootstrap package.json package-lock.json node_modules
 ```
 
 如果使用 Python 打包，至少要给启动脚本保留 Unix 权限位：
@@ -55,6 +60,11 @@ import zipfile
 
 root_files = (
     "scf-relay.js",
+    "model-adapter.js",
+    "model-profiles.json",
+    "conversation-context.js",
+    "conversation-store.js",
+    "overlay-navigation.js",
     "state-store.js",
     "scf_bootstrap",
     "package.json",
@@ -211,3 +221,7 @@ npm run verify
 切换会重启函数运行实例，进行中的请求可能中断，建议在没有学生请求时操作。Redis 开关与共享会话配置保留。统计演示和独立管理数据库暂不建设，现有 Redis 只承担业务状态；无需为了工作台额外部署分析数据库。
 
 模型列表按 `/models` 返回值更新，不把供应商密钥发送到浏览器。历史千帆配置仅为兼容旧部署保留。
+
+## 前端 v2.9.3 同步
+
+GitHub Pages 发布整个源码目录，包含 index.html、conversation-context.js、conversation-store.js、overlay-navigation.js 和原有字体／截图资源。不要只上传 index.html。长对话容量与保存流程见 [说明](docs/对话完整性与流程修复-v2.9.3.md)。生产更新前后核对 /healthz 的版本与 requestLimits，/readyz 的可用性应符合当时 Redis 开关状态。
