@@ -19,14 +19,15 @@ const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
 const { modelProfile, adaptModelBody, profileVersion } = require('./model-adapter');
+const { createStreamNormalizer } = require('./upstream-stream');
 const {
   MemoryStateStore,
   createStateStoreFromEnv
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.9.6';
-const FRONTEND_VERSION = 'v2.9.6';
+const BACKEND_VERSION = 'v2.10.0';
+const FRONTEND_VERSION = 'v2.10.0';
 const MAX_BODY_BYTES = 512 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
@@ -53,11 +54,7 @@ const QIANFAN_BASE_URL = 'https://qianfan.baidubce.com/v2/tokenplan/personal';
 const QIANFAN_ALLOWED_HOSTS = new Set(['qianfan.baidubce.com']);
 const QIANFAN_ENDPOINT_BASES = ['/v2/tokenplan/personal'];
 const DEFAULT_QIANFAN_MODEL = 'qianfan-code-latest';
-const API_PROVIDERS = {
-  deepseek: { prefix: 'DEEPSEEK', model: 'deepseek-flash', url: 'https://api.deepseek.com' },
-  wefucke: { prefix: 'WEFUCKE', model: 'glm-5.3-flash', url: 'https://www.wefucke.top/v1' },
-  'wefucke-gpt': { prefix: 'WEFUCKE_GPT', model: 'gpt-6-sol', url: 'https://www.wefucke.top/v1' }
-};
+const API_PROVIDERS = require('./api-providers.json');
 
 const TOKEN_TTL_MS = boundedInt(process.env.GATE_TOKEN_TTL_MS, DEFAULT_TOKEN_TTL_MS, 60 * 1000, MAX_TOKEN_TTL_MS);
 const UPSTREAM_TIMEOUT_MS = boundedInt(process.env.UPSTREAM_TIMEOUT_MS, DEFAULT_UPSTREAM_TIMEOUT_MS, 30 * 1000, 570 * 1000);
@@ -481,12 +478,12 @@ function providerConfig() {
   const provider = Object.hasOwn(API_PROVIDERS, name) ? API_PROVIDERS[name] : null;
   if (provider) {
     const official = name === 'deepseek';
-    const apiKey = String(process.env[provider.prefix + '_API_KEY'] || '').trim();
+    const apiKey = String(process.env[provider.key] || '').trim();
     const accountToken = official ? String(process.env.DEEPSEEK_ACCOUNT_TOKEN || '').trim() : '';
     const key = apiKey || accountToken;
     const model = String(process.env[provider.prefix + '_MODEL'] || provider.model).trim();
     if (!key || !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,199}$/.test(model)) return null;
-    return { name, key, model, auth: apiKey ? 'bearer' : 'account',
+    return { name, key, model, protocol:provider.protocol, auth: apiKey ? 'bearer' : 'account',
       url: String(process.env[provider.prefix + '_BASE_URL'] || provider.url).trim() };
   }
   if (name !== 'qianfan') return null;
@@ -503,14 +500,16 @@ function upstreamUrl(config) {
   catch (_) { throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED'); }
   if (url.protocol !== 'https:' || url.search || url.hash || url.username || url.password) throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
   if (Object.hasOwn(API_PROVIDERS, config.name)) {
-    const host = config.name === 'deepseek' ? 'api.deepseek.com' : 'www.wefucke.top';
+    const provider=API_PROVIDERS[config.name],expected=new URL(provider.url);
+    const host = expected.hostname.toLowerCase();
     const path = url.pathname.replace(/\/+$/, '');
-    const bases = config.name === 'deepseek' ? ['', '/v1'] : ['/v1'];
+    const bases = config.name === 'deepseek' ? ['', '/v1'] : [expected.pathname.replace(/\/+$/, '')];
+    const suffix=provider.protocol==='anthropic'?'/v1/messages':provider.protocol==='responses'?'/responses':'/chat/completions';
     if (url.hostname.toLowerCase() !== host || (url.port && url.port !== '443') ||
-        !bases.some(base => path === base || path === base + '/chat/completions')) {
+        !bases.some(base => path === base || path === base + suffix)) {
       throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
     }
-    url.pathname = path.endsWith('/chat/completions') ? path : path + '/chat/completions';
+    url.pathname = path.endsWith(suffix) ? path : path + suffix;
     return url;
   }
   if (config.name !== 'qianfan') throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
@@ -555,6 +554,7 @@ function upstreamAuthHeaders(config) {
     if (config.name !== 'deepseek') throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
     return { 'x-dsh-auth-token': config.key };
   }
+  if(API_PROVIDERS[config.name]?.protocol==='anthropic')return {'x-api-key':config.key,'anthropic-version':'2023-06-01'};
   return { Authorization: 'Bearer ' + config.key };
 }
 
@@ -653,6 +653,7 @@ function proxyChat(req, res, body, config) {
         }, SSE_HEARTBEAT_MS);
         if (heartbeat.unref) heartbeat.unref();
         let streamBuffer = '', hasContent = false, streamDone = false, streamError = false;
+        const normalizer=createStreamNormalizer(API_PROVIDERS[config.name]?.protocol);
         const streamDecoder = new (require('string_decoder').StringDecoder)('utf8');
         const inspectLine = line => {
           if (!line.trim().startsWith('data:')) return;
@@ -669,22 +670,25 @@ function proxyChat(req, res, body, config) {
           } catch (_) { streamError = true; }
         };
         res.on('drain', () => response.resume());
+        const forwardChunk=chunk=>{
+          if(!chunk?.length)return;
+          if(contentType.startsWith('text/event-stream')){
+            streamBuffer+=streamDecoder.write(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk));
+            let newline;
+            while((newline=streamBuffer.indexOf('\n'))>=0){inspectLine(streamBuffer.slice(0,newline));streamBuffer=streamBuffer.slice(newline+1);}
+            if(streamBuffer.length>4*1024*1024)throw httpError(502,'BEICHEN_UPSTREAM_ERROR');
+          }
+          if(!res.write(chunk))response.pause();
+        };
         response.on('data', chunk => {
           bytes += chunk.length;
           if (bytes > MAX_UPSTREAM_BYTES) return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
-          if (contentType.startsWith('text/event-stream')) {
-            streamBuffer += streamDecoder.write(chunk);
-            let newline;
-            while ((newline = streamBuffer.indexOf('\n')) >= 0) {
-              inspectLine(streamBuffer.slice(0, newline));
-              streamBuffer = streamBuffer.slice(newline + 1);
-            }
-            if (streamBuffer.length > 256 * 1024) return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
-          }
-          if (!res.write(chunk)) response.pause();
+          try { forwardChunk(contentType.startsWith('text/event-stream')?normalizer.push(chunk):chunk); }
+          catch (_) { return fail(httpError(502,'BEICHEN_UPSTREAM_INCOMPLETE')); }
         });
         response.on('end', () => {
           if (contentType.startsWith('text/event-stream')) {
+            try { forwardChunk(normalizer.end()); } catch (_) { return fail(httpError(502,'BEICHEN_UPSTREAM_INCOMPLETE')); }
             streamBuffer += streamDecoder.end();
             if (streamBuffer.trim()) inspectLine(streamBuffer);
             if (!streamDone || !hasContent || streamError) return fail(httpError(502, 'BEICHEN_UPSTREAM_INCOMPLETE'));

@@ -344,6 +344,28 @@ test('新 API 使用对应密钥和模型转发 SSE，并保留会话额度纪�
   }
 });
 
+test('Claude / Responses 经真实 HTTP 转发还原全文，截断流释放会话轮次',async t=>{
+  const event=d=>'data: '+JSON.stringify(d)+'\n\n';
+  for(const [provider,model,keyName,successful]of [
+    ['bytecat-new-cc','claude-opus-5-5','BYTECAT_NEW_CC_API_KEY',event({type:'content_block_delta',delta:{type:'text_delta',text:'保留机器人与医学的矛盾🌟'}})+event({type:'message_delta',delta:{stop_reason:'end_turn'}})+event({type:'message_stop'})],
+    ['bytecat-gpt','gpt-6-sol','BYTECAT_GPT_API_KEY',event({type:'response.output_text.delta',delta:'保留机器人与医学的矛盾🌟'})+event({type:'response.completed',response:{status:'completed'}})]
+  ]){
+    const store=freshStore();process.env.AI_PROVIDER=provider;process.env[keyName]='test-only-native';
+    const {port,close}=await listen();
+    try{
+      const v=await request(port,'/verify',{body:{code:totp(Math.floor(Date.now()/30000),process.env.GATE_TOTP_SECRET)}}),token=v.body.token,sid=tokenPayload(token).sid;
+      for(const [payload,complete]of [[successful,true],[successful.split('\n\n')[0]+'\n\n',false]]){
+        relay.setUpstreamRequester(makeUpstreamRequester({payload}));
+        const r=await request(port,'/chat/completions',{headers:{authorization:'Bearer '+token},body:{messages:[{role:'system',content:'逐字保留完整学生经历。'},{role:'user',content:'我喜欢机器人，家里期待医学。'}],max_tokens:5000,effort:'deep',stream:true}});
+        assert.match(r.raw,/保留机器人与医学的矛盾🌟/);
+        assert.equal(r.raw.includes('[DONE]'),complete);
+        if(!complete)assert.match(r.raw,/BEICHEN_UPSTREAM_INCOMPLETE/);
+        assert.equal((await store.getSession(sid)).turns,1,'失败流不增加已消费轮次');
+      }
+    }finally{await close();delete process.env[keyName];delete process.env.AI_PROVIDER;}
+  }
+});
+
 
 test('200 SSE 内嵌错误、空答案和缺完成标记都释放额度',async t=>{
   const store=freshStore();const {port,close}=await listen();t.after(close);

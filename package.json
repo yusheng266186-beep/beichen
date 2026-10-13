@@ -1,6 +1,6 @@
 {
   "name": "beichen-qianfan-relay",
-  "version": "2.9.6",
+  "version": "2.10.0",
   "private": true,
   "description": "北辰选科谈心的腾讯云 SCF 中转服务",
   "main": "scf-relay.js",
@@ -8,7 +8,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "check": "node --check scf-relay.js && node --check state-store.js && node --check conversation-context.js && node --check conversation-store.js && node --check overlay-navigation.js",
+    "check": "node --check scf-relay.js && node --check state-store.js && node --check conversation-context.js && node --check conversation-store.js && node --check overlay-navigation.js && node --check model-adapter.js && node --check upstream-stream.js",
     "check:html": "node scripts/check-inline.mjs",
     "test": "node --test tests/*.test.js",
     "secret-scan": "node scripts/secret-scan.mjs",

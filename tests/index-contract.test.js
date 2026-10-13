@@ -300,8 +300,8 @@ assert.match(index, /if\(text\.length > MAX_INPUT_CHARS\)\{/);
 assert.match(index, /if\(status === 400 \|\| status === 413\) return \/TOO_LARGE\/\.test\(msg\)/);
 /* 页面版本标记:设置面板可见,随改动递增(CDN 缓存排障用) */
 assert.match(index, /const APP_VERSION = 'v2\.\d+\.\d+';/);
-assert.match(index, /const APP_VERSION = 'v2\.9\.6';/);
-assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.9\.6';/);
+assert.match(index, /const APP_VERSION = 'v2\.10\.0';/);
+assert.match(index, /const EXPECTED_BACKEND_VERSION = 'v2\.10\.0';/);
 assert.match(index, /id="statModel"/);
 assert.match(index, /id="statVer"/);
 assert.match(index, /fetch\(RELAY \+ '\/readyz'/);

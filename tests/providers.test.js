@@ -82,5 +82,30 @@ test('max预算、外国协议字段及模型能力边界',()=>{
   assert.equal(daily.max_tokens,32768);assert.equal(relay.REPORT_SCALE_TOKENS,10000);
   assert.equal(relay.buildUpstreamBody(report,{name:'wefucke-gpt',model:'gpt-5.5'}).reasoning_effort,'xhigh');
   assert.equal(relay.buildUpstreamBody(report,{name:'wefucke',model:'glm-5.1'}).reasoning_effort,undefined);
-  assert.throws(()=>relay.buildUpstreamBody(report,{name:'wefucke',model:'muse-spark-1.3-contributor'}),/BEICHEN_MODEL_NOT_ADAPTED/);
+  assert.deepEqual(relay.buildUpstreamBody(report,{name:'wefucke',model:'muse-spark-1.3-contributor'}).reasoning,{effort:'max'});
+  assert.throws(()=>relay.buildUpstreamBody(report,{name:'bytecat-gpt',model:'glm-5.3'}),/BEICHEN_MODEL_NOT_ADAPTED/);
+});
+
+test('同名 GPT 在不同供应商采用各自协议，完整多轮原话及报告预算保持',()=>{
+  const messages=[{role:'system',content:'完整指导：保留所有学生证据。'},{role:'user',content:'我喜欢机器人，但家里希望我学医。'},{role:'assistant',content:'能说说具体的动手经历吗？'},{role:'user',content:'我修好了车，暂时没有选科决定。'}];
+  const request={messages,max_tokens:16384,effort:'deep'};
+  const chat=relay.buildUpstreamBody(request,{name:'wefucke-gpt',model:'gpt-6-sol'});
+  const responses=relay.buildUpstreamBody(request,{name:'bytecat-gpt',model:'gpt-6-sol'});
+  assert.deepEqual(chat.messages,messages);assert.equal(chat.max_completion_tokens,65536);
+  assert.equal(responses.max_output_tokens,65536);assert.equal(responses.store,false);assert.deepEqual(responses.reasoning,{effort:'max',summary:'auto'});
+  assert.deepEqual(responses.input.map(m=>({role:m.role,content:m.content[0].text})),messages);
+  assert.equal(responses.input[2].content[0].type,'output_text');
+  const claude=relay.buildUpstreamBody(request,{name:'bytecat-new-cc',model:'claude-opus-5-5'});
+  assert.equal(claude.system,messages[0].content);assert.deepEqual(claude.messages.map(m=>({role:m.role,content:m.content[0].text})),messages.slice(1));
+  assert.equal(claude.max_tokens,65536);assert.deepEqual(claude.thinking,{type:'adaptive'});assert.deepEqual(claude.output_config,{effort:'max'});
+  const haiku=relay.buildUpstreamBody(request,{name:'bytecat-new-cc',model:'claude-haiku-4-5-20251001'});
+  assert.equal(haiku.output_config,undefined);assert(haiku.thinking.budget_tokens<haiku.max_tokens);
+});
+
+test('新入口固定路径与认证，不允许向任意地址发送密钥',()=>{
+  for(const [name,url,path]of [['bytecat-gpt','https://bytecat.lamclod.cn/v1','/v1/responses'],['bytecat-new-cc','https://bytecat.lamclod.cn','/v1/messages'],['command-code-claude','https://api.commandcode.ai/provider','/provider/v1/messages']]){
+    assert.equal(relay.upstreamUrl({name,url}).pathname,path);
+    for(const bad of [url+'?key=private',url.replace('https:','http:'),url+'/unexpected','https://evil.example'])assert.throws(()=>relay.upstreamUrl({name,url:bad}));
+  }
+  assert.deepEqual(relay.upstreamAuthHeaders({name:'bytecat-new-cc',key:'test-only'}),{'x-api-key':'test-only','anthropic-version':'2023-06-01'});
 });
