@@ -27,9 +27,13 @@
 
 <!-- project-navigation:end -->
 
-## 当前 API 与模型（2026-10-13）
+## 当前 API 与模型（2026-10-22）
 
-生产后端与学生页面为 **v2.10.0**，模型能力版本为 **v2.10.0**。支持 DeepSeek 官方、Wefucke、ByteCat 三组入口、Command Code 与百度千帆；中转模型目录与 DSH 配置同步，按供应商分别适配 Chat Completions、Responses 和 Claude Messages。维护者在服务工作台“API 与模型”选择供应商、模型和默认思考强度；原生参数及流式检查通过后才切换，并回读运行结果。切换重载函数实例，建议在没有进行中的学生请求时操作。模型适配与星图完整性说明见 [MODEL-ADAPTATION.md](MODEL-ADAPTATION.md)。
+生产后端、学生页面及模型能力版本为 **v2.11.0**，私有服务工作台为 **v1.7**。已同步研究台模型工作台的 **15组文字模型服务、154个模型选项与4个生图通道**，包括两个既有官方OAuth账号、Kimi K3／K2.8、Gemini、Grok、猎豹、ByteCat、DeepSeek、Command Code与千帆。目录、协议、思考档位和已有TPS参考来自同一份固定来源快照；目录存在不代表每个上游套餐都能使用该模型，应用配置前仍实测目标模型。
+
+官方账号共用已有的云端授权、刷新记录与跨实例租约；北辰独立保存所选账号，不改变研究台当前账号。后台可选模型实际支持的low、medium、high、xhigh、max、ultra等原生档位，学生原有省时／标准／深思偏好继续有效。生图服务独立保存，北辰现有选科对话与星图报告继续使用文字模型。详见[本轮同步、部署及验证](docs/MODEL-SYNC-2026-10-22.md)。
+
+维护者从私有工作台选择服务、模型、官方账号和默认强度；检查通过后才切换，并回读运行结果。切换会重载函数实例，宜在没有进行中的学生请求时操作。模型适配与星图完整性说明见[MODEL-ADAPTATION.md](MODEL-ADAPTATION.md)。
 
 长对话、重新验证与弹窗返回已在 v2.9.3 修复。完整原话分段发送和本机保存，星图生成后也保留早期细节；不通过摘要删减换取长度。见 [对话完整性与流程修复](docs/对话完整性与流程修复-v2.9.3.md)。
 
@@ -37,7 +41,7 @@ API 密钥只保存到云端配置与私有 Actions Secrets，不发送到学生
 
 ### 维护工作台与当前范围
 
-工作台为 **v1.6**，只保留真实 Redis 开关、服务与哨兵状态、API／模型／默认思考强度切换、任务进度及操作记录。具备交接库权限的维护者可从 [私有交接库发行页](https://github.com/yusheng266186-beep/beichen-handover/releases/tag/workbench-v1.6) 下载 HTML 或 ZIP，用浏览器打开。工作台与私有连接配置保存在交接库，本公开库保存学生应用源码。
+工作台为 **v1.7**，只保留真实 Redis 开关、服务与哨兵状态、API／模型／默认思考强度切换、任务进度及操作记录。具备交接库权限的维护者可从 [私有交接库发行页](https://github.com/yusheng266186-beep/beichen-handover/releases/tag/workbench-v1.7) 下载 HTML 或 ZIP，用浏览器打开。工作台与私有连接配置保存在交接库，本公开库保存学生应用源码。
 
 当前暂不建设用户统计与管理后台；工作台演示数据及配套统计项目已移除。现有 Redis 继续承担短期会话、额度和防重放状态。维护工作台版本与学生应用版本独立；此次模型同步部署现有函数，没有增加统计数据库。维护流程见 [运维说明](docs/服务工作台与维护范围.md)。
 
@@ -98,7 +102,7 @@ v2.8.1 当时统一了后端和页面版本。围绕等待体验与学生自主�
 腾讯云 SCF Web Function（beichen-qianfan-mini，本仓库 scf-relay.js）
    │  对应供应商的 Bearer API Key（仅存云端配置）
    ▼
-DeepSeek 官方 / Wefucke GLM / Wefucke GPT（维护工作台选择模型）
+官方OAuth账号 / Kimi / Gemini / DeepSeek / 猎豹 / ByteCat等（维护工作台选择模型）
 ```
 
 | 机制 | 说明 |
@@ -210,7 +214,7 @@ npm run verify
 
 ## 版本与历史
 
-- 当前生产版本：后端和页面均为 **v2.9.0**；
+- 当前生产版本：后端和页面均为 **v2.11.0**；
 - 页面版本由 `index.html` 的 `APP_VERSION` 控制，并与设置面板、后端返回的页面版本同步展示；
 - 本次详细更新记录见 [CHANGELOG.md](CHANGELOG.md)，正式发行版见 [v2.7.0 Release](https://github.com/yusheng266186-beep/beichen/releases/tag/v2.7.0)；
 - v2 重构版（v2.6.x，30+ 次迭代提交）于 2026-08-29 自调试库整体并入本仓库，`git log` 可完整回溯每一步的动机与实现；

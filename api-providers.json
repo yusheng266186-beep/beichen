@@ -1,4 +1,27 @@
 {
+  "kimi-code": {
+    "label": "Kimi 官方 · 个人会员",
+    "url": "https://api.kimi.com/coding/v1",
+    "protocol": "kimi",
+    "key": "KIMI_API_KEY",
+    "model": "k3",
+    "catalog": [
+      "k3",
+      "kimi-for-coding"
+    ],
+    "prefix": "KIMI_CODE"
+  },
+  "gemini": {
+    "label": "ByteCat · Gemini",
+    "url": "https://www.bytecatcode.org",
+    "protocol": "gemini",
+    "key": "GEMINI_API_KEY",
+    "model": "gemini-3.8-flash",
+    "catalog": [
+      "gemini-3.8-flash"
+    ],
+    "prefix": "GEMINI"
+  },
   "deepseek": {
     "label": "DeepSeek 官方",
     "prefix": "DEEPSEEK",
@@ -119,7 +142,7 @@
     ]
   },
   "wefucke": {
-    "label": "Wefucke · GLM / Muse",
+    "label": "猎豹词元工厂 · GLM / Muse",
     "prefix": "WEFUCKE",
     "key": "WEFUCKE_API_KEY",
     "url": "https://www.wefucke.top/v1",
@@ -155,13 +178,15 @@
     ]
   },
   "wefucke-gpt": {
-    "label": "Wefucke · GPT",
+    "label": "猎豹词元工厂 · GPT",
     "prefix": "WEFUCKE_GPT",
     "key": "WEFUCKE_GPT_API_KEY",
     "url": "https://www.wefucke.top/v1",
     "protocol": "chat-completions",
     "model": "gpt-6-sol",
     "catalog": [
+      "gpt-6.1-sol",
+      "gpt-6-astra",
       "gpt-5.5",
       "gpt-5.6",
       "gpt-5.6-sol",
@@ -222,6 +247,66 @@
       "codex-auto-review",
       "gpt-5.5-openai-compact",
       "gpt-5.4-openai-compact"
+    ]
+  },
+  "bytecat-grok": {
+    "label": "ByteCat · Grok",
+    "prefix": "BYTECAT_GROK",
+    "key": "BYTECAT_GROK_API_KEY",
+    "url": "https://www.bytecatcode.org/v1",
+    "protocol": "chat-completions",
+    "model": "grok-4.7",
+    "catalog": [
+      "grok-4.5",
+      "grok-4.6",
+      "grok-4.7",
+      "grok-composer-2.5-fast"
+    ]
+  },
+  "cheetah-gemini": {
+    "label": "猎豹词元工厂 · Gemini",
+    "prefix": "CHEETAH_GEMINI",
+    "key": "CHEETAH_GEMINI_API_KEY",
+    "url": "https://www.wefucke.top",
+    "protocol": "gemini",
+    "model": "gemini-3.8-flash",
+    "catalog": [
+      "gemini-3.8-flash"
+    ],
+    "legacyConnections": [
+      {
+        "url": "https://www.wefucke.top/v1",
+        "protocol": "chat-completions"
+      }
+    ]
+  },
+  "cheetah-deepseek": {
+    "label": "猎豹词元工厂 · DeepSeek",
+    "prefix": "CHEETAH_DEEPSEEK",
+    "key": "CHEETAH_DEEPSEEK_API_KEY",
+    "url": "https://www.wefucke.top/v1",
+    "protocol": "chat-completions",
+    "model": "deepseek-v4.1-flash",
+    "catalog": [
+      "deepseek-v4.1-flash"
+    ]
+  },
+  "openai-codex": {
+    "label": "OpenAI 官方 · 云端账号",
+    "prefix": "OPENAI_CODEX",
+    "key": "OPENAI_CODEX_ENABLED",
+    "url": "codex://official",
+    "protocol": "codex",
+    "model": "gpt-6.1-sol",
+    "catalog": [
+      "gpt-6.1-sol",
+      "gpt-6-astra",
+      "gpt-6-sol",
+      "gpt-6-luna",
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
+      "gpt-5.5"
     ]
   }
 }

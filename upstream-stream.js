@@ -3,7 +3,7 @@ const {StringDecoder}=require('node:string_decoder');
 const frame=delta=>'data: '+JSON.stringify({choices:[{delta,finish_reason:null}]})+'\n\n';
 const terminal=reason=>'data: '+JSON.stringify({choices:[{delta:{},finish_reason:reason}]})+'\n\ndata: [DONE]\n\n';
 function createStreamNormalizer(protocol){
-  if(!['anthropic','responses'].includes(protocol))return {push:chunk=>chunk,end:()=>''};
+  if(!['anthropic','responses','gemini'].includes(protocol))return {push:chunk=>chunk,end:()=>''};
   const decoder=new StringDecoder('utf8');let buffer='',data=[],completed=false,text='',stop=null;
   const content=value=>{if(!value)return '';text+=value;return frame({content:value});};
   const finish=reason=>{completed=true;return terminal(reason);};
@@ -11,7 +11,12 @@ function createStreamNormalizer(protocol){
     if(completed||!payload||payload==='[DONE]')return '';
     const e=JSON.parse(payload),type=e.type;
     if(type==='error'||e.error||type==='response.failed')throw Error('BEICHEN_UPSTREAM_ERROR');
-    if(protocol==='anthropic'){
+    if(protocol==='gemini'){
+      const candidate=e.candidates?.[0];let output='';
+      for(const part of candidate?.content?.parts||[])if(part.text)output+=part.thought?frame({reasoning_content:part.text}):content(part.text);
+      if(candidate?.finishReason){const reason={STOP:'stop',MAX_TOKENS:'length'}[candidate.finishReason];if(!reason)throw Error('BEICHEN_UPSTREAM_INCOMPLETE');return output+finish(reason);}
+      return output;
+    }else if(protocol==='anthropic'){
       if(type==='content_block_start'&&e.content_block?.type==='text')return content(e.content_block.text);
       if(type==='content_block_delta'){
         if(e.delta?.type==='text_delta')return content(e.delta.text);

@@ -15,6 +15,9 @@ function adaptModelBody(body,config,defaultEffort='standard',options={}){
   const cap=Math.min(p.maxTokens??128000,options.probe?8192:128000);
   const tokens=Math.min(cap,Math.max(Number(body.max_tokens)||3000,budgets[tier]));
   const effort=p.efforts[tier];
+  if(route.protocol==='gemini'){
+    return {systemInstruction:{parts:[{text:body.messages.filter(m=>m.role==='system').map(m=>m.content).join('\n\n')}]},contents:body.messages.filter(m=>m.role!=='system').map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:Math.min(tokens,65536),temperature:Number.isFinite(body.temperature)?body.temperature:1,thinkingConfig:{thinkingLevel:effort,includeThoughts:true}}};
+  }
   if(route.protocol==='responses'){
     const output={model:config.model,stream:true,store:false,max_output_tokens:tokens,input:body.messages.map(m=>({role:m.role,content:[{type:m.role==='assistant'?'output_text':'input_text',text:m.content}]}))};
     if(effort!=='auto')output.reasoning={effort,summary:'auto'};
@@ -25,7 +28,7 @@ function adaptModelBody(body,config,defaultEffort='standard',options={}){
     const system=body.messages.filter(m=>m.role==='system').map(m=>m.content).join('\n\n');
     if(system)output.system=system;
     if(p.adaptiveThinking){output.thinking={type:'adaptive'};if(effort!=='auto')output.output_config={effort};}
-    else if(p.reasoning)output.thinking={type:'enabled',budget_tokens:Math.min({eco:1024,standard:4096,deep:8192}[tier],tokens-1024)};
+    else if(p.reasoning)output.thinking={type:'enabled',budget_tokens:Math.min(({eco:1024,standard:4096,deep:8192,low:1024,medium:4096,high:8192,xhigh:16384,max:32768,ultra:65536})[tier]||4096,tokens-1024)};
     return output;
   }
   const output={model:config.model,messages:body.messages,stream:true,[p.tokenField]:tokens};

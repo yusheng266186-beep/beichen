@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/yusheng266186-beep/jianwei-observatory",
+  "commit": "a8dc667e9e08996d94389d65d1ea079083776b85",
+  "sourceDirectory": "backend",
+  "files": {
+    "codex-runtime.cjs": "b5558e6b5f172ad5852f9efc6f9d27160535e6d18ce5d0859d09b18e41628712",
+    "codex-accounts.cjs": "c3c9d64d2b80b67338afaa82baf9ba0fffc069a3bc4315308dd6ffddbe52b96f",
+    "openai-proxy.cjs": "76e1f7383b4d9da30ab22383edf0c8706804cc9bdbf5d924840a0a758145334d",
+    "tencent.cjs": "7b267e07b1effd35c38af7dacb287989c15979b9cf4bd369d74292543691c426",
+    "store.cjs": "87ba36555cfdc4b994035b696efed999bbc2ffc6bab8a900c401de108b051e38",
+    "browser-oauth.cjs": "c9497135f3e873abe9afd3a7df2e7bf0a0376e01f9e96e75dcf64f1bcddd8d4d"
+  }
+}

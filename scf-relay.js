@@ -26,8 +26,8 @@ const {
 } = require('./state-store');
 
 /* ── 常量与环境 ─────────────────────────────────────────────────── */
-const BACKEND_VERSION = 'v2.10.0';
-const FRONTEND_VERSION = 'v2.10.0';
+const BACKEND_VERSION = 'v2.11.0';
+const FRONTEND_VERSION = 'v2.11.0';
 const MAX_BODY_BYTES = 512 * 1024;
 const MAX_MESSAGE_COUNT = 24;
 const MAX_MESSAGE_CHARS = 16000;
@@ -466,7 +466,7 @@ function validateChatBody(input) {
   }
   /* v2.8 思考强度:客户端只能传三档枚举,思考预算由服务端换算,不可指定数值 */
   if (input.effort !== undefined) {
-    if (!['eco', 'standard', 'deep'].includes(input.effort)) throw httpError(400, 'BEICHEN_BAD_REQUEST');
+    if (!['eco', 'standard', 'deep'].includes(input.effort) && !Object.hasOwn(modelProfile(providerConfig())?.efforts || {}, input.effort)) throw httpError(400, 'BEICHEN_BAD_REQUEST');
     body.effort = input.effort;
   }
   if (input.mode !== undefined) body.mode = input.mode;
@@ -477,6 +477,10 @@ function providerConfig() {
   const name = String(process.env.AI_PROVIDER || 'qianfan').trim();
   const provider = Object.hasOwn(API_PROVIDERS, name) ? API_PROVIDERS[name] : null;
   if (provider) {
+    if(name==='openai-codex'){
+      const model=String(process.env.OPENAI_CODEX_MODEL||provider.model),accountId=process.env.OPENAI_CODEX_ACCOUNT_ID||'';
+      return process.env.OPENAI_CODEX_ENABLED==='true'&&provider.catalog.includes(model)&&(!accountId||/^[a-f0-9]{32}$/.test(accountId))?{name,model,accountId,protocol:'codex',auth:'oauth',url:provider.url}:null;
+    }
     const official = name === 'deepseek';
     const apiKey = String(process.env[provider.key] || '').trim();
     const accountToken = official ? String(process.env.DEEPSEEK_ACCOUNT_TOKEN || '').trim() : '';
@@ -495,6 +499,10 @@ function providerConfig() {
 }
 
 function upstreamUrl(config) {
+  if(config.name==='openai-codex'){
+    if(config.url!=='codex://official'||!API_PROVIDERS['openai-codex'].catalog.includes(config.model))throw httpError(503,'BEICHEN_PROVIDER_NOT_CONFIGURED');
+    return new URL('https://chatgpt.com/backend-api/codex/responses');
+  }
   let url;
   try { url = new URL(config.url); }
   catch (_) { throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED'); }
@@ -504,12 +512,13 @@ function upstreamUrl(config) {
     const host = expected.hostname.toLowerCase();
     const path = url.pathname.replace(/\/+$/, '');
     const bases = config.name === 'deepseek' ? ['', '/v1'] : [expected.pathname.replace(/\/+$/, '')];
-    const suffix=provider.protocol==='anthropic'?'/v1/messages':provider.protocol==='responses'?'/responses':'/chat/completions';
+    const suffix=provider.protocol==='anthropic'?'/v1/messages':provider.protocol==='responses'?'/responses':provider.protocol==='gemini'?'/v1beta/models/'+config.model+':streamGenerateContent':'/chat/completions';
     if (url.hostname.toLowerCase() !== host || (url.port && url.port !== '443') ||
         !bases.some(base => path === base || path === base + suffix)) {
       throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
     }
     url.pathname = path.endsWith(suffix) ? path : path + suffix;
+    if(provider.protocol==='gemini')url.search='alt=sse';
     return url;
   }
   if (config.name !== 'qianfan') throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
@@ -543,13 +552,16 @@ function buildUpstreamBody(body, config) {
       : base;
     upstreamBody.thinking_budget = budget;
   }
-  if (config.name !== 'qianfan') return adaptModelBody(body, config, process.env.AI_DEFAULT_EFFORT);
+  if (config.name !== 'qianfan') return adaptModelBody(body, config, process.env.AI_DEFAULT_EFFORT,{probe:config.probe===true});
   delete upstreamBody.mode;
   delete upstreamBody.effort;
   return upstreamBody;
 }
 
 function upstreamAuthHeaders(config) {
+  if(config.name==='openai-codex')throw httpError(503,'BEICHEN_PROVIDER_NOT_CONFIGURED');
+  if(API_PROVIDERS[config.name]?.protocol==='gemini')return {'x-goog-api-key':config.key};
+  if(API_PROVIDERS[config.name]?.protocol==='kimi')return {Authorization:'Bearer '+config.key,'User-Agent':'Beichen/2.11 (+https://github.com/yusheng266186-beep/beichen)'};
   if (config.auth === 'account') {
     if (config.name !== 'deepseek') throw httpError(503, 'BEICHEN_PROVIDER_NOT_CONFIGURED');
     return { 'x-dsh-auth-token': config.key };
@@ -577,6 +589,7 @@ function requestKind(body) {
 let upstreamRequester = (...args) => https.request(...args);
 
 function proxyChat(req, res, body, config) {
+  if(config.name==='openai-codex')return require('./official-chat').proxy(req,res,body,config,{headers:securityHeaders(req,{'Content-Type':'text/event-stream','X-Accel-Buffering':'no'}),timeoutMs:UPSTREAM_TIMEOUT_MS});
   return new Promise((resolve, reject) => {
     let settled = false;
     let responseEnded = false;
@@ -612,7 +625,7 @@ function proxyChat(req, res, body, config) {
       upstream = upstreamRequester({
         hostname: url.hostname,
         port: url.port || 443,
-        path: url.pathname,
+        path: url.pathname+url.search,
         method: 'POST',
         timeout: UPSTREAM_TIMEOUT_MS,
         headers: {
@@ -624,6 +637,8 @@ function proxyChat(req, res, body, config) {
       }, response => {
         upstreamResponse = response;
         const status = Number(response.statusCode || 502);
+        const contentType = String(response.headers['content-type'] || '').toLowerCase();
+        config.onDiagnostic?.({upstreamStatus:status,contentType:contentType.split(';')[0].slice(0,80)});
         if (status < 200 || status >= 300) {
           let errorBytes = 0;
           response.on('data', chunk => {
@@ -634,14 +649,16 @@ function proxyChat(req, res, body, config) {
           response.on('error', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
           return;
         }
-        const contentType = String(response.headers['content-type'] || '').toLowerCase();
-        if (!contentType.startsWith('text/event-stream') && (config.name !== 'qianfan' || !contentType.startsWith('application/json'))) {
+        const nativeJSON=API_PROVIDERS[config.name]?.protocol==='gemini'&&contentType.startsWith('application/json');
+        const eventStream=contentType.startsWith('text/event-stream')||nativeJSON;
+        const jsonChunks=[];
+        if (!eventStream && (config.name !== 'qianfan' || !contentType.startsWith('application/json'))) {
           if (response.resume) response.resume();
           if (response.destroy) response.destroy();
           return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
         }
         res.writeHead(status, securityHeaders(req, {
-          'Content-Type': contentType.startsWith('text/event-stream') ? 'text/event-stream' : 'application/json; charset=utf-8',
+          'Content-Type': eventStream ? 'text/event-stream' : 'application/json; charset=utf-8',
           'X-Accel-Buffering': 'no'
         }));
         /* SSE 心跳:长思考的安静期发送注释行,防中间设备把空闲连接当死流掐断;
@@ -672,7 +689,7 @@ function proxyChat(req, res, body, config) {
         res.on('drain', () => response.resume());
         const forwardChunk=chunk=>{
           if(!chunk?.length)return;
-          if(contentType.startsWith('text/event-stream')){
+          if(eventStream){
             streamBuffer+=streamDecoder.write(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk));
             let newline;
             while((newline=streamBuffer.indexOf('\n'))>=0){inspectLine(streamBuffer.slice(0,newline));streamBuffer=streamBuffer.slice(newline+1);}
@@ -683,11 +700,12 @@ function proxyChat(req, res, body, config) {
         response.on('data', chunk => {
           bytes += chunk.length;
           if (bytes > MAX_UPSTREAM_BYTES) return fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));
-          try { forwardChunk(contentType.startsWith('text/event-stream')?normalizer.push(chunk):chunk); }
+          try { if(nativeJSON)jsonChunks.push(chunk);else forwardChunk(eventStream?normalizer.push(chunk):chunk); }
           catch (_) { return fail(httpError(502,'BEICHEN_UPSTREAM_INCOMPLETE')); }
         });
         response.on('end', () => {
-          if (contentType.startsWith('text/event-stream')) {
+          if (eventStream) {
+            if(nativeJSON)try{const parsed=JSON.parse(Buffer.concat(jsonChunks).toString('utf8'));for(const item of Array.isArray(parsed)?parsed:[parsed])forwardChunk(normalizer.push(Buffer.from('data: '+JSON.stringify(item)+'\n\n')));}catch(_){return fail(httpError(502,'BEICHEN_UPSTREAM_INCOMPLETE'));}
             try { forwardChunk(normalizer.end()); } catch (_) { return fail(httpError(502,'BEICHEN_UPSTREAM_INCOMPLETE')); }
             streamBuffer += streamDecoder.end();
             if (streamBuffer.trim()) inspectLine(streamBuffer);
@@ -704,7 +722,7 @@ function proxyChat(req, res, body, config) {
         upstream.destroy();
         fail(httpError(504, 'BEICHEN_UPSTREAM_TIMEOUT'));
       });
-      upstream.on('error', () => fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR')));
+      upstream.on('error', error => {config.onDiagnostic?.({networkCode:/^[A-Z0-9_]{2,40}$/.test(error.code||'')?error.code:'NETWORK_ERROR'});fail(httpError(502, 'BEICHEN_UPSTREAM_ERROR'));});
       req.on('aborted', () => {
         if (upstream && !settled) { upstream.destroy(); fail(httpError(499, 'BEICHEN_CLIENT_ABORTED')); }
       });
@@ -807,13 +825,14 @@ async function handleHealth(req, res, ready) {
     ok: ready ? ok : true,
     ready: ok,
     version: BACKEND_VERSION,
+    runtimeNode: process.version,
     frontendVersion: FRONTEND_VERSION,
     providerConfigured: providerReady,
     provider: config ? config.name : null,
     model: config ? config.model : null,
     profileVersion,
     effortLevels: modelProfile(config)?.efforts || null,
-    defaultEffort: ['eco','standard','deep'].includes(process.env.AI_DEFAULT_EFFORT) ? process.env.AI_DEFAULT_EFFORT : 'standard',
+    defaultEffort: Object.hasOwn(modelProfile(config)?.efforts||{},process.env.AI_DEFAULT_EFFORT) ? process.env.AI_DEFAULT_EFFORT : 'standard',
     effortNote: modelProfile(config)?.note || '',
     stateStore: stateStore.name,
     stateStoreReachable: storeReachable,
@@ -828,6 +847,7 @@ async function handle(req, res) {
   if (!allowedOrigin(req)) return json(req, res, 403, { error: { message: 'BEICHEN_ORIGIN_NOT_ALLOWED' } });
   const url = new URL(req.url, 'http://localhost');
   const path = url.pathname.replace(/\/+$/, '') || '/';
+  if(path.startsWith('/maintenance/')&&!url.search)return require('./maintenance').handle(req,res,{securityHeaders});
   const postPaths = ['/verify', '/run/complete', '/chat/completions'];
   if (req.method === 'OPTIONS') {
     if (!postPaths.includes(path) || url.search || String(req.headers['access-control-request-method'] || '') !== 'POST') return text(req, res, 404, 'beichen relay');
@@ -873,6 +893,7 @@ if (typeof module !== 'undefined') {
     providerConfig,
     upstreamAuthHeaders,
     upstreamUrl,
+    proxyChat,
     enforceSessionQuota,
     pickClientIp,
     matchingTotpCounter,

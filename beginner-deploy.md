@@ -2,7 +2,7 @@
 
 这份指南覆盖正式库 `yusheng266186-beep/beichen` 的前后端对齐部署。页面只同步后端变化确实需要的提示、版本和就绪检查，聊天内容与其他无关页面行为不变。
 
-后端和页面为 `v2.9.6`，模型能力版本为 `v2.9.1`，维护工作台版本为 `v1.5`。真实的 API Key、动态码 seed、会话签名密钥和 Redis 密码只填写在腾讯云的加密环境变量里，绝不能写回公开 GitHub 仓库。
+后端、页面与模型能力版本为 `v2.11.0`，维护工作台为 `v1.7`。真实API Key、验证码种子、会话密钥、代理配置和OAuth令牌只保存在私有云端。官方账号接入还需要同源运行组件层、共享授权存储前缀权限和专用工作台签名密钥，详见[当前部署补充](docs/MODEL-SYNC-2026-10-22.md#部署与后续维护)。
 
 ## 1. 准备工作
 
@@ -18,6 +18,16 @@
 Redis 不是用来存聊天记录的。它只存会话票据状态、次数状态、TOTP 防重放标记、临时请求预占和短期结算收据。
 
 ## 2. 准备部署包
+
+完整后端包应包含 `official-chat.js`、`maintenance.js`、`runtime-compat.js`、`api-providers.json`、`model-profiles.json`、`model-performance.json`、`image-providers.json`、`official/` 及既有中转、状态层和 `node_modules/`。推荐使用仓库打包工具，避免漏掉共享官方组件：
+
+```bash
+npm ci --omit=dev
+node tools/package-backend.cjs /安全的仓库外目录/beichen-backend.zip
+```
+
+工具需要Python 3，自动保持启动脚本755权限。部署时保留现有环境、VPC、Redis、层和角色；腾讯云历史Web函数不能原地修改Node运行时，本项目为现存Node16增加了两项兼容API，本地开发及CI仍推荐Node20。
+
 
 在仓库根目录执行：
 

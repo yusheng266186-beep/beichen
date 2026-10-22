@@ -1,5 +1,5 @@
 {
-  "version": "v2.10.0",
+  "version": "v2.11.0",
   "models": {
     "deepseek-flash": {
       "family": "deepseek",
@@ -232,7 +232,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -248,14 +251,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-6.1-sol": {
         "family": "gpt",
@@ -265,7 +279,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -281,14 +298,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-6-sol": {
         "family": "gpt",
@@ -298,7 +326,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -314,14 +345,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-6-luna": {
         "family": "gpt",
@@ -331,7 +373,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -347,14 +392,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-sol": {
         "family": "gpt",
@@ -364,7 +420,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -380,14 +439,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-terra": {
         "family": "gpt",
@@ -397,7 +467,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -413,14 +486,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-luna": {
         "family": "gpt",
@@ -430,7 +514,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -446,14 +533,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.5": {
         "family": "gpt",
@@ -463,7 +561,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -479,14 +580,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "gpt-5.4": {
         "family": "gpt",
@@ -496,7 +608,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -512,14 +627,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "gpt-5.3-codex": {
         "family": "gpt",
@@ -529,7 +655,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -545,14 +674,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "gpt-5.4-mini": {
         "family": "gpt",
@@ -562,7 +702,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -578,14 +721,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "deepseek/deepseek-v4-pro": {
         "family": "deepseek",
@@ -595,7 +749,9 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -612,14 +768,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "high",
+          "xhigh"
+        ]
       },
       "deepseek/deepseek-v4-flash": {
         "family": "deepseek",
@@ -629,7 +793,9 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -646,14 +812,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "high",
+          "xhigh"
+        ]
       },
       "deepseek/deepseek-v4-flash-vision-exp": {
         "family": "deepseek",
@@ -663,7 +837,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -680,14 +857,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek/deepseek-v4-flash-fast": {
         "family": "deepseek",
@@ -697,7 +885,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -712,14 +903,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek/deepseek-v4.1-flash": {
         "family": "deepseek",
@@ -729,7 +931,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -746,14 +951,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek/deepseek-v4.1-flash-fast": {
         "family": "deepseek",
@@ -763,7 +979,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -778,14 +996,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "moonshotai/Kimi-K3": {
         "family": "other",
@@ -795,7 +1021,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -814,14 +1043,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "moonshotai/Kimi-K2.7-Code": {
         "family": "other",
@@ -831,7 +1071,8 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "baseten",
@@ -855,14 +1096,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "high"
+        ]
       },
       "moonshotai/Kimi-K2.7-Code-Highspeed": {
         "family": "other",
@@ -872,7 +1118,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -886,14 +1135,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "moonshotai/Kimi-K2.6": {
         "family": "other",
@@ -903,7 +1163,8 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "baseten",
@@ -927,14 +1188,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "high"
+        ]
       },
       "moonshotai/Kimi-K2.5": {
         "family": "other",
@@ -944,7 +1210,8 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "baseten",
@@ -968,14 +1235,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "high"
+        ]
       },
       "z-ai/glm-5.3-flash": {
         "family": "glm",
@@ -985,7 +1257,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1001,14 +1276,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "z-ai/glm-5.3-flashx": {
         "family": "glm",
@@ -1018,7 +1304,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1034,14 +1323,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "zai-org/GLM-5.3": {
         "family": "glm",
@@ -1051,7 +1351,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1070,14 +1373,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "zai-org/GLM-5.2": {
         "family": "glm",
@@ -1087,7 +1401,9 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1111,14 +1427,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "high",
+          "max"
+        ]
       },
       "zai-org/GLM-5.2-Fast": {
         "family": "glm",
@@ -1128,7 +1452,9 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1152,14 +1478,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "high",
+          "max"
+        ]
       },
       "zai-org/GLM-5.1": {
         "family": "glm",
@@ -1169,7 +1503,8 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1193,14 +1528,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "high"
+        ]
       },
       "zai-org/GLM-5": {
         "family": "glm",
@@ -1210,7 +1550,8 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -1234,14 +1575,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "high"
+        ]
       },
       "MiniMaxAI/MiniMax-M3": {
         "family": "other",
@@ -1251,7 +1597,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1265,14 +1613,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "MiniMaxAI/MiniMax-M2.7": {
         "family": "other",
@@ -1282,7 +1638,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1296,14 +1654,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "MiniMaxAI/MiniMax-M2.5": {
         "family": "other",
@@ -1313,7 +1679,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -1327,14 +1695,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "xiaomi/mimo-v2.6-pro": {
         "family": "other",
@@ -1344,7 +1720,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -1359,14 +1737,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "xiaomi/mimo-v2.6-pro-ultraspeed": {
         "family": "other",
@@ -1376,7 +1762,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -1391,14 +1779,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "xiaomi/mimo-v2.6-flash": {
         "family": "other",
@@ -1408,7 +1804,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -1423,14 +1821,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "xiaomi/mimo-v2.5-pro": {
         "family": "other",
@@ -1440,7 +1846,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -1455,14 +1863,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "xiaomi/mimo-v2.5": {
         "family": "other",
@@ -1472,7 +1888,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -1487,14 +1905,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "Qwen/Qwen3.8-Omni-Flash": {
         "family": "other",
@@ -1504,7 +1930,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1518,14 +1947,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.8-Max-0902": {
         "family": "other",
@@ -1535,7 +1975,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1549,14 +1992,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.8-Max": {
         "family": "other",
@@ -1566,7 +2020,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1580,14 +2037,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.8-27B": {
         "family": "other",
@@ -1597,7 +2065,10 @@
         "efforts": {
           "eco": "low",
           "standard": "medium",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "medium": "medium",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -1611,14 +2082,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "medium": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "xhigh"
+        ]
       },
       "Qwen/Qwen3.8-Flash": {
         "family": "other",
@@ -1628,7 +2110,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1642,14 +2127,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.7-Max": {
         "family": "other",
@@ -1659,7 +2155,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "together",
@@ -1677,14 +2174,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "Qwen/Qwen3.7-Plus": {
         "family": "other",
@@ -1694,7 +2196,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1708,14 +2213,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.7-Flash": {
         "family": "other",
@@ -1725,7 +2241,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1739,14 +2258,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.6-Max-Preview": {
         "family": "other",
@@ -1756,7 +2286,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1770,14 +2303,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "Qwen/Qwen3.6-Plus": {
         "family": "other",
@@ -1787,7 +2331,8 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "together",
@@ -1805,14 +2350,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "high"
+        ]
       },
       "meituan/LongCat-2.0": {
         "family": "other",
@@ -1822,7 +2372,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1836,14 +2389,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "stepfun/Step-5-Preview": {
         "family": "other",
@@ -1853,7 +2417,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1867,14 +2434,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "stepfun/Step-3.7-Flash": {
         "family": "other",
@@ -1884,7 +2462,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1898,14 +2479,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "stepfun/Step-3.5-Flash": {
         "family": "other",
@@ -1915,7 +2507,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1929,14 +2524,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "tencent/hy3-paid": {
         "family": "other",
@@ -1946,7 +2552,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -1960,14 +2569,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "tencent/hy4-preview": {
         "family": "other",
@@ -1977,7 +2597,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -1992,14 +2614,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 64000
+          "deep": 64000,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "google/gemini-3.8-flash": {
         "family": "other",
@@ -2009,7 +2639,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2024,14 +2656,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "google/gemini-3.7-flash": {
         "family": "other",
@@ -2041,7 +2681,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2056,14 +2698,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "google/gemini-3.6-flash": {
         "family": "other",
@@ -2073,7 +2723,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2088,14 +2740,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "google/gemini-3.5-flash": {
         "family": "other",
@@ -2105,7 +2765,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2120,14 +2782,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "google/gemini-3.5-flash-lite": {
         "family": "other",
@@ -2137,7 +2807,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2152,14 +2824,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "google/gemini-3.1-flash-lite": {
         "family": "other",
@@ -2169,7 +2849,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2184,14 +2866,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "sakana/fugu-ultra": {
         "family": "other",
@@ -2201,7 +2891,9 @@
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2216,14 +2908,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "high",
+          "max"
+        ]
       },
       "nvidia/nemotron-3-ultra-550b-a55b": {
         "family": "other",
@@ -2233,7 +2933,9 @@
         "efforts": {
           "eco": "medium",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "medium": "medium",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2248,14 +2950,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 16384
+          "deep": 16384,
+          "medium": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 16384,
           "standard": 16384,
-          "deep": 16384
+          "deep": 16384,
+          "medium": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "medium",
+          "high"
+        ]
       },
       "thinkingmachines/inkling": {
         "family": "other",
@@ -2265,7 +2975,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2280,14 +2993,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "thinkingmachines/inkling-small": {
         "family": "other",
@@ -2297,7 +3021,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2312,14 +3039,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "stealth/glyph-cluster:free": {
         "family": "other",
@@ -2329,7 +3067,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -2342,14 +3081,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "poolside/laguna-s-2.1-free": {
         "family": "other",
@@ -2359,7 +3103,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -2372,14 +3118,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "inclusionai/ling-3.0-flash-sante:free": {
         "family": "other",
@@ -2389,7 +3143,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2404,14 +3160,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "inclusionai/ling-3.1-flash:free": {
         "family": "other",
@@ -2421,7 +3185,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -2434,14 +3199,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "meta/muse-spark-1.1": {
         "family": "other",
@@ -2451,7 +3221,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2466,14 +3239,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "meta/muse-spark-1.2": {
         "family": "other",
@@ -2483,7 +3267,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2498,14 +3285,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "meta/muse-spark-1.2-contributor": {
         "family": "other",
@@ -2515,7 +3313,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2530,14 +3331,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "meta/muse-spark-1.3": {
         "family": "other",
@@ -2547,7 +3359,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2562,14 +3377,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "meta/muse-spark-1.3-contributor": {
         "family": "other",
@@ -2579,7 +3405,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -2594,14 +3423,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "meta/muse-wonder-1.0": {
         "family": "other",
@@ -2611,7 +3451,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -2624,14 +3465,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "xai/grok-4.5": {
         "family": "other",
@@ -2641,7 +3487,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -2655,14 +3503,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型的最高可用强度为 high。"
+        "note": "该模型的最高可用强度为 high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       },
       "xai/grok-4.6": {
         "family": "other",
@@ -2672,7 +3528,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -2686,14 +3545,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "xai/grok-4.7": {
         "family": "other",
@@ -2703,7 +3573,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openai",
@@ -2717,14 +3590,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "mistral/mistral-large-4": {
         "family": "other",
@@ -2734,7 +3618,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -2747,14 +3632,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       }
     },
     "baidu": {
@@ -2766,7 +3656,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2780,14 +3673,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek-v4-pro": {
         "family": "deepseek",
@@ -2797,7 +3701,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2811,14 +3718,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek-v4-pro-0813": {
         "family": "deepseek",
@@ -2828,7 +3746,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2842,14 +3763,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek-v4-flash": {
         "family": "deepseek",
@@ -2859,7 +3791,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2873,14 +3808,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "deepseek-v4-flash-0731": {
         "family": "deepseek",
@@ -2890,7 +3836,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2904,14 +3853,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "glm-5.3": {
         "family": "glm",
@@ -2921,7 +3881,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2934,14 +3897,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "glm-5.3-flash": {
         "family": "glm",
@@ -2951,7 +3925,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2964,14 +3941,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "glm-5.2": {
         "family": "glm",
@@ -2981,7 +3969,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -2994,14 +3985,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "glm-5.1": {
         "family": "glm",
@@ -3011,7 +4013,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "deepseek",
@@ -3024,14 +4029,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "kimi-k2.6": {
         "family": "other",
@@ -3041,7 +4057,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3054,14 +4071,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       }
     },
     "wefucke": {
@@ -3070,92 +4092,136 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "auto": 49152
         },
         "note": "GLM 5.1 仅支持自动思考，不能调节原生强度，也不支持 max；三档仅调整输出预算。",
         "name": "Z.ai: GLM 5.1",
         "contextWindow": 202752,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "glm-5.2": {
         "family": "glm",
         "efforts": {
           "eco": "high",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "high": 49152,
+          "max": 49152
         },
         "note": "GLM 5.2 的 low 会被上游映射为 high；省时档仅缩小输出预算。",
         "name": "Z.ai: GLM 5.2",
         "contextWindow": 1048576,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "high",
+          "max"
+        ]
       },
       "glm-5.3": {
         "family": "glm",
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
         "note": "",
         "name": "Z.ai: GLM 5.3",
         "contextWindow": 1048576,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "glm-5.3-flash": {
         "family": "glm",
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
         "note": "",
         "name": "Z.ai: GLM 5.3 Flash",
         "contextWindow": 1048575,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "muse-spark-1.3-contributor": {
         "family": "other",
@@ -3165,7 +4231,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "openrouter",
@@ -3180,14 +4249,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       }
     },
     "command-code-claude": {
@@ -3199,7 +4279,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3213,14 +4296,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-sonnet-5": {
         "family": "claude",
@@ -3230,7 +4324,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3243,14 +4340,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-sonnet-4-6": {
         "family": "claude",
@@ -3260,7 +4368,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3273,14 +4384,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-fable-5-1": {
         "family": "claude",
@@ -3290,7 +4412,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3303,14 +4428,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-fable-5": {
         "family": "claude",
@@ -3320,7 +4456,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3333,14 +4472,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-5-5": {
         "family": "claude",
@@ -3350,7 +4500,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3364,14 +4517,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-5": {
         "family": "claude",
@@ -3381,7 +4545,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3395,14 +4562,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-8": {
         "family": "claude",
@@ -3412,7 +4590,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3426,14 +4607,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-7": {
         "family": "claude",
@@ -3443,7 +4635,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3457,14 +4652,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-haiku-5-5": {
         "family": "claude",
@@ -3474,7 +4680,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3484,14 +4691,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。"
+        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "claude-haiku-4-5-20251001": {
         "family": "claude",
@@ -3501,7 +4713,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3513,14 +4727,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 64000
+          "deep": 64000,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。"
+        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       }
     },
     "wefucke-gpt": {
@@ -3529,115 +4751,259 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_completion_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
         "note": "GPT 5.5 的最高强度是 xhigh，不支持 max。",
         "name": "GPT-5.5",
         "contextWindow": 272000,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "gpt-5.6": {
         "family": "gpt",
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
         "note": "",
         "name": "gpt-5.6",
         "contextWindow": 200000,
-        "maxTokens": 32768
+        "maxTokens": 32768,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-sol": {
         "family": "gpt",
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
         "note": "",
         "name": "GPT-5.6 Sol",
         "contextWindow": 272000,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-terra": {
         "family": "gpt",
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
         "note": "",
         "name": "GPT-5.6 Terra",
         "contextWindow": 272000,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-6-sol": {
         "family": "gpt",
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
         "note": "",
         "name": "GPT-6 Sol",
         "contextWindow": 272000,
-        "maxTokens": 128000
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
+      "gpt-6.1-sol": {
+        "family": "gpt",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "",
+        "name": "GPT-6.1 Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
+      "gpt-6-astra": {
+        "family": "gpt",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "",
+        "name": "GPT-6 Astra",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       }
     },
     "bytecat": {
@@ -3649,7 +5015,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3663,14 +5032,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-5": {
         "family": "claude",
@@ -3680,7 +5060,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3694,14 +5077,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-8": {
         "family": "claude",
@@ -3711,7 +5105,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3725,14 +5122,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-7": {
         "family": "claude",
@@ -3742,7 +5150,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3756,14 +5167,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-6": {
         "family": "claude",
@@ -3773,7 +5195,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3786,14 +5211,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-sonnet-5": {
         "family": "claude",
@@ -3803,7 +5239,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3816,14 +5255,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-sonnet-4-6": {
         "family": "claude",
@@ -3833,7 +5283,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3846,14 +5299,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-haiku-4-5-20251001": {
         "family": "claude",
@@ -3863,7 +5327,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3875,14 +5341,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 64000
+          "deep": 64000,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。"
+        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       }
     },
     "bytecat-new-cc": {
@@ -3894,7 +5368,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3908,14 +5385,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-5": {
         "family": "claude",
@@ -3925,7 +5413,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3939,14 +5430,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-8": {
         "family": "claude",
@@ -3956,7 +5458,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -3970,14 +5475,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-7": {
         "family": "claude",
@@ -3987,7 +5503,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -4001,14 +5520,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-opus-4-6": {
         "family": "claude",
@@ -4018,7 +5548,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -4031,14 +5564,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-sonnet-5": {
         "family": "claude",
@@ -4048,7 +5592,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -4061,14 +5608,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-sonnet-4-6": {
         "family": "claude",
@@ -4078,7 +5636,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -4091,14 +5652,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "claude-haiku-4-5-20251001": {
         "family": "claude",
@@ -4108,7 +5680,9 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "high"
+          "deep": "high",
+          "low": "low",
+          "high": "high"
         },
         "tokenField": "max_tokens",
         "thinkingFormat": "none",
@@ -4120,14 +5694,22 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 64000
+          "deep": 64000,
+          "low": 49152,
+          "high": 49152
         },
-        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。"
+        "note": "该模型使用思考预算，三档调整预算；没有原生 Max 档。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
       }
     },
     "bytecat-gpt": {
@@ -4139,7 +5721,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4153,14 +5738,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-6.1-sol": {
         "family": "gpt",
@@ -4170,7 +5766,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4184,14 +5783,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-6-astra": {
         "family": "gpt",
@@ -4201,7 +5811,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4215,14 +5828,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-sol": {
         "family": "gpt",
@@ -4232,7 +5856,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4246,14 +5873,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.6-terra": {
         "family": "gpt",
@@ -4263,7 +5901,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "max"
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4277,14 +5918,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
         },
-        "note": ""
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       },
       "gpt-5.5": {
         "family": "gpt",
@@ -4294,7 +5946,10 @@
         "efforts": {
           "eco": "low",
           "standard": "high",
-          "deep": "xhigh"
+          "deep": "xhigh",
+          "low": "low",
+          "high": "high",
+          "xhigh": "xhigh"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4308,14 +5963,25 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "xhigh": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 49152,
-          "deep": 65536
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "xhigh": 49152
         },
-        "note": "该模型的最高可用强度为 xhigh。"
+        "note": "该模型的最高可用强度为 xhigh。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "xhigh"
+        ]
       },
       "codex-auto-review": {
         "family": "gpt",
@@ -4325,7 +5991,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4339,14 +6006,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "gpt-5.5-openai-compact": {
         "family": "gpt",
@@ -4356,7 +6028,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4370,14 +6043,19 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
       },
       "gpt-5.4-openai-compact": {
         "family": "gpt",
@@ -4387,7 +6065,8 @@
         "efforts": {
           "eco": "auto",
           "standard": "auto",
-          "deep": "auto"
+          "deep": "auto",
+          "auto": "auto"
         },
         "tokenField": "max_completion_tokens",
         "thinkingFormat": "openai",
@@ -4401,15 +6080,1194 @@
         "chatBudgets": {
           "eco": 8192,
           "standard": 16384,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 16384
         },
         "reportBudgets": {
           "eco": 32768,
           "standard": 32768,
-          "deep": 32768
+          "deep": 32768,
+          "auto": 49152
         },
-        "note": "中转站未提供可调思考档位，三档调整输出预算。"
+        "note": "中转站未提供可调思考档位，三档调整输出预算。",
+        "nativeEfforts": [
+          "auto"
+        ]
+      }
+    },
+    "bytecat-grok": {
+      "grok-4.5": {
+        "family": "grok",
+        "name": "Grok 4.5",
+        "efforts": {
+          "eco": "auto",
+          "standard": "auto",
+          "deep": "auto",
+          "auto": "auto"
+        },
+        "tokenField": "max_tokens",
+        "thinkingFormat": "none",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "auto": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "auto": 49152
+        },
+        "note": "中转站型号；推理模式由上游自动处理，三档仅调整输出预算，不额外传入未经确认的思考强度。",
+        "nativeEfforts": [
+          "auto"
+        ]
+      },
+      "grok-4.6": {
+        "family": "grok",
+        "name": "Grok 4.6",
+        "efforts": {
+          "eco": "auto",
+          "standard": "auto",
+          "deep": "auto",
+          "auto": "auto"
+        },
+        "tokenField": "max_tokens",
+        "thinkingFormat": "none",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "auto": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "auto": 49152
+        },
+        "note": "中转站型号；推理模式由上游自动处理，三档仅调整输出预算，不额外传入未经确认的思考强度。",
+        "nativeEfforts": [
+          "auto"
+        ]
+      },
+      "grok-4.7": {
+        "family": "grok",
+        "name": "Grok 4.7",
+        "efforts": {
+          "eco": "auto",
+          "standard": "auto",
+          "deep": "auto",
+          "auto": "auto"
+        },
+        "tokenField": "max_tokens",
+        "thinkingFormat": "none",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "auto": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "auto": 49152
+        },
+        "note": "中转站型号；推理模式由上游自动处理，三档仅调整输出预算，不额外传入未经确认的思考强度。",
+        "nativeEfforts": [
+          "auto"
+        ]
+      },
+      "grok-composer-2.5-fast": {
+        "family": "grok",
+        "name": "Grok Composer 2.5 Fast",
+        "efforts": {
+          "eco": "auto",
+          "standard": "auto",
+          "deep": "auto",
+          "auto": "auto"
+        },
+        "tokenField": "max_tokens",
+        "thinkingFormat": "none",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "auto": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "auto": 49152
+        },
+        "note": "中转站型号；推理模式由上游自动处理，三档仅调整输出预算，不额外传入未经确认的思考强度。",
+        "nativeEfforts": [
+          "auto"
+        ]
+      }
+    },
+    "cheetah-gemini": {
+      "gemini-3.8-flash": {
+        "family": "gemini",
+        "name": "Gemini 3.8 Flash",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "high",
+          "low": "low",
+          "high": "high"
+        },
+        "tokenField": "max_tokens",
+        "thinkingFormat": "openai",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
+        },
+        "note": "猎豹词元工厂Gemini原生流式线路；最高思考强度为high。",
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
+      }
+    },
+    "cheetah-deepseek": {
+      "deepseek-v4.1-flash": {
+        "family": "deepseek",
+        "name": "DeepSeek V4.1 Flash",
+        "contextWindow": 1000000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_tokens",
+        "thinkingFormat": "deepseek",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": false,
+          "maxTokensField": "max_tokens",
+          "thinkingFormat": "deepseek",
+          "supportsStrictMode": true,
+          "requiresReasoningContentOnAssistantMessages": true,
+          "supportsReasoningEffort": true
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "猎豹词元工厂独立线路，使用专用DeepSeek凭据。",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      }
+    },
+    "kimi-code": {
+      "k3": {
+        "family": "kimi",
+        "name": "Kimi K3",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "note": "K3 支持 low、high、max 三档思考强度；新任务按所选档位执行。",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
+      "kimi-for-coding": {
+        "family": "kimi",
+        "name": "Kimi K2.8 Preview",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "note": "官方 K2.8 Preview，调用 ID 为 kimi-for-coding；支持 low、high、max，沿用现有 Kimi Code 会员接口。",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      }
+    },
+    "openai-chatgpt": {
+      "gpt-6.1-sol": {
+        "family": "gpt",
+        "name": "GPT-6.1-Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      },
+      "gpt-6-astra": {
+        "family": "gpt",
+        "name": "GPT-6-Astra",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      },
+      "gpt-6-sol": {
+        "family": "gpt",
+        "name": "GPT-6-Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      },
+      "gpt-6-luna": {
+        "family": "gpt",
+        "name": "GPT-6-Luna",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      },
+      "gpt-5.6-sol": {
+        "family": "gpt",
+        "name": "GPT-5.6-Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      },
+      "gpt-5.6-terra": {
+        "family": "gpt",
+        "name": "GPT-5.6-Terra",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      },
+      "gpt-5.6-luna": {
+        "family": "gpt",
+        "name": "GPT-5.6-Luna",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152
+        },
+        "note": "官方 ChatGPT 个人授权 · 账号实际可用模型。日常建议 medium / high；max 与 ultra 会增加等待及用量。",
+        "vision": true
+      }
+    },
+    "openai-codex": {
+      "gpt-6.1-sol": {
+        "family": "gpt",
+        "name": "GPT-6.1-Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max",
+          "ultra"
+        ]
+      },
+      "gpt-6-astra": {
+        "family": "gpt",
+        "name": "GPT-6-Astra",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max",
+          "ultra"
+        ]
+      },
+      "gpt-6-sol": {
+        "family": "gpt",
+        "name": "GPT-6-Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max",
+          "ultra"
+        ]
+      },
+      "gpt-6-luna": {
+        "family": "gpt",
+        "name": "GPT-6-Luna",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ]
+      },
+      "gpt-5.6-sol": {
+        "family": "gpt",
+        "name": "GPT-5.6-Sol",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max",
+          "ultra"
+        ]
+      },
+      "gpt-5.6-terra": {
+        "family": "gpt",
+        "name": "GPT-5.6-Terra",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max",
+          "ultra": "ultra"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max",
+          "ultra"
+        ]
+      },
+      "gpt-5.6-luna": {
+        "family": "gpt",
+        "name": "GPT-5.6-Luna",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ]
+      },
+      "gpt-5.5": {
+        "family": "gpt",
+        "name": "GPT-5.5",
+        "contextWindow": 272000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "xhigh",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384,
+          "ultra": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152,
+          "ultra": 49152
+        },
+        "note": "使用工作台当前云端授权账号。日常建议 medium / high；更高思考强度会增加耗时与用量。",
+        "vision": true,
+        "nativeEfforts": [
+          "low",
+          "medium",
+          "high",
+          "xhigh"
+        ]
+      }
+    },
+    "gemini": {
+      "gemini-3.8-flash": {
+        "family": "gemini",
+        "name": "Gemini 3.8 Flash",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "high",
+          "low": "low",
+          "high": "high"
+        },
+        "tokenField": "max_tokens",
+        "note": "Gemini 原生流式协议，按模型支持的思考强度执行。",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
+        },
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
+      }
+    },
+    "deepseek": {
+      "deepseek-flash": {
+        "family": "deepseek",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_tokens",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
+      "deepseek-v4-pro": {
+        "family": "deepseek",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_tokens",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
       }
     }
-  }
+  },
+  "sourceVersion": "v2.14.0-jianwei-official-models.20261021"
 }

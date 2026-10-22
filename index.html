@@ -1439,8 +1439,8 @@ function apiHeaders(){
   return { 'Content-Type': 'application/json', ...(token ? {Authorization:'Bearer ' + token} : {}) };
 }
 /* 页面版本标记:每次改动随 commit 递增;设置面板展示,用于线上 CDN 缓存排障 */
-const APP_VERSION = 'v2.10.0';
-const EXPECTED_BACKEND_VERSION = 'v2.10.0';
+const APP_VERSION = 'v2.11.0';
+const EXPECTED_BACKEND_VERSION = 'v2.11.0';
 console.info('北辰 ' + APP_VERSION);
 
 /* ═══════════════════════════ v3 主题 ═══════════════════════════ */
@@ -1477,7 +1477,7 @@ function markEffortButtons(){
     b.textContent = ({eco:'省时',standard:'标准',deep:'深思'})[b.dataset.e] + (modelEffortLevels ? ' · '+modelEffortLevels[b.dataset.e] : '');
   });
   const st = document.getElementById('statEffort');
-  if(st) st.textContent = ({eco:'省时',standard:'标准',deep:'深思'})[pref] + (modelEffortLevels ? ' · '+modelEffortLevels[pref] : '');
+  if(st) st.textContent = (({eco:'省时',standard:'标准',deep:'深思'})[pref] || '后台默认') + (modelEffortLevels ? ' · '+modelEffortLevels[pref] : '');
 }
 function markThinkSwitch(){
   const on = thinkSwitchOn();
@@ -3507,7 +3507,7 @@ function applyModelCapabilities(data){
     });
   }
   modelEffortLevels = data.effortLevels || null;
-  cloudDefaultEffort = ['eco','standard','deep'].includes(data.defaultEffort) ? data.defaultEffort : 'standard';
+  cloudDefaultEffort = Object.hasOwn(modelEffortLevels || {}, data.defaultEffort) ? data.defaultEffort : 'standard';
   markEffortButtons();
   const help = document.getElementById('effortHelp');
   if(help) help.textContent = (data.effortNote || '三档使用当前模型的原生思考强度。') + ' 深思档会增加等待时间，星图最多等待 9 分钟。';
