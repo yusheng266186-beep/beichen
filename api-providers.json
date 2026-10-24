@@ -309,5 +309,29 @@
       "gpt-5.6-luna",
       "gpt-5.5"
     ]
+  },
+  "codebuddy": {
+    "label": "CodeBuddy · CLI API",
+    "prefix": "CODEBUDDY",
+    "key": "CODEBUDDY_API_KEY",
+    "url": "https://www.codebuddy.cn/v2",
+    "protocol": "chat-completions",
+    "model": "deepseek-v4.1-flash",
+    "catalog": [
+      "hy4-preview",
+      "hy3",
+      "step-5-preview",
+      "space-bunny",
+      "deepseek-v4.1-flash",
+      "glm-5.3-flash",
+      "glm-5.3-flashx",
+      "hy3-x",
+      "minimax-m3-pay",
+      "minimax-m2.7",
+      "minimax-m3.1-flash",
+      "kimi-k3.1-pro-highspeed",
+      "kimi-k3.1-pro",
+      "mimo-v2.6-pro"
+    ]
   }
 }
