@@ -175,7 +175,7 @@ function securityHeaders(req, extra) {
   if (req.headers.origin && CORS_ALLOWED_ORIGINS.includes(req.headers.origin)) {
     headers['Access-Control-Allow-Origin'] = req.headers.origin;
     headers['Vary'] = 'Origin';
-    headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS';
+    headers['Access-Control-Allow-Methods'] = 'POST, GET, DELETE, OPTIONS';
     headers['Access-Control-Allow-Headers'] = 'content-type, authorization, x-request-id';
     headers['Access-Control-Max-Age'] = '600';
   }
@@ -847,6 +847,7 @@ async function handle(req, res) {
   if (!allowedOrigin(req)) return json(req, res, 403, { error: { message: 'BEICHEN_ORIGIN_NOT_ALLOWED' } });
   const url = new URL(req.url, 'http://localhost');
   const path = url.pathname.replace(/\/+$/, '') || '/';
+  if(path.startsWith('/console/')&&!url.search)return require('./console-api').handle(req,res,{securityHeaders,readJson,matchingTotpCounter,client:pickClientIp(req.headers['x-forwarded-for'],req.socket&&req.socket.remoteAddress)});
   if(path.startsWith('/maintenance/')&&!url.search)return require('./maintenance').handle(req,res,{securityHeaders});
   const postPaths = ['/verify', '/run/complete', '/chat/completions'];
   if (req.method === 'OPTIONS') {

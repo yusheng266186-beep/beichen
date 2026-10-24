@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f7f6f2">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com; form-action 'none';">
+<meta name="beichen-api" content="https://1459223409-ewedmcwla2.ap-chengdu.tencentscf.com">
+<meta name="description" content="北辰服务工作台：使用动态验证码进入，管理模型与Redis服务。">
+<title>北辰 · 服务工作台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 3 L23 17 L37 20 L23 23 L20 37 L17 23 L3 20 L17 17 Z' fill='%2320242c'/%3E%3C/svg%3E">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<svg class="symbols" aria-hidden="true"><symbol id="star" viewBox="0 0 40 40"><path d="M20 3 23 17 37 20 23 23 20 37 17 23 3 20 17 17Z" fill="currentColor"/></symbol><symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol></svg>
+<header class="top"><div class="top-in"><a class="brand" href="../" aria-label="打开北辰"><svg class="brand-mark"><use href="#star"/></svg><span><b>北 辰</b><small>BEICHEN · CONSOLE</small></span></a><div class="top-actions"><button class="icon-btn" id="themeButton" aria-label="切换界面主题" title="切换主题">◐</button><a class="tbtn student-link" href="../">返回北辰 <span aria-hidden="true">↗</span></a><button class="tbtn" id="logout" hidden>退出</button></div></div></header>
+
+<section class="gate" id="gate" aria-labelledby="gateTitle">
+ <div class="gate-in">
+  <div class="gate-star" aria-hidden="true"><span></span><svg><use href="#star"/></svg><span></span></div>
+  <p class="eyebrow">守 候 北 辰 的 每 一 次 对 话</p>
+  <h1 id="gateTitle">服务工作台</h1>
+  <p class="gate-description">调整模型，开关服务。<br>以北辰原有的动态验证码进入。</p>
+  <form id="loginForm" novalidate><label for="code" class="sr-only">六位动态验证码</label><input id="code" class="gate-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="六位验证码" aria-describedby="gateHint gateError"><p id="gateError" class="gate-error" role="alert"></p><button class="gate-btn" id="loginButton" type="submit"><span>进入工作台</span><svg><use href="#arrow"/></svg></button></form>
+  <p class="gate-hint" id="gateHint">管理登录独立于学生会话，Redis 关闭时也可进入。</p>
+  <p class="gate-foot">纸上有方向，星下有回声。</p>
+ </div>
+</section>
+
+<main id="workspace" class="workspace" hidden>
+ <header class="page-heading"><div><p class="eyebrow">BEICHEN · SERVICE WORKSPACE</p><h1>让每次对话，稳稳抵达。</h1><p class="subheading">模型与服务，都在这里安静就位。</p></div><button class="tbtn refresh-button" id="refresh"><span class="refresh-icon" aria-hidden="true">↻</span> 核验云端状态</button></header>
+ <div id="notice" class="notice" role="status" hidden></div>
+ <div id="error" class="error-banner" role="alert" hidden><span id="errorText"></span><button class="text-btn" id="retry">重新读取</button></div>
+ <section class="task-panel" id="taskPanel" aria-live="polite" hidden><span class="orbit" aria-hidden="true"><svg><use href="#star"/></svg></span><div class="task-copy"><p class="eyebrow" id="taskLabel">云端正在处理</p><h2 id="taskTitle">准备任务</h2><p id="taskStep">等待云端接收</p></div><button class="text-btn" id="taskDetails">查看进度 <span aria-hidden="true">↗</span></button><div class="task-track" aria-hidden="true"><span></span></div></section>
+ <div class="console-grid">
+  <div class="left-column">
+   <section class="panel status-panel" id="statusPanel" data-state="unknown" aria-labelledby="redisTitle"><div class="sectionline"><p class="eyebrow">01 / 服务</p><span class="badge" id="environment">正式环境</span></div><h2 id="redisTitle">Redis 服务</h2><div class="service-state"><span class="state-dot" aria-hidden="true"></span><strong id="stateText">读取中</strong></div><p class="description" id="stateDescription">正在读取上次云端核验结果。</p><dl class="facts"><div><dt>北辰就绪</dt><dd id="readyText">—</dd></div><div><dt>值班哨兵</dt><dd id="monitorText">—</dd></div><div><dt>实例规格</dt><dd>256 MB · 1 副本</dd></div><div><dt>所在地域</dt><dd>成都</dd></div></dl><div class="service-actions"><button class="action-btn primary" id="start" disabled>开启 Redis <span aria-hidden="true">↗</span></button><button class="action-btn danger" id="stop" disabled>关闭 Redis</button></div><p class="fine-print">Redis 开启期间按量计费。关闭会清空云端会话与额度状态，保留重建配置。</p></section>
+   <section class="quiet-note"><svg aria-hidden="true"><use href="#star"/></svg><div><h3>只在需要时，唤醒服务</h3><p>后台空闲时不自动轮询，也不新增常驻资源。核验时间与实际任务结果，始终如实呈现。</p></div></section>
+  </div>
+  <section class="panel model-panel" aria-labelledby="modelTitle"><div class="sectionline"><p class="eyebrow">02 / 智能</p><span class="badge">新对话生效</span></div><h2 id="modelTitle">为北辰，选择合适的模型</h2><div class="current-model"><span class="small-label">当前使用</span><p id="currentModel">正在读取</p><span id="currentEffort" class="muted">—</span></div><form id="modelForm">
+   <div class="field"><label for="provider">模型服务</label><select id="provider" disabled><option>正在读取</option></select></div>
+   <div class="model-fields"><div class="field search-field"><label for="search">查找型号</label><input id="search" type="search" autocomplete="off" placeholder="名称或型号 ID" disabled></div><div class="field"><label for="model">具体型号 <span id="modelCount" class="field-note"></span></label><select id="model" disabled></select></div></div>
+   <div class="field" id="accountField" hidden><label for="account">官方账号</label><select id="account"></select><p class="field-help" id="accountHelp">两站共用授权与续期，所选账号仅影响北辰。</p><a class="inline-link" href="https://yusheng266186-beep.github.io/jianwei-observatory/model-workbench.html#cloud-accounts-panel" target="_blank" rel="noopener noreferrer">管理账号授权 ↗</a></div>
+   <fieldset class="effort-field"><legend>默认思考强度</legend><div id="efforts" class="choice-group" role="radiogroup" aria-label="默认思考强度"></div></fieldset>
+   <p class="field-help model-help" id="modelHelp">按每款模型实际支持的档位执行。</p>
+   <div class="probe-result" id="probeResult" role="status" hidden></div>
+   <div class="apply-line"><span id="draftHint" class="fine-print">已提交的对话保留原配置</span><div class="model-actions"><button type="button" class="action-btn" id="probeModel" disabled>测试连通</button><button type="submit" class="action-btn primary" id="applyModel" disabled>应用于新对话 <svg><use href="#arrow"/></svg></button></div></div>
+   <p class="fine-print probe-note">连通测试仅发送一道简短计算题，不更改当前配置。</p>
+  </form></section>
+ </div>
+ <section class="history-section" aria-labelledby="historyTitle"><div class="sectionline"><div><p class="eyebrow">03 / 留痕</p><h2 id="historyTitle">最近操作</h2></div><span class="history-meta" id="historyCount">仅记录服务操作</span></div><ol class="history" id="history"></ol><p class="empty" id="historyEmpty">正在读取操作记录</p></section>
+ <footer class="page-foot"><span id="updated">尚未核验</span><span>北辰 · 服务工作台 <span class="foot-star" aria-hidden="true">✧</span> 每一份选择，都有回声。</span></footer>
+</main>
+
+<dialog id="confirm" class="dialog"><div class="dialog-mark" aria-hidden="true">✧</div><p class="eyebrow">请 确 认 这 次 调 整</p><h2 id="confirmTitle">确认操作</h2><p class="dialog-description" id="confirmBody"></p><div class="confirm-detail" id="confirmDetail" hidden></div><div class="dialog-actions"><button class="action-btn" id="cancel">再想一下</button><button class="action-btn primary" id="confirmAction">确认</button></div></dialog>
+<dialog id="progress" class="dialog progress-dialog"><div class="sectionline"><div><p class="eyebrow">云端执行</p><h2 id="progressTitle">任务进度</h2></div><button class="icon-btn" id="closeProgress" aria-label="关闭任务进度">×</button></div><ol id="progressSteps" class="progress-steps"></ol><p id="progressHint" class="fine-print">任务在云端执行，关闭页面不会中断。</p></dialog>
+<noscript><p class="noscript">请开启 JavaScript 后进入服务工作台。</p></noscript>
+</body></html>

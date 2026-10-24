@@ -1,8 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{EventEmitter}=require('node:events');
 const providers=require('../api-providers.json'),profiles=require('../model-profiles.json'),adapter=require('../model-adapter'),normalizer=require('../upstream-stream'),chat=require('../official-chat'),ops=require('../maintenance');
-test('all synced text models have adapters and supported native reasoning; image-only routes stay independent',()=>{
- const sync=require('../model-sync.json');assert.equal(Object.keys(providers).length,sync.providers);assert.equal(Object.values(providers).reduce((n,p)=>n+p.catalog.length,0),169);assert.equal(Object.keys(require('../image-providers.json')).length,4);
+test('all synced text models have adapters and supported native reasoning; removed image routes stay absent',()=>{
+ const sync=require('../model-sync.json');assert.equal(Object.keys(providers).length,sync.providers);assert.equal(Object.values(providers).reduce((n,p)=>n+p.catalog.length,0),169);assert.equal(fs.existsSync(path.join(__dirname,'../image-providers.json')),false);
  for(const [name,p] of Object.entries(providers))for(const model of p.catalog){const profile=adapter.modelProfile({name,model});assert(profile,name+'/'+model);for(const effort of Object.keys(profile.efforts)){const body=adapter.adaptModelBody({messages:[{role:'system',content:'规则'},{role:'user',content:'37×19'}],max_tokens:16384,effort},{name,model});assert(body);assert(Object.hasOwn(profile.chatBudgets,effort));if(body.thinking?.budget_tokens!==undefined)assert(Number.isFinite(body.thinking.budget_tokens),name+'/'+model+'/'+effort);}}
  assert.deepEqual(profiles.providers['openai-codex']['gpt-6.1-sol'].nativeEfforts,['low','medium','high','xhigh','max','ultra']);assert.deepEqual(profiles.providers['kimi-code'].k3.nativeEfforts,['low','high','max']);
 });
@@ -44,6 +44,11 @@ test('historical Node 16 compatibility clones vault records and combines cancell
 });
 test('closing a student request cancels the official turn and cannot emit a successful terminal',async()=>{
  const s=stream();const pending=chat.proxy(s.req,s.res,{},{},{headers:{},completion:async(_,__,o)=>new Promise((yes,no)=>{o.signal.addEventListener('abort',()=>no(Error('BEICHEN_CLIENT_ABORTED')),{once:true});})});s.req.emit('aborted');await assert.rejects(pending,/BEICHEN_CLIENT_ABORTED/);assert.doesNotMatch(s.res.text,/\[DONE\]/);
+});
+test('cancelling a console probe aborts the official model and removes its disconnect listeners',async()=>{
+ const s=stream();let begin;const started=new Promise(resolve=>{begin=resolve;});
+ const pending=ops.runProbe({provider:'openai-codex',model:'gpt-6.1-sol',effort:'max',accountId:'b'.repeat(32)},{...s,control:{},complete:async(_,__,options)=>{assert(options.probe);begin();return new Promise((yes,no)=>options.signal.addEventListener('abort',()=>no(Error('BEICHEN_CLIENT_ABORTED')),{once:true}));}});
+ await started;s.res.emit('close');await assert.rejects(pending,/BEICHEN_CLIENT_ABORTED/);assert.equal(s.req.listenerCount('aborted'),0);assert.equal(s.res.listenerCount('close'),0);
 });
 test('a complete native Gemini JSON response is normalized without requiring a relay to label it SSE',async t=>{
  process.env.BEICHEN_NO_LISTEN='1';const relay=require('../scf-relay'),https=require('node:https');t.after(()=>relay.setUpstreamRequester((...args)=>https.request(...args)));

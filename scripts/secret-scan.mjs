@@ -34,7 +34,7 @@ async function walk(dir) {
     const extension = entry.name.toLowerCase().includes('.') ? entry.name.slice(entry.name.lastIndexOf('.')).toLowerCase() : '';
     const isDocumentation = relativeFile.startsWith('docs/') || ['.md', '.markdown', '.txt'].includes(extension);
     /* 函数 URL 在正式发布页与 legacy/archive 历史存档中合法存在(路由信息,非凭据)。 */
-    const isRoutingSurface = isDocumentation || relativeFile === 'index.html'
+    const isRoutingSurface = isDocumentation || ['index.html','admin/index.html'].includes(relativeFile)
       || relativeFile.startsWith('legacy/') || relativeFile.startsWith('archive/');
     for (const pattern of suspicious) {
       if (pattern === publicEndpoint && isRoutingSurface) continue;

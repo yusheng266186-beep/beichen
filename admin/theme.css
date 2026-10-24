@@ -1,0 +1,51 @@
+/* Shared visual values copied from the current Beichen student surface. */
+:root{
+  --paper:#f7f6f2;         /* 纸 */
+  --paper-2:#f0eee7;
+  --card:#fcfbf8;
+  --ink:#20242c;           /* 墨 */
+  --ink-2:#4c5058;
+  --mut:#5f615c;
+  --line:#e4e1d6;
+  --line-2:#d2cfc2;
+  --wen:#a94e32;           /* 文 · 朱 */
+  --wen-bg:#f5ebe4;
+  --li:#345c8e;            /* 理 · 靛 */
+  --li-bg:#e8edf4;
+  --kai:'Noto Serif SC','Source Han Serif SC','STSong','SimSun',serif;               /* 宋体（书卷）· 谈心与标题层 */
+  --serif:'Cormorant Garamond','Noto Serif SC','Source Han Serif SC','STSong',serif; /* 衬线 · 点缀层：英文与数字 */
+  --sans:'Noto Serif SC','Source Han Serif SC','STSong','SimSun',serif;              /* 宋体 · 界面层（全页无黑体） */
+  /* 设计 tokens：圆角/投影分级统一，动效时长与缓动全站一致 */
+  --radius-s:9px;--radius-m:12px;--radius-l:16px;
+  --shadow-pop:0 30px 80px rgba(32,36,44,0.28);
+  --shadow-soft:0 10px 26px rgba(32,36,44,0.3);
+  /* v3 主题化 tokens:硬编码颜色收编,暗色主题整组覆盖 */
+  --top-bg:rgba(247,246,242,0.92);
+  --overlay-bg:rgba(32,36,44,0.4);
+  --sel:#dfe5ee;
+  --bubble-user-text:#f3f2ee;
+  --pulse-rgb:32,36,44;
+  color-scheme:light;
+  /* 动效 tokens:强缓出 / 弹簧(微过冲,小卡与条形) / 滑行(轴星同款) / 递进(内容分拍进场) */
+  --ease-out-strong:cubic-bezier(.23,1,.32,1);
+  --ease-spring:cubic-bezier(.22,1.1,.36,1);
+  --ease-glide:cubic-bezier(.22,.9,.3,1.05);
+  --ease-stagger:cubic-bezier(.22,.9,.36,1);
+}
+/* v3 夜航主题:默认跟随系统(prefers-color-scheme),设置面板可手动三档 */
+:root[data-theme="dark"]{
+  --paper:#14171d;--paper-2:#1b1f26;--card:#1d222b;
+  --ink:#ece9e1;--ink-2:#c6c3ba;--mut:#93918a;
+  --line:#31363f;--line-2:#3f4550;
+  --wen:#e0895f;--wen-bg:#2b211a;
+  --li:#82a9d8;--li-bg:#1d2531;
+  --top-bg:rgba(20,23,29,0.88);
+  --overlay-bg:rgba(4,6,10,0.55);
+  --sel:#334052;
+  --bubble-user-text:#14171d;
+  --pulse-rgb:236,233,225;
+  --shadow-pop:0 30px 80px rgba(0,0,0,0.55);
+  --shadow-soft:0 10px 26px rgba(0,0,0,0.45);
+  color-scheme:dark;
+}
+
