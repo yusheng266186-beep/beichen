@@ -1,8 +1,8 @@
 {
   "sourceRepository": "yusheng266186-beep/jianwei-observatory",
-  "sourceCommit": "a8dc667e9e08996d94389d65d1ea079083776b85",
-  "profileVersion": "v2.14.0-jianwei-official-models.20261021",
+  "sourceCommit": "f312c9705dbbbb20eb0fd57669c7c3d7559f608f",
+  "profileVersion": "v2.14.0-jianwei-kimi31.20261024",
   "providers": 15,
-  "models": 154,
+  "models": 155,
   "imageProviders": 4
 }

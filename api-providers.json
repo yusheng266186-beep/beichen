@@ -6,6 +6,7 @@
     "key": "KIMI_API_KEY",
     "model": "k3",
     "catalog": [
+      "k3.1-pro",
       "k3",
       "kimi-for-coding"
     ],

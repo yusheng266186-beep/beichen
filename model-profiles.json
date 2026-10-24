@@ -6294,6 +6294,41 @@
       }
     },
     "kimi-code": {
+      "k3.1-pro": {
+        "family": "kimi",
+        "name": "Kimi K3.1 Pro",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "note": "Kimi 最新旗舰 K3.1 Pro，仅支持思考模式，提供 low、high、max 三档；会员 Plus / Moderato 及以上可用，Pro / Allegretto 及以上支持最高 1M 上下文。",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
       "k3": {
         "family": "kimi",
         "name": "Kimi K3",
@@ -7269,5 +7304,5 @@
       }
     }
   },
-  "sourceVersion": "v2.14.0-jianwei-official-models.20261021"
+  "sourceVersion": "v2.14.0-jianwei-kimi31.20261024"
 }

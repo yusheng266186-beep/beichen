@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{EventEmitter}=require('node:events');
 const providers=require('../api-providers.json'),profiles=require('../model-profiles.json'),adapter=require('../model-adapter'),normalizer=require('../upstream-stream'),chat=require('../official-chat'),ops=require('../maintenance');
 test('all synced text models have adapters and supported native reasoning; image-only routes stay independent',()=>{
- const sync=require('../model-sync.json');assert.equal(Object.keys(providers).length,sync.providers);assert.equal(Object.values(providers).reduce((n,p)=>n+p.catalog.length,0),154);assert.equal(Object.keys(require('../image-providers.json')).length,4);
+ const sync=require('../model-sync.json');assert.equal(Object.keys(providers).length,sync.providers);assert.equal(Object.values(providers).reduce((n,p)=>n+p.catalog.length,0),155);assert.equal(Object.keys(require('../image-providers.json')).length,4);
  for(const [name,p] of Object.entries(providers))for(const model of p.catalog){const profile=adapter.modelProfile({name,model});assert(profile,name+'/'+model);for(const effort of Object.keys(profile.efforts)){const body=adapter.adaptModelBody({messages:[{role:'system',content:'规则'},{role:'user',content:'37×19'}],max_tokens:16384,effort},{name,model});assert(body);assert(Object.hasOwn(profile.chatBudgets,effort));if(body.thinking?.budget_tokens!==undefined)assert(Number.isFinite(body.thinking.budget_tokens),name+'/'+model+'/'+effort);}}
  assert.deepEqual(profiles.providers['openai-codex']['gpt-6.1-sol'].nativeEfforts,['low','medium','high','xhigh','max','ultra']);assert.deepEqual(profiles.providers['kimi-code'].k3.nativeEfforts,['low','high','max']);
 });
@@ -49,4 +49,17 @@ test('a complete native Gemini JSON response is normalized without requiring a r
  process.env.BEICHEN_NO_LISTEN='1';const relay=require('../scf-relay'),https=require('node:https');t.after(()=>relay.setUpstreamRequester((...args)=>https.request(...args)));
  const payloads=[{candidates:[{content:{parts:[{text:'703'}]},finishReason:'STOP'}]},[{candidates:[{content:{parts:[{text:'7'}]}}]},{candidates:[{content:{parts:[{text:'03'}]},finishReason:'STOP'}]}]];
  for(const payload of payloads){relay.setUpstreamRequester((options,callback)=>{assert.match(options.path,/alt=sse/);const request=new EventEmitter();request.destroy=()=>{request.destroyed=true;};request.write=()=>{};request.end=()=>setImmediate(()=>{const response=new EventEmitter();Object.assign(response,{statusCode:200,headers:{'content-type':'application/json'},pause(){},resume(){},destroy(){}});callback(response);response.emit('data',Buffer.from(JSON.stringify(payload)));response.emit('end');});return request;});const s=stream();s.req.headers={};await relay.proxyChat(s.req,s.res,{messages:[{role:'user',content:'37×19'}],effort:'high',max_tokens:256},{name:'cheetah-gemini',model:'gemini-3.8-flash',key:'test-only',url:'https://www.wefucke.top'});let text='';for(const line of s.res.text.split('\n'))if(line.startsWith('data: {'))for(const c of JSON.parse(line.slice(6)).choices||[])text+=c.delta?.content||'';assert.equal(text,'703');assert.match(s.res.text,/\[DONE\]/);}
+});
+
+test('Kimi K3.1 Pro preserves conversation, sends its exact ID and native thinking at all tiers',()=>{
+ const messages=[{role:'system',content:'北辰原始规则'},{role:'user',content:'我的完整经历'},{role:'assistant',content:'继续说说'},{role:'user',content:'最新选择'}];
+ assert.equal(providers['kimi-code'].model,'k3');
+ assert(providers['kimi-code'].catalog.includes('k3.1-pro'));
+ assert.equal(profiles.providers['kimi-code']['k3.1-pro'].name,'Kimi K3.1 Pro');
+ assert.deepEqual(profiles.providers['kimi-code']['k3.1-pro'].nativeEfforts,['low','high','max']);
+ for(const [effort,native]of Object.entries({eco:'low',standard:'high',deep:'max',low:'low',high:'high',max:'max'})){
+  const body=adapter.adaptModelBody({messages,max_tokens:16384,effort,temperature:.2,thinking:{type:'disabled'}},{name:'kimi-code',model:'k3.1-pro'});
+  assert.equal(body.model,'k3.1-pro');assert.equal(body.reasoning_effort,native);assert.deepEqual(body.messages,messages);
+  assert(body.max_completion_tokens>=16384);assert.equal(body.temperature,undefined);assert.equal(body.thinking,undefined);assert.equal(body.stream,true);
+ }
 });
