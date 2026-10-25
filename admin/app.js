@@ -6,9 +6,10 @@
  const errors={PROBE_AUTH:'所选模型或账号暂无调用权限，请核对授权与套餐。',PROBE_QUOTA:'上游额度不足或请求受限，请稍后再试。',PROBE_TIMEOUT:'所选模型响应超时，可降低思考强度后重试。',PROBE_FAILED:'模型未完成连通测试，请核对服务或稍后重试。',PROBE_RATE_LIMIT:'本分钟测试次数较多，请稍候再试。',INVALID_CODE:'验证码不正确或已过期，请检查后重试。',CODE_USED:'这组验证码已用于进入后台，请等待下一组验证码。',RATE_LIMIT:'验证过于频繁，请稍后再试。',NOT_CONFIGURED:'后台连接暂未配置完成，请稍后进入。',CONNECTION_EXPIRED:'云端维护连接已失效，请由维护者续期。',GITHUB_UNAVAILABLE:'暂时无法连接任务服务，请稍后重新读取。',STATE_UNAVAILABLE:'暂时无法读取核验结果，请稍后重试。',TASK_ACTIVE:'已有云端任务正在执行，请等待完成。',REQUEST_CONFLICT:'任务号对应的操作不同，请重新进入后台核对。',SUBMISSION_UNCERTAIN:'尚未确认任务是否接收，请保留这次任务号并核对。',UNAVAILABLE:'云端维护服务暂时不可用，请稍后重试。',BAD_REQUEST:'所选配置已变化，请核对服务、型号和档位。'};
  const storage={get(key){try{return JSON.parse(sessionStorage.getItem(key)||'null');}catch{return null;}},set(key,value){try{value===null?sessionStorage.removeItem(key):sessionStorage.setItem(key,JSON.stringify(value));}catch{}}};
  let session=storage.get('bc_console_session'),pending=storage.get('bc_console_pending'),latest=null,loading=false,submitting=false,loginBusy=false,dirty=false,epoch=0,timer=null,desiredModel='',selectedEffort='',confirmation=null,progressId=null,testing=false,probeController=null;
- const controllers=new Set(),reduce=matchMedia('(prefers-reduced-motion: reduce)'),dialogAnimations=new WeakMap();
+ const controllers=new Set(),reduce=matchMedia('(prefers-reduced-motion: reduce)'),dialogAnimations=new WeakMap(),dialogReturnFocus=new WeakMap();
  const date=t=>t?new Date(t).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}):'尚未核验';
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+ function icon(name){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),use=document.createElementNS(svg.namespaceURI,'use');svg.setAttribute('aria-hidden','true');use.setAttribute('href','#icon-'+name);svg.append(use);return svg;}
  const message=e=>e.name==='AbortError'?'连接超时，请重新读取。':errors[String(e.code||'').replace('BEICHEN_CONSOLE_','')]||e.message||'连接暂时中断，请稍后重试。';
  function animate(node,frames,options){if(reduce.matches)return Promise.resolve();const a=node.animate(frames,options);return a.finished.catch(()=>{});}
  function notice(text){$('notice').textContent=text;$('notice').hidden=!text;if(text)animate($('notice'),[{opacity:0,transform:'translateY(-5px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,easing:'cubic-bezier(.23,1,.32,1)'});}
@@ -26,23 +27,24 @@
   for(const [i,n]of [...$('workspace').children].slice(0,5).entries())if(!n.hidden)animate(n,[{opacity:0,transform:'translateY(11px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,delay:i*35,easing:'cubic-bezier(.22,.9,.36,1)'});
   await start;
  }
- async function login(event){event?.preventDefault();if(loginBusy)return;const code=$('code').value.replace(/\D/g,'');if(code.length!==6){$('gateError').textContent='请输入六位动态验证码。';$('code').focus();return;}loginBusy=true;$('loginButton').disabled=true;$('loginButton').querySelector('span').textContent='正在验证';$('gateError').textContent='';
+ async function login(event){event?.preventDefault();if(loginBusy)return;const code=$('code').value.replace(/\D/g,'');if(code.length!==6){$('gateError').textContent='请输入六位动态验证码。';$('code').setAttribute('aria-invalid','true');$('code').focus();return;}loginBusy=true;$('code').disabled=true;$('loginButton').disabled=true;$('loginButton').setAttribute('aria-busy','true');$('loginButton').querySelector('span').textContent='正在验证';$('gateError').textContent='';
   try{session=await api('/session',{method:'POST',body:{code},anonymous:true});storage.set('bc_console_session',session);$('code').value='';await enter();}
-  catch(e){if(!$('gate').hidden){$('gateError').textContent=message(e);$('code').focus();$('code').select();animate($('code'),[{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:280,easing:'ease-out'});}}
-  finally{loginBusy=false;$('loginButton').disabled=false;$('loginButton').querySelector('span').textContent='进入工作台';}
+  catch(e){if(!$('gate').hidden){$('gateError').textContent=message(e);$('code').disabled=false;$('code').setAttribute('aria-invalid','true');$('code').focus();$('code').select();animate($('code'),[{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:280,easing:'ease-out'});}}
+  finally{loginBusy=false;$('code').disabled=false;$('loginButton').disabled=false;$('loginButton').setAttribute('aria-busy','false');$('loginButton').querySelector('span').textContent='进入工作台';}
  }
  function provider(){return latest?.api.providers.find(p=>p.id===$('provider').value);}
  function model(){return provider()?.models.find(m=>m.id===$('model').value);}
- function selectOptions(select,rows,wanted){const fragment=document.createDocumentFragment();for(const row of rows){const option=el('option',row.label||row.name||row.id);option.value=row.id;option.disabled=row.disabled||false;fragment.append(option);}select.replaceChildren(fragment);select.value=rows.some(r=>r.id===wanted&&!r.disabled)?wanted:rows.find(r=>!r.disabled)?.id||'';}
+ function selectOptions(select,rows,wanted){const fragment=document.createDocumentFragment();for(const row of rows){const option=el('option',row.label||row.name||row.id);option.value=row.id;option.disabled=row.disabled||false;option.dataset.detail=row.detail||'';fragment.append(option);}select.replaceChildren(fragment);select.value=rows.some(r=>r.id===wanted&&!r.disabled)?wanted:rows.find(r=>!r.disabled)?.id||'';}
  function modelOptions(wanted=desiredModel){
   const p=provider(),q=$('search').value.trim().toLowerCase(),all=p?.models||[],matches=all.filter(m=>!q||(m.id+' '+m.name).toLowerCase().includes(q));
-  selectOptions($('model'),matches.map(m=>({id:m.id,label:m.name+' · '+m.id})),wanted);if(!matches.length){const option=el('option','没有匹配的型号');option.value='';$('model').append(option);}
+  selectOptions($('model'),matches.map(m=>({id:m.id,label:m.name,detail:m.id})),wanted);if(!matches.length){const option=el('option','没有匹配的型号');option.value='';$('model').append(option);}
+  $('clearSearch').hidden=!q;
   $('modelCount').textContent=matches.length+' / '+all.length;modelHelp();
  }
  function modelHelp(){
   const m=model(),previous=selectedEffort||latest?.api.defaultEffort||'standard',tiers=m?.nativeEfforts?.length?m.nativeEfforts:Object.keys(m?.efforts||{});
   selectedEffort=tiers.includes(previous)?previous:tiers.find(t=>m?.efforts[t]===m?.efforts[previous])||tiers.find(t=>m?.efforts[t]==='high')||tiers[0]||'';
-  $('efforts').replaceChildren();for(const tier of tiers){const b=el('button',efforts[tier]||tier);b.type='button';b.dataset.effort=tier;b.setAttribute('role','radio');b.setAttribute('aria-checked',String(tier===selectedEffort));b.tabIndex=tier===selectedEffort?0:-1;b.title=m.efforts[tier];$('efforts').append(b);}
+  $('efforts').replaceChildren();for(const tier of tiers){const b=el('button');b.append(el('span',efforts[tier]||tier),el('span',m.efforts[tier],'effort-native'));b.type='button';b.dataset.effort=tier;b.setAttribute('role','radio');b.setAttribute('aria-label',(efforts[tier]||tier)+'，'+m.efforts[tier]);b.setAttribute('aria-checked',String(tier===selectedEffort));b.tabIndex=tier===selectedEffort?0:-1;$('efforts').append(b);}
   $('modelHelp').textContent=m?(m.note+(m.performance?' 参考输出 '+m.performance.tps+' tokens/s（'+m.performance.observedAt+'），非实时速度。':'')):'没有匹配的型号，请调整搜索内容。';
   $('accountField').hidden=provider()?.id!=='openai-codex';buttons();
  }
@@ -55,18 +57,19 @@
   const m=model(),p=provider(),same=latest?.api.provider===p?.id&&latest?.api.model===m?.id&&(latest?.api.defaultEffort===selectedEffort||m?.efforts[latest?.api.defaultEffort]===m?.efforts[selectedEffort])&&(p?.id!=='openai-codex'||latest?.api.accountId===$('account').value);
   $('probeModel').disabled=!testing&&(busy||noData||!p?.configured||!m||!selectedEffort||(p.id==='openai-codex'&&!$('account').value));$('probeModel').textContent=testing?'取消测试':'测试连通';$('probeModel').setAttribute('aria-busy',String(testing));
   $('applyModel').disabled=locked||!p?.configured||!m||!selectedEffort||same||(p.id==='openai-codex'&&!$('account').value);$('draftHint').textContent=dirty&&!same?'有尚未应用的调整':'已提交的对话保留原配置';
+  $('clearSearch').disabled=locked;window.beichenControls?.sync();
  }
  function render(data){
   latest=data;const p=data.api.providers.find(p=>p.id===data.api.provider),m=p?.models.find(m=>m.id===data.api.model);
   $('currentModel').textContent=(p?.label||data.api.provider||'尚未配置')+' · '+(m?.name||data.api.model||'—');$('currentEffort').textContent='默认 '+(efforts[data.api.defaultEffort]||data.api.defaultEffort)+(m?.efforts[data.api.defaultEffort]?' · '+m.efforts[data.api.defaultEffort]:'');
-  if(!dirty){selectOptions($('provider'),data.api.providers.map(p=>({id:p.id,label:p.label+(p.configured?'':' · 未配置'),disabled:!p.configured})),data.api.provider);desiredModel=data.api.model;selectedEffort=data.api.defaultEffort;$('search').value='';}
-  selectOptions($('account'),data.api.accounts.map(a=>({id:a.id,label:a.label+(a.status==='ready'?' · 可用':' · 待授权'),disabled:a.status!=='ready'})),dirty?$('account').value:data.api.accountId);
+  if(!dirty){selectOptions($('provider'),data.api.providers.map(p=>({id:p.id,label:p.label,detail:p.configured?p.models.length+' 个型号':'尚未配置',disabled:!p.configured})),data.api.provider);desiredModel=data.api.model;selectedEffort=data.api.defaultEffort;$('search').value='';}
+  selectOptions($('account'),data.api.accounts.map(a=>({id:a.id,label:a.label,detail:a.status==='ready'?'授权可用':'等待授权',disabled:a.status!=='ready'})),dirty?$('account').value:data.api.accountId);
   modelOptions();
   const status=data.redis.status;$('statusPanel').dataset.state=status;$('stateText').textContent={on:'已开启',off:'已关闭',pending:'处理中',isolated:'已隔离',unknown:'尚未确认'}[status];
   $('stateDescription').textContent={on:'Redis 已运行。使用期间按量计费，闲时可关闭。',off:'Redis 当前关闭。需要使用北辰时，可在这里开启。',pending:'云端正在调整服务，请等待任务完成。',isolated:'实例已隔离，请先核验实际云端状态。',unknown:'暂未确认 Redis 状态，请核验后再操作。'}[status];
   $('readyText').textContent=data.ready===true?'已就绪':data.ready===false?'未就绪':'尚未确认';$('monitorText').textContent={on:'监测中',off:'已暂停',unknown:'尚未确认'}[data.monitor];
   $('updated').textContent='上次核验 '+date(data.checkedAt)+(data.stale?' · 状态可能已变化':'');
-  $('history').replaceChildren();for(const run of data.runs){const li=el('li'),copy=el('div',undefined,'record-copy');copy.append(el('strong',titles[run.action]||'服务操作'),el('time',date(run.createdAt)));const details=el('button','进度 ↗','text-btn');details.type='button';details.dataset.task=run.id;details.setAttribute('aria-label','查看'+(titles[run.action]||'任务')+'，'+date(run.createdAt)+'的进度');li.append(el('span',run.action==='off'?'↓':run.action==='on'?'↑':'↻','record-mark'),copy,el('span',labels[run.conclusion||run.status]||'执行中','result '+(run.conclusion||'')),details);$('history').append(li);}
+  $('history').replaceChildren();for(const run of data.runs){const li=el('li'),copy=el('div',undefined,'record-copy');copy.append(el('strong',titles[run.action]||'服务操作'),el('time',date(run.createdAt)));const details=el('button','进度 ↗','text-btn');details.type='button';details.dataset.task=run.id;details.setAttribute('aria-label','查看'+(titles[run.action]||'任务')+'，'+date(run.createdAt)+'的进度');const mark=el('span',undefined,'record-mark');mark.append(icon(run.action==='off'?'down':run.action==='on'?'up':'refresh'));li.append(mark,copy,el('span',labels[run.conclusion||run.status]||'执行中','result '+(run.conclusion||'')),details);$('history').append(li);}
   $('historyEmpty').hidden=!!data.runs.length;$('historyEmpty').textContent='暂无服务操作记录';$('historyCount').textContent='最近 '+data.runs.length+' 次';
   const task=data.active||pending;$('taskPanel').hidden=!task;if(task){$('taskTitle').textContent=titles[task.action]||'云端任务';$('taskStep').textContent=data.active?(labels[task.status]||'执行中'):(pending?.uncertain?'接收结果尚未确认，请核对本次提交。':'已发送，等待云端任务出现。');$('taskLabel').textContent=data.active?'云端正在处理':'任务提交中';}
   buttons();if(data.warnings.length)error(data.warnings.join('；'));
@@ -89,28 +92,29 @@
   finally{if(generation===epoch){submitting=false;renderTask();buttons();await refresh();}}
  }
  function renderTask(){const task=latest?.active||pending;$('taskPanel').hidden=!task;if(task){$('taskTitle').textContent=titles[task.action]||'云端任务';$('taskLabel').textContent='云端执行';$('taskStep').textContent=pending?.uncertain?'提交结果尚未确认，可使用原任务号继续核对。':labels[task.status]||'正在提交，请稍候。';}}
- function openDialog(dialog){
-  dialogAnimations.get(dialog)?.cancel();dialog.inert=false;if(!dialog.open)dialog.showModal();if(!reduce.matches){const a=dialog.animate([{opacity:0,transform:'translateY(14px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:340,easing:'cubic-bezier(.22,1.1,.36,1)'});dialogAnimations.set(dialog,a);}
+ function openDialog(dialog,returnFocus=document.activeElement){
+  window.beichenControls?.close();dialogAnimations.get(dialog)?.cancel();dialog.classList.remove('is-closing');dialog.inert=false;if(!dialog.open){dialogReturnFocus.set(dialog,returnFocus);dialog.showModal();}if(!reduce.matches){const a=dialog.animate([{opacity:0,transform:'translateY(14px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:340,easing:'cubic-bezier(.22,1.1,.36,1)'});dialogAnimations.set(dialog,a);}
  }
- async function closeDialog(dialog){if(!dialog.open)return;const old=dialogAnimations.get(dialog),computed=getComputedStyle(dialog),from={opacity:computed.opacity,transform:computed.transform};old?.cancel();dialog.inert=true;
+ async function closeDialog(dialog){if(!dialog.open)return;const old=dialogAnimations.get(dialog),computed=getComputedStyle(dialog),from={opacity:computed.opacity,transform:computed.transform};old?.cancel();dialog.inert=true;dialog.classList.add('is-closing');
   if(!reduce.matches){const a=dialog.animate([from,{opacity:0,transform:'translateY(8px) scale(.985)'}],{duration:180,easing:'cubic-bezier(.4,0,1,1)'});dialogAnimations.set(dialog,a);await a.finished.catch(()=>{});if(dialogAnimations.get(dialog)!==a)return;}
-  dialog.close();dialog.inert=false;
+  dialog.close();dialog.inert=false;dialog.classList.remove('is-closing');const previous=dialogReturnFocus.get(dialog),target=previous?.isConnected?previous:dialog===$('progress')?$('history').querySelector('[data-task="'+progressId+'"]'):null;if(target&&!target.disabled)target.focus({preventScroll:true});
  }
  function confirm(action,target={}){
   confirmation={action,target};$('confirmAction').classList.toggle('danger',action==='off');$('confirmAction').classList.toggle('primary',action!=='off');$('confirmTitle').textContent={on:'让北辰重新就绪？',off:'暂时关闭 Redis？',switch:'为新对话更换模型？'}[action]||'确认操作';
   $('confirmBody').textContent={on:'将创建或复用 Redis 并连接北辰，核验通过后恢复监测。Redis 开启期间按量计费。',off:'将销毁按量 Redis。云端学生会话与额度状态会清空，保留重建配置；服务工作台仍可登录。',switch:'先检查所选模型与档位，检查通过后再更新配置。切换会重载服务实例，建议在没有进行中的学生请求时操作。'}[action];
-  $('confirmAction').textContent=action==='off'?'确认关闭':action==='on'?'确认开启':action==='switch'?'检查并应用':'确认保存';const m=model();$('confirmDetail').hidden=action!=='switch';$('confirmDetail').textContent=action==='switch'?[provider().label,m.name+' · '+m.id,'思考强度：'+(efforts[target.effort]||target.effort)+' / '+m.efforts[target.effort]].join('\n'):'';openDialog($('confirm'));
+  $('confirmAction').textContent=action==='off'?'确认关闭':action==='on'?'确认开启':action==='switch'?'检查并应用':'确认保存';const m=model();$('confirmDetail').hidden=action!=='switch';$('confirmDetail').textContent=action==='switch'?[provider().label,m.name+' · '+m.id,'思考强度：'+(efforts[target.effort]||target.effort)+' / '+m.efforts[target.effort]].join('\n'):'';openDialog($('confirm'),$({on:'start',off:'stop',switch:'applyModel'}[action]));
  }
  async function loadProgress(id){
   try{const data=await api('/tasks/'+id);if(!session||progressId!==id)return;$('progressTitle').textContent=titles[data.action]||'任务进度';$('progressSteps').replaceChildren();const steps=data.jobs.flatMap(j=>j.steps).filter(s=>!['Set up job','Complete job'].includes(s.name));
-   for(const step of steps){const li=el('li'),mark=step.conclusion==='success'?'✓':step.conclusion==='failure'?'!':step.status==='in_progress'?'◌':'·';li.append(el('span',mark,'step-mark '+(step.conclusion||'')),el('span',step.name));$('progressSteps').append(li);}
+   for(const step of steps){const li=el('li'),mark=el('span',undefined,'step-mark '+(step.conclusion||step.status||''));if(step.conclusion==='success'||step.conclusion==='failure')mark.append(icon(step.conclusion==='success'?'check':'close'));li.append(mark,el('span',step.name));$('progressSteps').append(li);}
    if(!steps.length)$('progressSteps').append(el('li','任务正在等待执行。'));$('progressHint').textContent=data.status==='completed'?(data.conclusion==='success'?'任务已完成，最终状态已回读。':'任务未完成，原有配置以最新核验结果为准。'):'任务在云端执行，关闭页面不会中断。';
-  }catch(e){$('progressHint').textContent=message(e);}
+  }catch(e){if(session&&progressId===id&&$('progress').open)$('progressHint').textContent=message(e);}
  }
- function showProgress(id){progressId=String(id);$('progressSteps').replaceChildren(el('li','正在读取进度…'));$('progressHint').textContent='';openDialog($('progress'));loadProgress(progressId);}
- $('loginForm').addEventListener('submit',login);$('code').addEventListener('input',()=>{const clean=$('code').value.replace(/\D/g,'').slice(0,6);$('code').value=clean;if(clean.length===6)login();});
+ function showProgress(id,returnFocus){progressId=String(id);$('progressSteps').replaceChildren(el('li','正在读取进度…'));$('progressHint').textContent='';openDialog($('progress'),returnFocus);loadProgress(progressId);}
+ $('loginForm').addEventListener('submit',login);$('code').addEventListener('input',()=>{const clean=$('code').value.replace(/\D/g,'').slice(0,6);$('code').value=clean;$('code').removeAttribute('aria-invalid');if(clean.length===6)login();});
  $('logout').onclick=async()=>{if(submitting)return;$('logout').disabled=true;try{await api('/session',{method:'DELETE'});lock('你已退出工作台。');}catch(e){if(session)error('退出暂未确认，请重试。');}finally{$('logout').disabled=false;}};
- $('themeButton').onclick=()=>{const value=window.beichenTheme.next();$('themeButton').setAttribute('aria-label','界面主题：'+({auto:'跟随系统',light:'日光',dark:'夜航'}[value])+'，点击切换');};
+ function themeLabel(){const value=window.beichenTheme.get(),label={auto:'跟随系统',light:'日光',dark:'夜航'}[value];$('themeIcon').setAttribute('href','#icon-'+value);$('themeName').textContent=label;$('themeButton').setAttribute('aria-label','界面主题：'+label+'，点击切换');}
+ $('themeButton').onclick=()=>{window.beichenTheme.next();themeLabel();};window.addEventListener('beichen-theme',themeLabel);themeLabel();
  $('refresh').onclick=()=>submit('status');$('retry').onclick=()=>pending?.uncertain?submit(pending.action,pending.target,pending.id):refresh();
  $('start').onclick=()=>confirm('on');$('stop').onclick=()=>confirm('off');$('cancel').onclick=()=>closeDialog($('confirm'));$('confirmAction').onclick=async()=>{const c=confirmation;if(!c||submitting)return;confirmation=null;await closeDialog($('confirm'));submit(c.action,c.target);};
  async function testConnection(){
@@ -119,14 +123,15 @@
   testing=true;probeController=new AbortController();const controller=probeController;$('probeResult').hidden=false;$('probeResult').className='probe-result';$('probeResult').textContent='正在连接 '+name+' · '+target.effort+'…';buttons();
   const elapsed=setInterval(()=>{if(generation===epoch&&testing)$('probeResult').textContent='正在连接 '+name+' · '+target.effort+'，已等待 '+Math.floor((Date.now()-started)/1000)+' 秒…';},1000);
   try{const result=await api('/probe',{method:'POST',body:target,signal:controller.signal,timeoutMs:175000});if(generation!==epoch)return;$('probeResult').className='probe-result success';$('probeResult').textContent='连接成功 · '+(result.latencyMs/1000).toFixed(1)+' 秒 · '+name+' / '+target.effort;}
-  catch(e){if(generation===epoch&&session){$('probeResult').className='probe-result '+(controller.signal.aborted?'':'failure');$('probeResult').textContent=controller.signal.aborted?'本次测试已取消。':message(e);}}
+  catch(e){if(generation===epoch&&session){$('probeResult').className='probe-result '+(controller.signal.aborted?'cancelled':'failure');$('probeResult').textContent=controller.signal.aborted?'本次测试已取消。':message(e);}}
   finally{clearInterval(elapsed);if(generation===epoch){testing=false;probeController=null;buttons();}}
  }
  $('probeModel').onclick=testConnection;
  $('modelForm').onsubmit=e=>{e.preventDefault();if($('applyModel').disabled)return;confirm('switch',{provider:$('provider').value,model:$('model').value,effort:selectedEffort,...($('provider').value==='openai-codex'?{accountId:$('account').value}:{})});};
  $('provider').onchange=()=>{$('probeResult').hidden=true;dirty=true;desiredModel='';selectedEffort='';$('search').value='';modelOptions();};$('model').onchange=()=>{$('probeResult').hidden=true;dirty=true;desiredModel=$('model').value;modelHelp();};$('search').oninput=()=>{$('probeResult').hidden=true;dirty=true;modelOptions();};$('account').onchange=()=>{$('probeResult').hidden=true;dirty=true;buttons();};
+ $('clearSearch').onclick=()=>{$('search').value='';$('search').dispatchEvent(new Event('input',{bubbles:true}));$('search').focus();};
  $('efforts').onclick=e=>{const b=e.target.closest('[data-effort]');if(b&&!b.disabled)chosenEffort(b.dataset.effort);};$('efforts').onkeydown=e=>{const nodes=[...$('efforts').children].filter(b=>!b.disabled),index=nodes.indexOf(e.target);if(index<0||!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?nodes.length-1:(index+(e.key==='ArrowLeft'?-1:1)+nodes.length)%nodes.length;chosenEffort(nodes[next].dataset.effort);nodes[next].focus();};
- $('history').onclick=e=>{const b=e.target.closest('[data-task]');if(b)showProgress(b.dataset.task);};$('taskDetails').onclick=()=>latest?.active?showProgress(latest.active.id):refresh();$('closeProgress').onclick=()=>closeDialog($('progress'));
+ $('history').onclick=e=>{const b=e.target.closest('[data-task]');if(b)showProgress(b.dataset.task,b);};$('taskDetails').onclick=()=>latest?.active?showProgress(latest.active.id,$('taskDetails')):refresh();$('closeProgress').onclick=()=>closeDialog($('progress'));
  for(const dialog of [$('confirm'),$('progress')]){dialog.addEventListener('cancel',e=>{e.preventDefault();closeDialog(dialog);});dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog(dialog);}});}
  document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(!document.hidden&&session)refresh();});window.addEventListener('pageshow',e=>{if(e.persisted&&session)refresh();});
  if(session?.token&&session.expiresAt>Date.now())enter();else{session=null;storage.set('bc_console_session',null);}
