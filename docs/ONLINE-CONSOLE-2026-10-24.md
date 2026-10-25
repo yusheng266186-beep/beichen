@@ -1,6 +1,6 @@
 # 北辰在线服务工作台
 
-入口：[北辰 · 服务工作台](https://yusheng266186-beep.github.io/beichen/admin/)。北辰学生页“谈心设置”内也有维护者入口。网页直接随北辰仓库的GitHub Pages发布，不再要求下载HTML。
+入口：[北辰 · 服务工作台](https://yusheng266186-beep.github.io/beichen/admin/)。工作台仅通过独立网址进入，学生前端不提供入口。网页直接随北辰仓库的GitHub Pages发布，不再要求下载HTML。
 
 ## 使用
 
