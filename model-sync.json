@@ -1,7 +1,7 @@
 {
   "sourceRepository": "yusheng266186-beep/jianwei-observatory",
-  "sourceCommit": "a21a2eae80999c71f8ddd5e75def58ace391fed6",
-  "profileVersion": "v2.14.0-jianwei-codebuddy.20261024",
+  "sourceCommit": "f6bc206ce3c355e680404033d40b24f90bfb09c4",
+  "profileVersion": "v2.14.0-jianwei-terra61.20261027",
   "providers": 16,
-  "models": 169
+  "models": 170
 }

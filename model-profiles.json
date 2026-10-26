@@ -7198,6 +7198,68 @@
           "high",
           "xhigh"
         ]
+      },
+      "gpt-6.1-terra": {
+        "family": "gpt",
+        "name": "GPT-6.1 Terra",
+        "contextWindow": 1050000,
+        "maxTokens": 128000,
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "none": "none",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "tokenField": "max_completion_tokens",
+        "thinkingFormat": "openai",
+        "adaptiveThinking": false,
+        "reasoning": true,
+        "compat": {
+          "supportsDeveloperRole": true,
+          "supportsMaxOutputTokens": false,
+          "supportsStrictMode": false
+        },
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "none": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "none": 49152,
+          "low": 49152,
+          "medium": 49152,
+          "high": 49152,
+          "xhigh": 49152,
+          "max": 49152
+        },
+        "note": "使用工作台云端授权账号。支持 none、low、medium、high、xhigh、max；默认建议 medium，实际可用性取决于所选账号。",
+        "vision": true,
+        "catalogSource": {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+          "observedAt": "2026-10-27"
+        },
+        "nativeEfforts": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ]
       }
     },
     "gemini": {
@@ -7962,5 +8024,5 @@
       }
     }
   },
-  "sourceVersion": "v2.14.0-jianwei-codebuddy.20261024"
+  "sourceVersion": "v2.14.0-jianwei-terra61.20261027"
 }

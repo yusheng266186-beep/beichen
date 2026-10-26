@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{EventEmitter}=require('node:events');
 const providers=require('../api-providers.json'),profiles=require('../model-profiles.json'),adapter=require('../model-adapter'),normalizer=require('../upstream-stream'),chat=require('../official-chat'),ops=require('../maintenance');
 test('all synced text models have adapters and supported native reasoning; removed image routes stay absent',()=>{
- const sync=require('../model-sync.json');assert.equal(Object.keys(providers).length,sync.providers);assert.equal(Object.values(providers).reduce((n,p)=>n+p.catalog.length,0),169);assert.equal(fs.existsSync(path.join(__dirname,'../image-providers.json')),false);
+ const sync=require('../model-sync.json');assert.equal(Object.keys(providers).length,sync.providers);assert.equal(Object.values(providers).reduce((n,p)=>n+p.catalog.length,0),170);assert.equal(fs.existsSync(path.join(__dirname,'../image-providers.json')),false);
  for(const [name,p] of Object.entries(providers))for(const model of p.catalog){const profile=adapter.modelProfile({name,model});assert(profile,name+'/'+model);for(const effort of Object.keys(profile.efforts)){const body=adapter.adaptModelBody({messages:[{role:'system',content:'规则'},{role:'user',content:'37×19'}],max_tokens:16384,effort},{name,model});assert(body);assert(Object.hasOwn(profile.chatBudgets,effort));if(body.thinking?.budget_tokens!==undefined)assert(Number.isFinite(body.thinking.budget_tokens),name+'/'+model+'/'+effort);}}
  assert.deepEqual(profiles.providers['openai-codex']['gpt-6.1-sol'].nativeEfforts,['low','medium','high','xhigh','max','ultra']);assert.deepEqual(profiles.providers['kimi-code'].k3.nativeEfforts,['low','high','max']);
 });
@@ -20,6 +20,12 @@ test('official completion pins the selected account, preserves all conversation 
  const messages=[{role:'system',content:'北辰原始指令'},{role:'user',content:'最早的完整经历'},{role:'assistant',content:'追问'},{role:'user',content:'最近的选择'}];
  const result=await chat.complete({messages,effort:'ultra'},{name:'openai-codex',model:'gpt-6.1-sol',accountId:'b'.repeat(32)},{control,methods:{complete:async(rt,p,g)=>{seen={rt,p,g};return {output:'收到'};}}});
  assert.equal(result.output,'收到');assert.equal(bound.codexAccountId,'b'.repeat(32));assert.equal(seen.p.system,messages[0].content);assert.deepEqual(seen.p.input.messages,messages.slice(1));assert.equal(seen.g.reasoningEffort,'ultra');
+});
+test('GPT-6.1 Terra passes every supported native effort and the complete conversation to the selected official account',async()=>{
+ const model='gpt-6.1-terra',native=['none','low','medium','high','xhigh','max'],profile=profiles.providers['openai-codex'][model];
+ assert(providers['openai-codex'].catalog.includes(model));assert.deepEqual(profile.nativeEfforts,native);assert.equal(profile.efforts.ultra,undefined);assert.equal(profile.contextWindow,1050000);
+ const messages=[{role:'system',content:'保留北辰指令'},{role:'user',content:'早先经历'},{role:'assistant',content:'追问'},{role:'user',content:'最新选择'}];
+ for(const effort of native){let seen;const result=await chat.complete({messages,effort},{name:'openai-codex',model,accountId:'b'.repeat(32)},{control:{bind:async g=>({...g,codexAccountId:g.codexAccountId}),withAccount:async(id,fn)=>{assert.equal(id,'b'.repeat(32));return fn('runtime');}},methods:{complete:async(rt,p,g)=>{seen={p,g};return {output:'703'};}}});assert.equal(result.output,'703');assert.equal(seen.g.model,model);assert.equal(seen.g.reasoningEffort,effort);assert.equal(seen.p.system,messages[0].content);assert.deepEqual(seen.p.input.messages,messages.slice(1));}
 });
 function stream(){const req=new EventEmitter(),res=new EventEmitter();res.headersSent=false;res.destroyed=false;res.writableEnded=false;res.text='';res.writeHead=()=>{res.headersSent=true;};res.write=text=>(res.text+=text,true);res.end=text=>{res.text+=text||'';res.writableEnded=true;};return {req,res};}
 test('official text and public summary form a compatible SSE stream; a failed result never looks complete',async()=>{
