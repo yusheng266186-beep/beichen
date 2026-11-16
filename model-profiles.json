@@ -7981,12 +7981,14 @@
         "family": "workbuddy-account",
         "name": "Hy3",
         "efforts": {
-          "eco": "low",
-          "standard": "low",
-          "deep": "low"
+          "eco": "high",
+          "standard": "enabled",
+          "deep": "high",
+          "high": "high"
         },
         "nativeEfforts": [
-          "standard"
+          "standard",
+          "high"
         ],
         "tokenField": "max_tokens",
         "maxTokens": 32768,
@@ -7996,25 +7998,37 @@
         "chatBudgets": {
           "eco": 3500,
           "standard": 3500,
-          "deep": 3500
+          "deep": 3500,
+          "high": 3500
         },
         "reportBudgets": {
           "eco": 16384,
           "standard": 16384,
-          "deep": 16384
+          "deep": 16384,
+          "high": 16384
         },
-        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型固定使用 low 思考。"
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
       },
       "deepseek-v4.1-flash": {
         "family": "workbuddy-account",
-        "name": "Deepseek-V4.1-Flash",
+        "name": "DeepSeek-V4.1-Flash",
         "efforts": {
           "eco": "low",
-          "standard": "low",
-          "deep": "low"
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "nativeEfforts": [
-          "standard"
+          "standard",
+          "low",
+          "high",
+          "max"
         ],
         "tokenField": "max_tokens",
         "maxTokens": 32768,
@@ -8024,25 +8038,41 @@
         "chatBudgets": {
           "eco": 3500,
           "standard": 3500,
-          "deep": 3500
+          "deep": 3500,
+          "low": 3500,
+          "high": 3500,
+          "max": 3500
         },
         "reportBudgets": {
           "eco": 16384,
           "standard": 16384,
-          "deep": 16384
+          "deep": 16384,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
-        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型固定使用 low 思考。"
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
       },
       "glm-5.3-flash": {
         "family": "workbuddy-account",
         "name": "GLM-5.3-Flash",
         "efforts": {
           "eco": "low",
-          "standard": "low",
-          "deep": "low"
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
         },
         "nativeEfforts": [
-          "standard"
+          "standard",
+          "low",
+          "high",
+          "max"
         ],
         "tokenField": "max_tokens",
         "maxTokens": 32768,
@@ -8052,14 +8082,656 @@
         "chatBudgets": {
           "eco": 3500,
           "standard": 3500,
-          "deep": 3500
+          "deep": 3500,
+          "low": 3500,
+          "high": 3500,
+          "max": 3500
         },
         "reportBudgets": {
           "eco": 16384,
           "standard": 16384,
-          "deep": 16384
+          "deep": 16384,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
         },
-        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型固定使用 low 思考。"
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "hy4std": {
+        "family": "workbuddy-account",
+        "name": "Hy4",
+        "efforts": {
+          "eco": "high",
+          "standard": "enabled",
+          "deep": "high",
+          "high": "high"
+        },
+        "nativeEfforts": [
+          "standard",
+          "high"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "high": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "high": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "hy3-x": {
+        "family": "workbuddy-account",
+        "name": "Hy3-X",
+        "efforts": {
+          "eco": "high",
+          "standard": "enabled",
+          "deep": "high",
+          "high": "high"
+        },
+        "nativeEfforts": [
+          "standard",
+          "high"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "high": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "high": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "glm-5.3": {
+        "family": "workbuddy-account",
+        "name": "GLM-5.3",
+        "efforts": {
+          "eco": "low",
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "low",
+          "high",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "low": 3500,
+          "high": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "glm-5.2": {
+        "family": "workbuddy-account",
+        "name": "GLM-5.2",
+        "efforts": {
+          "eco": "minimal",
+          "standard": "enabled",
+          "deep": "max",
+          "minimal": "minimal",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "minimal": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "minimal": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "space-bunny": {
+        "family": "workbuddy-account",
+        "name": "Space-Bunny",
+        "efforts": {
+          "eco": "low",
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "minimax-m3.1-flash": {
+        "family": "workbuddy-account",
+        "name": "MiniMax-M3.1-Flash",
+        "efforts": {
+          "eco": "low",
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "minimax-m2.7": {
+        "family": "workbuddy-account",
+        "name": "MiniMax-M2.7",
+        "efforts": {
+          "eco": "minimal",
+          "standard": "enabled",
+          "deep": "max",
+          "minimal": "minimal",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "minimal": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "minimal": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "kimi-k3.1-pro": {
+        "family": "workbuddy-account",
+        "name": "Kimi-K3.1-Pro",
+        "efforts": {
+          "eco": "low",
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "low",
+          "high",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "low": 3500,
+          "high": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "kimi-k3-1": {
+        "family": "workbuddy-account",
+        "name": "Kimi-K3",
+        "efforts": {
+          "eco": "minimal",
+          "standard": "enabled",
+          "deep": "max",
+          "minimal": "minimal",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "minimal": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "minimal": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "kimi-k2.8-preview": {
+        "family": "workbuddy-account",
+        "name": "Kimi-K2.8-Preview",
+        "efforts": {
+          "eco": "low",
+          "standard": "enabled",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "low",
+          "high",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "low": 3500,
+          "high": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "deepseek-v4-pro": {
+        "family": "workbuddy-account",
+        "name": "DeepSeek-V4-Pro",
+        "efforts": {
+          "eco": "minimal",
+          "standard": "enabled",
+          "deep": "max",
+          "minimal": "minimal",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "minimal": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "minimal": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "step-5-preview": {
+        "family": "workbuddy-account",
+        "name": "Step-5-Preview",
+        "efforts": {
+          "eco": "low",
+          "standard": "enabled",
+          "deep": "high",
+          "low": "low",
+          "medium": "medium",
+          "high": "high"
+        },
+        "nativeEfforts": [
+          "standard",
+          "low",
+          "medium",
+          "high"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
+      },
+      "mimo-v2.6-pro": {
+        "family": "workbuddy-account",
+        "name": "Xiaomi MiMo-V2.6-Pro",
+        "efforts": {
+          "eco": "minimal",
+          "standard": "enabled",
+          "deep": "max",
+          "minimal": "minimal",
+          "low": "low",
+          "medium": "medium",
+          "high": "high",
+          "xhigh": "xhigh",
+          "max": "max"
+        },
+        "nativeEfforts": [
+          "standard",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500,
+          "minimal": 3500,
+          "low": 3500,
+          "medium": 3500,
+          "high": 3500,
+          "xhigh": 3500,
+          "max": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384,
+          "minimal": 16384,
+          "low": 16384,
+          "medium": 16384,
+          "high": 16384,
+          "xhigh": 16384,
+          "max": 16384
+        },
+        "note": "使用云端登录账号，仅支持文本。思考档位来自该账号的官方 CLI。",
+        "catalogSource": {
+          "cliVersion": "2.184.0",
+          "observedAt": "2026-11-16"
+        }
       }
     },
     "gemini": {
@@ -8166,5 +8838,5 @@
       }
     }
   },
-  "sourceVersion": "v2.15.0-jianwei-workbuddy-account.20261116"
+  "sourceVersion": "v2.16.0-jianwei-workbuddy-catalog.20261116"
 }

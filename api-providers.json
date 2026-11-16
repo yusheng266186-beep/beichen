@@ -343,11 +343,26 @@
     "protocol": "chat-completions",
     "model": "deepseek-v4.1-flash",
     "catalog": [
-      "hy4free",
-      "hy4-preview",
+      "hy4std",
       "hy3",
+      "hy3-x",
       "deepseek-v4.1-flash",
-      "glm-5.3-flash"
+      "glm-5.3",
+      "glm-5.3-flash",
+      "glm-5.2",
+      "space-bunny",
+      "minimax-m3.1-flash",
+      "minimax-m2.7",
+      "kimi-k3.1-pro",
+      "kimi-k3-1",
+      "kimi-k2.8-preview",
+      "deepseek-v4-pro",
+      "step-5-preview",
+      "mimo-v2.6-pro"
+    ],
+    "legacyModels": [
+      "hy4free",
+      "hy4-preview"
     ]
   }
 }
