@@ -678,7 +678,7 @@ function proxyChat(req, res, body, config) {
           }
         }, SSE_HEARTBEAT_MS);
         if (heartbeat.unref) heartbeat.unref();
-        let streamBuffer = '', hasContent = false, streamDone = false, streamError = false;
+        let streamBuffer = '', hasContent = false, streamDone = false, streamError = false, rateLimited = false;
         const normalizer=createStreamNormalizer(API_PROVIDERS[config.name]?.protocol);
         const streamDecoder = new (require('string_decoder').StringDecoder)('utf8');
         const inspectLine = line => {
@@ -688,7 +688,10 @@ function proxyChat(req, res, body, config) {
           if (!payload) return;
           try {
             const event = JSON.parse(payload);
-            if (event.error) streamError = true;
+            if (event.error) {
+              streamError = true;
+              if (config.name === 'workbuddy-account' && event.error.code === 'MODEL_RATE_LIMIT') rateLimited = true;
+            }
             for (const choice of event.choices || []) {
               if (choice.delta?.content?.trim() || choice.message?.content?.trim()) hasContent = true;
               if (choice.finish_reason && !['stop','length'].includes(choice.finish_reason)) streamError = true;
@@ -718,6 +721,7 @@ function proxyChat(req, res, body, config) {
             try { forwardChunk(normalizer.end()); } catch (_) { return fail(httpError(502,'BEICHEN_UPSTREAM_INCOMPLETE')); }
             streamBuffer += streamDecoder.end();
             if (streamBuffer.trim()) inspectLine(streamBuffer);
+            if (rateLimited) return fail(httpError(429, 'BEICHEN_UPSTREAM_RATE_LIMIT'));
             if (!streamDone || !hasContent || streamError) return fail(httpError(502, 'BEICHEN_UPSTREAM_INCOMPLETE'));
           }
           responseEnded = true;
