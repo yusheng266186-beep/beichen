@@ -6,7 +6,7 @@ const crypto=require('node:crypto'),providers=require('./api-providers.json'),{m
 const {createControl,secureStore}=require('./official/codex-accounts.cjs');
 const fail=(code,status=400)=>Object.assign(Error(code),{status,code});
 async function relayProbe(input,{req,res,signal}={}){
- const route=providers[input.provider];if(!route||!process.env[route.key])throw fail('BEICHEN_PROVIDER_NOT_CONFIGURED',503);
+ const route=providers[input.provider];if(!route||!process.env[route.key]||input.provider==='workbuddy-account'&&(process.env[route.key].length<32||!require('./workbuddy-account').workbuddyAccountBase()))throw fail('BEICHEN_PROVIDER_NOT_CONFIGURED',503);
  const {EventEmitter}=require('node:events'),request=new EventEmitter(),response=new EventEmitter();request.headers={};request.method='POST';let source='',diagnostic={};
  response.headersSent=false;response.destroyed=false;response.writableEnded=false;response.writeHead=()=>{response.headersSent=true;};response.write=chunk=>(source+=chunk,true);response.end=chunk=>{source+=chunk||'';response.writableEnded=true;};
  const abort=()=>{request.emit('aborted');response.emit('close');};req?.once('aborted',abort);res?.once('close',abort);signal?.addEventListener('abort',abort,{once:true});

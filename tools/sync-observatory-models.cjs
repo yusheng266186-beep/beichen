@@ -12,9 +12,11 @@ for(const [id,p] of Object.entries(providers)){
   let item=control.modelProfile(id,model);
   item=structuredClone(item||{family:'gemini',name:'Gemini 3.8 Flash',efforts:{eco:'low',standard:'high',deep:'high'},tokenField:'max_tokens',note:'Gemini 原生流式协议，按模型支持的思考强度执行。'});
   item.chatBudgets||={eco:8192,standard:16384,deep:32768};item.reportBudgets||={eco:32768,standard:49152,deep:65536};
-  for(const effort of new Set(Object.values(item.efforts)))item.efforts[effort]??=effort;
-  for(const effort of Object.keys(item.efforts)){item.chatBudgets[effort]??=16384;item.reportBudgets[effort]??=49152;}
-  item.nativeEfforts=Object.keys(item.efforts).filter(k=>!['eco','standard','deep'].includes(k));profiles.providers[id][model]=item;
+  if(id!=='workbuddy-account'){
+   for(const effort of new Set(Object.values(item.efforts)))item.efforts[effort]??=effort;
+   item.nativeEfforts=Object.keys(item.efforts).filter(k=>!['eco','standard','deep'].includes(k));
+  }
+  for(const effort of Object.keys(item.efforts)){item.chatBudgets[effort]??=16384;item.reportBudgets[effort]??=49152;}profiles.providers[id][model]=item;
  }
 }
 write('api-providers.json',providers);write('model-profiles.json',profiles);write('model-performance.json',read('model-performance.json'));

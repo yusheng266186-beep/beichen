@@ -2,6 +2,7 @@
 require('./runtime-compat');
 const crypto=require('node:crypto');
 const providers=require('./api-providers.json'),profiles=require('./model-profiles.json');
+const {workbuddyAccountBase}=require('./workbuddy-account');
 const {secureStore}=require('./official/codex-accounts.cjs'),{request}=require('./console-github');
 const PREFIX='openai-codex/beichen-console/',REPO='yusheng266186-beep/beichen-handover',WORKFLOW='beichen-workbench.yml';
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/,TTL=8*60*60*1000;
@@ -42,7 +43,7 @@ function createConsole({env=process.env,store,transport=request,now=Date.now,mat
  function catalog(source={}){
   const old=new Map((source.providers||[]).map(p=>[p.id,p]));
   return Object.entries(providers).map(([id,p])=>{
-   const configured=id==='openai-codex'?env.OPENAI_CODEX_ENABLED==='true':!!env[p.key];
+   const configured=id==='openai-codex'?env.OPENAI_CODEX_ENABLED==='true':!!env[p.key]&&(id!=='workbuddy-account'||env[p.key].length>=32&&!!workbuddyAccountBase(env));
    const models=p.catalog.map(model=>{const profile=profiles.providers?.[id]?.[model]||(id==='deepseek'?profiles.models?.[model]:null),reference=old.get(id)?.capabilities?.[model]?.performance;return {id:model,name:profile?.name||model,efforts:profile?.efforts||{},nativeEfforts:profile?.nativeEfforts||[],note:profile?.note||'',...(reference&&Number.isFinite(reference.tps)?{performance:{tps:reference.tps,observedAt:reference.observedAt}}:{})};});
    return {id,label:p.label,configured,models};
   });
@@ -61,7 +62,7 @@ function createConsole({env=process.env,store,transport=request,now=Date.now,mat
   if(!input||Object.keys(input).some(k=>!['action','provider','model','effort','accountId'].includes(k))||!['status','on','off','switch'].includes(input.action))throw fail('BAD_REQUEST');
   if(['status','on','off'].includes(input.action)){if(Object.keys(input).length!==1)throw fail('BAD_REQUEST');return {action:input.action};}
   const route=providers[input.provider],profile=profiles.providers?.[input.provider]?.[input.model]||(input.provider==='deepseek'?profiles.models?.[input.model]:null);
-  if(!route||!route.catalog.includes(input.model)||!Object.hasOwn(profile?.efforts||{},input.effort)||(input.provider==='openai-codex'?env.OPENAI_CODEX_ENABLED!=='true'||!/^[a-f0-9]{32}$/.test(input.accountId||''):!env[route.key]||input.accountId!==undefined))throw fail('BAD_REQUEST');
+  if(!route||!route.catalog.includes(input.model)||!Object.hasOwn(profile?.efforts||{},input.effort)||(input.provider==='openai-codex'?env.OPENAI_CODEX_ENABLED!=='true'||!/^[a-f0-9]{32}$/.test(input.accountId||''):!env[route.key]||input.provider==='workbuddy-account'&&(env[route.key].length<32||!workbuddyAccountBase(env))||input.accountId!==undefined))throw fail('BAD_REQUEST');
   return {action:'switch',provider:input.provider,model:input.model,effort:input.effort,...(input.accountId?{accountId:input.accountId}:{})};
  }
  async function latest(){let low=0,high=1;while(await vault().get(numbered(high))){low=high;high=high*2+1;}while(high-low>1){const mid=Math.floor((low+high)/2);if(await vault().get(numbered(mid)))low=mid;else high=mid;}return {revision:low,value:low?(await vault().get(numbered(low))).value:null};}

@@ -7262,109 +7262,6 @@
         ]
       }
     },
-    "gemini": {
-      "gemini-3.8-flash": {
-        "family": "gemini",
-        "name": "Gemini 3.8 Flash",
-        "efforts": {
-          "eco": "low",
-          "standard": "high",
-          "deep": "high",
-          "low": "low",
-          "high": "high"
-        },
-        "tokenField": "max_tokens",
-        "note": "Gemini 原生流式协议，按模型支持的思考强度执行。",
-        "chatBudgets": {
-          "eco": 8192,
-          "standard": 16384,
-          "deep": 32768,
-          "low": 16384,
-          "high": 16384
-        },
-        "reportBudgets": {
-          "eco": 32768,
-          "standard": 49152,
-          "deep": 65536,
-          "low": 49152,
-          "high": 49152
-        },
-        "nativeEfforts": [
-          "low",
-          "high"
-        ]
-      }
-    },
-    "deepseek": {
-      "deepseek-flash": {
-        "family": "deepseek",
-        "efforts": {
-          "eco": "low",
-          "standard": "high",
-          "deep": "max",
-          "low": "low",
-          "high": "high",
-          "max": "max"
-        },
-        "tokenField": "max_tokens",
-        "chatBudgets": {
-          "eco": 8192,
-          "standard": 16384,
-          "deep": 32768,
-          "low": 16384,
-          "high": 16384,
-          "max": 16384
-        },
-        "reportBudgets": {
-          "eco": 32768,
-          "standard": 49152,
-          "deep": 65536,
-          "low": 49152,
-          "high": 49152,
-          "max": 49152
-        },
-        "note": "",
-        "nativeEfforts": [
-          "low",
-          "high",
-          "max"
-        ]
-      },
-      "deepseek-v4-pro": {
-        "family": "deepseek",
-        "efforts": {
-          "eco": "low",
-          "standard": "high",
-          "deep": "max",
-          "low": "low",
-          "high": "high",
-          "max": "max"
-        },
-        "tokenField": "max_tokens",
-        "chatBudgets": {
-          "eco": 8192,
-          "standard": 16384,
-          "deep": 32768,
-          "low": 16384,
-          "high": 16384,
-          "max": 16384
-        },
-        "reportBudgets": {
-          "eco": 32768,
-          "standard": 49152,
-          "deep": 65536,
-          "low": 49152,
-          "high": 49152,
-          "max": 49152
-        },
-        "note": "",
-        "nativeEfforts": [
-          "low",
-          "high",
-          "max"
-        ]
-      }
-    },
     "codebuddy": {
       "hy4-preview": {
         "family": "codebuddy",
@@ -8022,7 +7919,252 @@
           "high"
         ]
       }
+    },
+    "workbuddy-account": {
+      "hy4free": {
+        "family": "workbuddy-account",
+        "name": "Hy4 Free",
+        "efforts": {
+          "eco": "off",
+          "standard": "off",
+          "deep": "off"
+        },
+        "nativeEfforts": [
+          "standard"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": false,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384
+        },
+        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型关闭思考。"
+      },
+      "hy4-preview": {
+        "family": "workbuddy-account",
+        "name": "Hy4 preview",
+        "efforts": {
+          "eco": "off",
+          "standard": "off",
+          "deep": "off"
+        },
+        "nativeEfforts": [
+          "standard"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": false,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384
+        },
+        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型关闭思考。"
+      },
+      "hy3": {
+        "family": "workbuddy-account",
+        "name": "Hy3",
+        "efforts": {
+          "eco": "low",
+          "standard": "low",
+          "deep": "low"
+        },
+        "nativeEfforts": [
+          "standard"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384
+        },
+        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型固定使用 low 思考。"
+      },
+      "deepseek-v4.1-flash": {
+        "family": "workbuddy-account",
+        "name": "Deepseek-V4.1-Flash",
+        "efforts": {
+          "eco": "low",
+          "standard": "low",
+          "deep": "low"
+        },
+        "nativeEfforts": [
+          "standard"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384
+        },
+        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型固定使用 low 思考。"
+      },
+      "glm-5.3-flash": {
+        "family": "workbuddy-account",
+        "name": "GLM-5.3-Flash",
+        "efforts": {
+          "eco": "low",
+          "standard": "low",
+          "deep": "low"
+        },
+        "nativeEfforts": [
+          "standard"
+        ],
+        "tokenField": "max_tokens",
+        "maxTokens": 32768,
+        "thinkingFormat": "openai",
+        "reasoning": true,
+        "vision": false,
+        "chatBudgets": {
+          "eco": 3500,
+          "standard": 3500,
+          "deep": 3500
+        },
+        "reportBudgets": {
+          "eco": 16384,
+          "standard": 16384,
+          "deep": 16384
+        },
+        "note": "使用腾讯云里的 WorkBuddy 登录账号。仅支持文本，此模型固定使用 low 思考。"
+      }
+    },
+    "gemini": {
+      "gemini-3.8-flash": {
+        "family": "gemini",
+        "name": "Gemini 3.8 Flash",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "high",
+          "low": "low",
+          "high": "high"
+        },
+        "tokenField": "max_tokens",
+        "note": "Gemini 原生流式协议，按模型支持的思考强度执行。",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152
+        },
+        "nativeEfforts": [
+          "low",
+          "high"
+        ]
+      }
+    },
+    "deepseek": {
+      "deepseek-flash": {
+        "family": "deepseek",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_tokens",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
+      "deepseek-v4-pro": {
+        "family": "deepseek",
+        "efforts": {
+          "eco": "low",
+          "standard": "high",
+          "deep": "max",
+          "low": "low",
+          "high": "high",
+          "max": "max"
+        },
+        "tokenField": "max_tokens",
+        "chatBudgets": {
+          "eco": 8192,
+          "standard": 16384,
+          "deep": 32768,
+          "low": 16384,
+          "high": 16384,
+          "max": 16384
+        },
+        "reportBudgets": {
+          "eco": 32768,
+          "standard": 49152,
+          "deep": 65536,
+          "low": 49152,
+          "high": 49152,
+          "max": 49152
+        },
+        "note": "",
+        "nativeEfforts": [
+          "low",
+          "high",
+          "max"
+        ]
+      }
     }
   },
-  "sourceVersion": "v2.14.0-jianwei-terra61.20261027"
+  "sourceVersion": "v2.15.0-jianwei-workbuddy-account.20261116"
 }

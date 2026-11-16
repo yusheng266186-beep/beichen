@@ -487,6 +487,10 @@ function providerConfig() {
     const key = apiKey || accountToken;
     const model = String(process.env[provider.prefix + '_MODEL'] || provider.model).trim();
     if (!key || !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,199}$/.test(model)) return null;
+    if(name==='workbuddy-account'){
+      const url=require('./workbuddy-account').workbuddyAccountBase();
+      return url&&key.length>=32&&provider.catalog.includes(model)?{name,key,model,protocol:provider.protocol,auth:'bearer',url}:null;
+    }
     return { name, key, model, protocol:provider.protocol, auth: apiKey ? 'bearer' : 'account',
       url: String(process.env[provider.prefix + '_BASE_URL'] || provider.url).trim() };
   }
@@ -499,6 +503,11 @@ function providerConfig() {
 }
 
 function upstreamUrl(config) {
+  if(config.name==='workbuddy-account'){
+    const base=require('./workbuddy-account').workbuddyAccountBase();
+    if(!base||!API_PROVIDERS[config.name].catalog.includes(config.model))throw httpError(503,'BEICHEN_PROVIDER_NOT_CONFIGURED');
+    return new URL(base+'/chat/completions');
+  }
   if(config.name==='openai-codex'){
     if(config.url!=='codex://official'||!API_PROVIDERS['openai-codex'].catalog.includes(config.model))throw httpError(503,'BEICHEN_PROVIDER_NOT_CONFIGURED');
     return new URL('https://chatgpt.com/backend-api/codex/responses');
